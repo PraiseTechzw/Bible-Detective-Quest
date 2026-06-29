@@ -18,8 +18,6 @@ export default function CaseScreen() {
   const caseData = CASES.find((c) => c.id === id);
   const { completeCase, isCaseSolved } = useGame();
   const [step, setStep] = useState<GameStep>("intro");
-  const c = colors.light;
-
   if (!caseData) {
     router.back();
     return null;
@@ -37,7 +35,7 @@ export default function CaseScreen() {
   };
 
   return (
-    <View style={[styles.root, { backgroundColor: c.background }]}>
+    <View style={[styles.root, { backgroundColor: colors.bg }]}>
       {step !== "reveal" && (
         <StepHeader step={step} caseTitle={caseData.title} caseNumber={caseData.caseNumber} />
       )}
