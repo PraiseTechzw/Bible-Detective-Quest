@@ -10,15 +10,21 @@ interface GameState {
   solvedCases: string[];
   badges: string[];
   totalRankProgress: number;
+  streak: number;
+  lastPlayedDate: string | null;
+  totalXPEarned: number;
+  casesAttempted: number;
+  gamesPlayed: number;
 }
 
 interface GameContextValue extends GameState {
   completeCase: (caseId: string, rewards: { xp: number; coins: number; badge: string; rankProgress: number }) => void;
   isCaseSolved: (caseId: string) => boolean;
   isCaseLocked: (caseId: string, index: number) => boolean;
+  recordPlay: () => void;
 }
 
-const STORAGE_KEY = "@bible_detective_game_state";
+const STORAGE_KEY = "@bible_detective_game_state_v2";
 
 const defaultState: GameState = {
   playerName: "Detective",
@@ -29,9 +35,30 @@ const defaultState: GameState = {
   solvedCases: [],
   badges: [],
   totalRankProgress: 0,
+  streak: 0,
+  lastPlayedDate: null,
+  totalXPEarned: 0,
+  casesAttempted: 0,
+  gamesPlayed: 0,
 };
 
 const GameContext = createContext<GameContextValue | null>(null);
+
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function updateStreak(prev: GameState): { streak: number; lastPlayedDate: string } {
+  const today = todayStr();
+  if (prev.lastPlayedDate === today) {
+    return { streak: prev.streak, lastPlayedDate: today };
+  }
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yStr = yesterday.toISOString().slice(0, 10);
+  const streak = prev.lastPlayedDate === yStr ? prev.streak + 1 : 1;
+  return { streak, lastPlayedDate: today };
+}
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<GameState>(defaultState);
@@ -42,7 +69,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       if (raw) {
         try {
           const saved = JSON.parse(raw) as GameState;
-          setState(saved);
+          setState({ ...defaultState, ...saved });
         } catch {}
       }
       setLoaded(true);
@@ -55,6 +82,17 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     }
   }, [state, loaded]);
 
+  const recordPlay = useCallback(() => {
+    setState((prev) => {
+      const s = updateStreak(prev);
+      return {
+        ...prev,
+        ...s,
+        gamesPlayed: prev.gamesPlayed + 1,
+      };
+    });
+  }, []);
+
   const completeCase = useCallback(
     (caseId: string, rewards: { xp: number; coins: number; badge: string; rankProgress: number }) => {
       setState((prev) => {
@@ -66,6 +104,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           : [...prev.badges, rewards.badge];
         const newSolved = [...prev.solvedCases, caseId];
         const newRankProgress = prev.totalRankProgress + rewards.rankProgress;
+        const streakData = updateStreak(prev);
 
         let level = prev.level;
         let xp = newXP;
@@ -85,6 +124,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           badges: newBadges,
           solvedCases: newSolved,
           totalRankProgress: newRankProgress,
+          totalXPEarned: prev.totalXPEarned + rewards.xp,
+          casesAttempted: prev.casesAttempted + 1,
+          ...streakData,
         };
       });
     },
@@ -99,7 +141,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const isCaseLocked = useCallback(
     (caseId: string, index: number) => {
       if (index === 0) return false;
-      return !state.solvedCases.includes(String(index).padStart(3, "0"));
+      const cases = require("@/data/cases").CASES as { id: string }[];
+      return !state.solvedCases.includes(cases[index - 1]?.id ?? "");
     },
     [state.solvedCases]
   );
@@ -107,7 +150,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   if (!loaded) return null;
 
   return (
-    <GameContext.Provider value={{ ...state, completeCase, isCaseSolved, isCaseLocked }}>
+    <GameContext.Provider value={{ ...state, completeCase, isCaseSolved, isCaseLocked, recordPlay }}>
       {children}
     </GameContext.Provider>
   );
