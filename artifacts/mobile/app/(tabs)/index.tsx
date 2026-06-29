@@ -1,14 +1,8 @@
 import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React from "react";
-import {
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import colors from "@/constants/colors";
 import { CASES } from "@/data/cases";
@@ -26,102 +20,145 @@ const RANK_TITLES = [
 ];
 
 export default function HomeScreen() {
-  const c = colors.light;
   const insets = useSafeAreaInsets();
-  const { level, xp, xpToNextLevel, coins, solvedCases, badges, isCaseSolved, isCaseLocked } =
-    useGame();
+  const { level, xp, xpToNextLevel, coins, solvedCases, badges, isCaseSolved, isCaseLocked } = useGame();
 
   const rankTitle = RANK_TITLES[Math.min(level - 1, RANK_TITLES.length - 1)];
-  const xpProgress = xp / xpToNextLevel;
-
-  const topPad = Platform.OS === "web" ? 67 : insets.top;
-  const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
+  const xpPct = Math.min((xp / xpToNextLevel) * 100, 100);
+  const topPad = Platform.OS === "web" ? 60 : insets.top;
 
   return (
-    <View style={[styles.root, { backgroundColor: c.background }]}>
+    <View style={styles.root}>
+      <LinearGradient colors={["#0A0D1A", "#070A13", "#070A13"]} style={StyleSheet.absoluteFill} />
+
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: topPad + 8 }]}>
+        <View>
+          <Text style={styles.titleLine1}>BIBLE</Text>
+          <Text style={styles.titleLine2}>DETECTIVE</Text>
+          <View style={[styles.titleUnderline, { backgroundColor: colors.gold }]} />
+        </View>
+        <Pressable style={styles.coinsBtn}>
+          <LinearGradient
+            colors={["rgba(212,150,42,0.2)", "rgba(196,125,26,0.08)"]}
+            style={styles.coinsBg}
+          >
+            <Feather name="disc" size={14} color={colors.gold} />
+            <Text style={styles.coinsVal}>{coins}</Text>
+          </LinearGradient>
+        </Pressable>
+      </View>
+
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={{ paddingTop: topPad + 12, paddingBottom: bottomPad + 24 }}
+        contentContainerStyle={{ paddingBottom: (Platform.OS === "web" ? 24 : insets.bottom) + 24 }}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <View>
-            <Text style={[styles.appTitle, { color: c.gold }]}>BIBLE DETECTIVE</Text>
-            <Text style={[styles.appSub, { color: c.mutedForeground }]}>Sacred Truth Uncovered</Text>
-          </View>
-          <View style={[styles.coinsChip, { backgroundColor: `${c.gold}20`, borderColor: `${c.gold}40` }]}>
-            <Feather name="circle" size={13} color={c.gold} />
-            <Text style={[styles.coinsText, { color: c.gold }]}>{coins}</Text>
-          </View>
-        </View>
+        {/* Profile card */}
+        <View style={styles.profileWrap}>
+          <LinearGradient
+            colors={["#1C2640", "#0F1628", "#0A0F1E"]}
+            style={styles.profileCard}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <View style={[styles.profileGoldBorder, { borderColor: colors.goldBorder }]} />
 
-        <View style={[styles.profileCard, { backgroundColor: c.card, borderColor: c.border }]}>
-          <View style={styles.profileTop}>
-            <View style={[styles.detectiveBadge, { backgroundColor: `${c.gold}20`, borderColor: `${c.gold}50` }]}>
-              <Feather name="shield" size={28} color={c.gold} />
-            </View>
-            <View style={styles.profileInfo}>
-              <Text style={[styles.rankTitle, { color: c.foreground }]}>{rankTitle}</Text>
-              <Text style={[styles.levelText, { color: c.mutedForeground }]}>Level {level}</Text>
-            </View>
-            <View style={styles.statsCol}>
-              <Text style={[styles.statsNum, { color: c.foreground }]}>{solvedCases.length}</Text>
-              <Text style={[styles.statsLabel, { color: c.mutedForeground }]}>Solved</Text>
-            </View>
-          </View>
-
-          <View style={styles.xpRow}>
-            <Text style={[styles.xpLabel, { color: c.mutedForeground }]}>
-              XP: {xp} / {xpToNextLevel}
-            </Text>
-            <Text style={[styles.xpLabel, { color: c.gold }]}>Level {level + 1}</Text>
-          </View>
-          <View style={[styles.xpBarBg, { backgroundColor: c.muted }]}>
-            <View
-              style={[
-                styles.xpBarFill,
-                { backgroundColor: c.gold, width: `${Math.min(xpProgress * 100, 100)}%` },
-              ]}
-            />
-          </View>
-
-          {badges.length > 0 && (
-            <View style={styles.badgesRow}>
-              {badges.slice(0, 4).map((badge, i) => (
-                <View key={i} style={[styles.badgeChip, { backgroundColor: `${c.gold}15`, borderColor: `${c.gold}30` }]}>
-                  <Feather name="award" size={10} color={c.gold} />
-                  <Text style={[styles.badgeText, { color: c.gold }]} numberOfLines={1}>
-                    {badge}
-                  </Text>
+            {/* Top section */}
+            <View style={styles.profileTop}>
+              <View style={styles.badgeWrap}>
+                <LinearGradient
+                  colors={["rgba(212,150,42,0.25)", "rgba(196,125,26,0.08)"]}
+                  style={styles.badgeBg}
+                >
+                  <Feather name="shield" size={26} color={colors.gold} />
+                </LinearGradient>
+                <View style={styles.levelPill}>
+                  <Text style={styles.levelPillText}>{level}</Text>
                 </View>
-              ))}
+              </View>
+              <View style={styles.profileMid}>
+                <Text style={styles.rankTitle}>{rankTitle}</Text>
+                <Text style={styles.rankSub}>Sacred Investigator</Text>
+              </View>
+              <View style={styles.solvedWrap}>
+                <Text style={styles.solvedNum}>{solvedCases.length}</Text>
+                <Text style={styles.solvedLabel}>Solved</Text>
+              </View>
             </View>
-          )}
+
+            {/* XP Bar */}
+            <View style={styles.xpSection}>
+              <View style={styles.xpLabelRow}>
+                <Text style={styles.xpLabel}>EXPERIENCE</Text>
+                <Text style={styles.xpVal}>{xp} <Text style={styles.xpMax}>/ {xpToNextLevel}</Text></Text>
+              </View>
+              <View style={styles.xpBarBg}>
+                <LinearGradient
+                  colors={[colors.goldLight, colors.gold]}
+                  style={[styles.xpBarFill, { width: `${xpPct}%` }]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                />
+                <View style={[styles.xpGlow, { width: `${xpPct}%` }]} />
+              </View>
+              <Text style={styles.nextLevelLabel}>Level {level + 1} → {xpToNextLevel - xp} XP needed</Text>
+            </View>
+
+            {/* Badges */}
+            {badges.length > 0 && (
+              <View style={styles.badgesRow}>
+                {badges.slice(0, 3).map((b, i) => (
+                  <View key={i} style={styles.badgeChip}>
+                    <Feather name="award" size={9} color={colors.gold} />
+                    <Text style={styles.badgeChipText} numberOfLines={1}>{b}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </LinearGradient>
         </View>
 
-        <View style={styles.sectionHeader}>
-          <Feather name="folder" size={16} color={c.gold} />
-          <Text style={[styles.sectionTitle, { color: c.foreground }]}>Active Case Files</Text>
-          <Text style={[styles.sectionCount, { color: c.mutedForeground }]}>
-            {solvedCases.length}/{CASES.length} solved
-          </Text>
+        {/* Stats row */}
+        <View style={styles.statsRow}>
+          {[
+            { icon: "folder" as const, label: "Cases", val: `${solvedCases.length}/${CASES.length}` },
+            { icon: "award" as const, label: "Badges", val: String(badges.length) },
+            { icon: "zap" as const, label: "Total XP", val: String(xp + solvedCases.reduce((acc, id) => {
+              const c = CASES.find(c => c.id === id);
+              return acc + (c?.rewards.xp ?? 0);
+            }, 0)) },
+          ].map((s, i) => (
+            <View key={i} style={styles.statCard}>
+              <LinearGradient colors={[colors.surface2, colors.surface1]} style={styles.statCardInner}>
+                <Feather name={s.icon} size={16} color={colors.gold} />
+                <Text style={styles.statVal}>{s.val}</Text>
+                <Text style={styles.statLabel}>{s.label}</Text>
+              </LinearGradient>
+            </View>
+          ))}
         </View>
 
-        {CASES.map((caseData, idx) => (
+        {/* Section */}
+        <View style={styles.sectionRow}>
+          <View style={[styles.sectionAccent, { backgroundColor: colors.gold }]} />
+          <Text style={styles.sectionTitle}>Case Files</Text>
+          <Text style={styles.sectionCount}>{solvedCases.length}/{CASES.length} solved</Text>
+        </View>
+
+        {CASES.map((c, idx) => (
           <CaseCard
-            key={caseData.id}
-            caseData={caseData}
-            solved={isCaseSolved(caseData.id)}
-            locked={isCaseLocked(caseData.id, idx)}
-            onPress={() => router.push(`/case/${caseData.id}`)}
+            key={c.id}
+            caseData={c}
+            solved={isCaseSolved(c.id)}
+            locked={isCaseLocked(c.id, idx)}
+            onPress={() => router.push(`/case/${c.id}`)}
           />
         ))}
 
-        <View style={[styles.footerNote, { borderColor: c.border }]}>
-          <Feather name="book" size={14} color={c.mutedForeground} />
-          <Text style={[styles.footerNoteText, { color: c.mutedForeground }]}>
-            All cases are grounded strictly in biblical text. No fictional additions.
-          </Text>
+        <View style={styles.footer}>
+          <Feather name="book" size={12} color={colors.textFaint} />
+          <Text style={styles.footerText}>All cases grounded strictly in biblical scripture</Text>
         </View>
       </ScrollView>
     </View>
@@ -129,99 +166,154 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1 },
+  root: { flex: 1, backgroundColor: colors.bg },
   scroll: { flex: 1 },
   header: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    marginBottom: 16,
+    paddingBottom: 14,
   },
-  appTitle: {
+  titleLine1: {
     fontFamily: "Inter_700Bold",
-    fontSize: 22,
-    letterSpacing: 2,
+    fontSize: 13,
+    color: colors.gold,
+    letterSpacing: 5,
   },
-  appSub: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 11,
-    letterSpacing: 1,
-    marginTop: 2,
+  titleLine2: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 26,
+    color: colors.text,
+    letterSpacing: 4,
+    lineHeight: 30,
+    marginTop: -2,
   },
-  coinsChip: {
+  titleUnderline: { height: 2, width: 60, borderRadius: 1, marginTop: 4 },
+  coinsBtn: { marginTop: 4 },
+  coinsBg: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: colors.radius.full,
     borderWidth: 1,
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    borderColor: colors.goldBorder,
   },
-  coinsText: { fontFamily: "Inter_700Bold", fontSize: 14 },
+  coinsVal: { fontFamily: "Inter_700Bold", fontSize: 15, color: colors.gold },
+
+  profileWrap: { marginHorizontal: 16, marginBottom: 14 },
   profileCard: {
-    marginHorizontal: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 16,
-    marginBottom: 20,
-    gap: 10,
+    borderRadius: colors.radius.lg,
+    padding: 18,
+    position: "relative",
+    overflow: "hidden",
   },
-  profileTop: { flexDirection: "row", alignItems: "center", gap: 12 },
-  detectiveBadge: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    borderWidth: 2,
+  profileGoldBorder: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
+    borderWidth: 1,
+    borderRadius: colors.radius.lg,
+  },
+  profileTop: { flexDirection: "row", alignItems: "center", gap: 14, marginBottom: 18 },
+  badgeWrap: { position: "relative" },
+  badgeBg: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1.5,
+    borderColor: colors.goldBorder,
+  },
+  levelPill: {
+    position: "absolute",
+    bottom: -2,
+    right: -2,
+    backgroundColor: colors.gold,
+    borderRadius: 10,
+    width: 20,
+    height: 20,
     alignItems: "center",
     justifyContent: "center",
   },
-  profileInfo: { flex: 1 },
-  rankTitle: { fontFamily: "Inter_700Bold", fontSize: 16 },
-  levelText: { fontFamily: "Inter_400Regular", fontSize: 13, marginTop: 2 },
-  statsCol: { alignItems: "center" },
-  statsNum: { fontFamily: "Inter_700Bold", fontSize: 22 },
-  statsLabel: { fontFamily: "Inter_400Regular", fontSize: 11 },
-  xpRow: { flexDirection: "row", justifyContent: "space-between" },
-  xpLabel: { fontFamily: "Inter_400Regular", fontSize: 12 },
+  levelPillText: { fontFamily: "Inter_700Bold", fontSize: 11, color: "#000" },
+  profileMid: { flex: 1 },
+  rankTitle: { fontFamily: "Inter_700Bold", fontSize: 17, color: colors.text },
+  rankSub: { fontFamily: "Inter_400Regular", fontSize: 12, color: colors.textMuted, marginTop: 2 },
+  solvedWrap: { alignItems: "center" },
+  solvedNum: { fontFamily: "Inter_700Bold", fontSize: 28, color: colors.text },
+  solvedLabel: { fontFamily: "Inter_400Regular", fontSize: 10, color: colors.textMuted, letterSpacing: 0.5 },
+
+  xpSection: { gap: 5 },
+  xpLabelRow: { flexDirection: "row", justifyContent: "space-between" },
+  xpLabel: { fontFamily: "Inter_600SemiBold", fontSize: 10, color: colors.textMuted, letterSpacing: 1.2 },
+  xpVal: { fontFamily: "Inter_600SemiBold", fontSize: 11, color: colors.gold },
+  xpMax: { color: colors.textMuted },
   xpBarBg: {
     height: 6,
+    backgroundColor: colors.surface3,
     borderRadius: 3,
     overflow: "hidden",
+    position: "relative",
   },
-  xpBarFill: {
+  xpBarFill: { height: 6, borderRadius: 3 },
+  xpGlow: {
+    position: "absolute",
+    top: 0,
+    left: 0,
     height: 6,
     borderRadius: 3,
+    backgroundColor: "rgba(240,185,62,0.3)",
   },
-  badgesRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  nextLevelLabel: { fontFamily: "Inter_400Regular", fontSize: 10, color: colors.textFaint },
+
+  badgesRow: { flexDirection: "row", gap: 6, marginTop: 12, flexWrap: "wrap" },
   badgeChip: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
+    backgroundColor: "rgba(212,150,42,0.1)",
     borderWidth: 1,
-    borderRadius: 20,
+    borderColor: colors.goldBorder,
+    borderRadius: colors.radius.full,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    maxWidth: 160,
   },
-  badgeText: { fontFamily: "Inter_500Medium", fontSize: 10 },
-  sectionHeader: {
+  badgeChipText: { fontFamily: "Inter_500Medium", fontSize: 9, color: colors.gold },
+
+  statsRow: { flexDirection: "row", gap: 10, paddingHorizontal: 16, marginBottom: 20 },
+  statCard: { flex: 1 },
+  statCardInner: {
+    borderRadius: colors.radius.md,
+    padding: 12,
+    alignItems: "center",
+    gap: 4,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  statVal: { fontFamily: "Inter_700Bold", fontSize: 16, color: colors.text },
+  statLabel: { fontFamily: "Inter_400Regular", fontSize: 10, color: colors.textMuted },
+
+  sectionRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 20,
-    marginBottom: 10,
+    gap: 10,
+    paddingHorizontal: 16,
+    marginBottom: 12,
   },
-  sectionTitle: { fontFamily: "Inter_700Bold", fontSize: 16, flex: 1 },
-  sectionCount: { fontFamily: "Inter_400Regular", fontSize: 13 },
-  footerNote: {
+  sectionAccent: { width: 3, height: 18, borderRadius: 2 },
+  sectionTitle: { fontFamily: "Inter_700Bold", fontSize: 16, color: colors.text, flex: 1 },
+  sectionCount: { fontFamily: "Inter_400Regular", fontSize: 13, color: colors.textMuted },
+
+  footer: {
     flexDirection: "row",
-    gap: 8,
-    alignItems: "flex-start",
-    borderTopWidth: 1,
-    paddingTop: 14,
-    marginHorizontal: 16,
-    marginTop: 6,
+    gap: 6,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 10,
+    paddingHorizontal: 20,
   },
-  footerNoteText: { fontFamily: "Inter_400Regular", fontSize: 12, lineHeight: 18, flex: 1 },
+  footerText: { fontFamily: "Inter_400Regular", fontSize: 11, color: colors.textFaint, textAlign: "center" },
 });

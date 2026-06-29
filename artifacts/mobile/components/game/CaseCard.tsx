@@ -1,4 +1,5 @@
 import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import colors from "@/constants/colors";
@@ -11,157 +12,155 @@ interface Props {
   onPress: () => void;
 }
 
-const DIFFICULTY_COLOR: Record<string, string> = {
-  Beginner: "#22C55E",
-  Intermediate: "#F59E0B",
-  Advanced: "#EF4444",
+type DiffKey = "Beginner" | "Intermediate" | "Advanced";
+const DIFF: Record<DiffKey, { color: string; bg: string; border: string }> = {
+  Beginner: { color: colors.green, bg: "rgba(46,204,142,0.12)", border: "rgba(46,204,142,0.35)" },
+  Intermediate: { color: colors.amber, bg: "rgba(245,166,35,0.12)", border: "rgba(245,166,35,0.35)" },
+  Advanced: { color: colors.red, bg: "rgba(232,64,64,0.12)", border: "rgba(232,64,64,0.35)" },
 };
 
 export default function CaseCard({ caseData, solved, locked, onPress }: Props) {
-  const c = colors.light;
-  const diffColor = DIFFICULTY_COLOR[caseData.difficulty] ?? c.primary;
+  const diff = DIFF[caseData.difficulty as DiffKey] ?? DIFF.Beginner;
+  const leftColor = locked ? colors.textFaint : solved ? colors.green : colors.gold;
 
   return (
     <Pressable
       onPress={locked ? undefined : onPress}
-      style={({ pressed }) => [styles.card, { opacity: locked ? 0.45 : pressed ? 0.8 : 1 }]}
+      style={({ pressed }) => [styles.wrap, { opacity: locked ? 0.45 : pressed ? 0.82 : 1 }]}
     >
-      <View style={styles.header}>
-        <View style={[styles.caseNumBadge, { borderColor: c.gold }]}>
-          <Text style={[styles.caseNum, { color: c.gold }]}>{caseData.caseNumber}</Text>
+      <LinearGradient
+        colors={locked ? ["#0E1322", "#0A0E1A"] : solved ? ["#131F18", "#0B1510"] : ["#1A1E30", "#0E1220"]}
+        style={styles.card}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        {/* Left accent bar */}
+        <View style={[styles.leftBar, { backgroundColor: leftColor }]} />
+
+        <View style={styles.inner}>
+          {/* Top row */}
+          <View style={styles.topRow}>
+            <View style={[styles.caseNumBadge, { borderColor: colors.goldBorder }]}>
+              <Text style={[styles.caseNum, { color: colors.gold }]}>{caseData.caseNumber}</Text>
+            </View>
+            <View style={styles.statusRow}>
+              {solved && (
+                <View style={[styles.statusChip, { backgroundColor: "rgba(46,204,142,0.15)", borderColor: "rgba(46,204,142,0.4)" }]}>
+                  <Feather name="check-circle" size={10} color={colors.green} />
+                  <Text style={[styles.statusText, { color: colors.green }]}>SOLVED</Text>
+                </View>
+              )}
+              {locked && (
+                <View style={[styles.statusChip, { backgroundColor: "rgba(122,133,163,0.1)", borderColor: colors.border }]}>
+                  <Feather name="lock" size={10} color={colors.textMuted} />
+                  <Text style={[styles.statusText, { color: colors.textMuted }]}>LOCKED</Text>
+                </View>
+              )}
+              {!solved && !locked && (
+                <View style={[styles.statusChip, { backgroundColor: "rgba(212,150,42,0.12)", borderColor: colors.goldBorder }]}>
+                  <Feather name="circle" size={10} color={colors.gold} />
+                  <Text style={[styles.statusText, { color: colors.gold }]}>OPEN</Text>
+                </View>
+              )}
+            </View>
+          </View>
+
+          {/* Title */}
+          <Text style={styles.title}>{caseData.title}</Text>
+          <Text style={styles.ref}>{caseData.bibleReference}</Text>
+
+          {/* Bottom row */}
+          <View style={styles.bottomRow}>
+            <View style={[styles.diffChip, { backgroundColor: diff.bg, borderColor: diff.border }]}>
+              <Text style={[styles.diffText, { color: diff.color }]}>{caseData.difficulty}</Text>
+            </View>
+            <View style={styles.metaItem}>
+              <Feather name="user-x" size={10} color={colors.textMuted} />
+              <Text style={styles.metaText}>{caseData.victim}</Text>
+            </View>
+            <View style={styles.xpChip}>
+              <Feather name="zap" size={11} color={colors.gold} />
+              <Text style={styles.xpText}>{caseData.rewards.xp} XP</Text>
+            </View>
+          </View>
         </View>
-        {solved && (
-          <View style={[styles.solvedBadge, { backgroundColor: "#22C55E20", borderColor: "#22C55E" }]}>
-            <Feather name="check-circle" size={12} color="#22C55E" />
-            <Text style={[styles.solvedText, { color: "#22C55E" }]}>SOLVED</Text>
+
+        {/* Arrow */}
+        {!locked && (
+          <View style={styles.arrowWrap}>
+            <LinearGradient
+              colors={["rgba(212,150,42,0.2)", "rgba(212,150,42,0.05)"]}
+              style={styles.arrowBg}
+            >
+              <Feather name="chevron-right" size={18} color={colors.gold} />
+            </LinearGradient>
           </View>
         )}
-        {locked && (
-          <View style={[styles.solvedBadge, { backgroundColor: "#ffffff10", borderColor: c.border }]}>
-            <Feather name="lock" size={12} color={c.mutedForeground} />
-            <Text style={[styles.solvedText, { color: c.mutedForeground }]}>LOCKED</Text>
-          </View>
-        )}
-      </View>
 
-      <Text style={[styles.title, { color: c.foreground }]}>{caseData.title}</Text>
-
-      <Text style={[styles.ref, { color: c.mutedForeground }]}>{caseData.bibleReference}</Text>
-
-      <View style={styles.footer}>
-        <View style={[styles.diffBadge, { backgroundColor: `${diffColor}20`, borderColor: diffColor }]}>
-          <Text style={[styles.diffText, { color: diffColor }]}>{caseData.difficulty}</Text>
-        </View>
-
-        <View style={styles.meta}>
-          <Feather name="user-x" size={11} color={c.mutedForeground} />
-          <Text style={[styles.metaText, { color: c.mutedForeground }]}>Victim: {caseData.victim}</Text>
-        </View>
-
-        <View style={styles.xpRow}>
-          <Feather name="zap" size={11} color={c.gold} />
-          <Text style={[styles.xpText, { color: c.gold }]}>{caseData.rewards.xp} XP</Text>
-        </View>
-      </View>
-
-      {!locked && (
-        <View style={styles.arrow}>
-          <Feather name="arrow-right" size={16} color={c.gold} />
-        </View>
-      )}
+        {/* Border */}
+        <View style={[styles.border, { borderColor: locked ? colors.border : solved ? "rgba(46,204,142,0.2)" : colors.goldBorder }]} />
+      </LinearGradient>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
+  wrap: { marginHorizontal: 16, marginBottom: 12 },
   card: {
-    backgroundColor: colors.light.card,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.light.border,
-    padding: 18,
-    marginBottom: 14,
+    borderRadius: colors.radius.lg,
+    flexDirection: "row",
+    alignItems: "stretch",
+    overflow: "hidden",
     position: "relative",
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    marginBottom: 10,
-  },
+  leftBar: { width: 3, borderRadius: 0 },
+  inner: { flex: 1, padding: 16, gap: 6 },
+  topRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   caseNumBadge: {
     borderWidth: 1,
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    borderRadius: colors.radius.sm,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
   },
-  caseNum: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 11,
-    letterSpacing: 1.2,
-  },
-  solvedBadge: {
+  caseNum: { fontFamily: "Inter_600SemiBold", fontSize: 9, letterSpacing: 1.5 },
+  statusRow: { flex: 1, flexDirection: "row", justifyContent: "flex-end" },
+  statusChip: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
     borderWidth: 1,
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    borderRadius: colors.radius.full,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
   },
-  solvedText: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 10,
-    letterSpacing: 0.8,
-  },
-  title: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 20,
-    marginBottom: 4,
-  },
-  ref: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 13,
-    marginBottom: 14,
-  },
-  footer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    flexWrap: "wrap",
-  },
-  diffBadge: {
+  statusText: { fontFamily: "Inter_600SemiBold", fontSize: 9, letterSpacing: 1 },
+  title: { fontFamily: "Inter_700Bold", fontSize: 19, color: colors.text, lineHeight: 24 },
+  ref: { fontFamily: "Inter_400Regular", fontSize: 12, color: colors.textMuted },
+  bottomRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4, flexWrap: "wrap" },
+  diffChip: {
     borderWidth: 1,
-    borderRadius: 6,
+    borderRadius: colors.radius.full,
     paddingHorizontal: 8,
     paddingVertical: 3,
   },
-  diffText: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 11,
-  },
-  meta: {
-    flexDirection: "row",
+  diffText: { fontFamily: "Inter_600SemiBold", fontSize: 10 },
+  metaItem: { flexDirection: "row", alignItems: "center", gap: 4 },
+  metaText: { fontFamily: "Inter_400Regular", fontSize: 11, color: colors.textMuted },
+  xpChip: { flexDirection: "row", alignItems: "center", gap: 3, marginLeft: "auto" },
+  xpText: { fontFamily: "Inter_700Bold", fontSize: 12, color: colors.gold },
+  arrowWrap: { justifyContent: "center", paddingRight: 12 },
+  arrowBg: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     alignItems: "center",
-    gap: 4,
+    justifyContent: "center",
   },
-  metaText: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 12,
-  },
-  xpRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginLeft: "auto",
-  },
-  xpText: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 12,
-  },
-  arrow: {
+  border: {
     position: "absolute",
-    right: 18,
-    top: "50%",
-  },
+    top: 0, left: 0, right: 0, bottom: 0,
+    borderWidth: 1,
+    borderRadius: colors.radius.lg,
+    pointerEvents: "none",
+  } as any,
 });

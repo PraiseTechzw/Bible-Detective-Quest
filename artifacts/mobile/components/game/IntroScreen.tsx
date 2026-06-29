@@ -1,7 +1,11 @@
 import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef } from "react";
-import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Animated, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import colors from "@/constants/colors";
+import GoldButton from "@/components/ui/GoldButton";
+import Badge from "@/components/ui/Badge";
 import type { Case } from "@/data/cases";
 
 interface Props {
@@ -9,75 +13,101 @@ interface Props {
   onContinue: () => void;
 }
 
-const DIFFICULTY_COLOR: Record<string, string> = {
-  Beginner: "#22C55E",
-  Intermediate: "#F59E0B",
-  Advanced: "#EF4444",
+type DiffColor = "green" | "amber" | "red";
+const DIFF_COLOR: Record<string, DiffColor> = {
+  Beginner: "green",
+  Intermediate: "amber",
+  Advanced: "red",
 };
 
 export default function IntroScreen({ caseData, onContinue }: Props) {
-  const c = colors.light;
+  const insets = useSafeAreaInsets();
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(20)).current;
+  const slideAnim = useRef(new Animated.Value(24)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: 0, duration: 800, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 700, useNativeDriver: true }),
     ]).start();
   }, []);
 
-  const diffColor = DIFFICULTY_COLOR[caseData.difficulty] ?? c.primary;
+  const bottomPad = Platform.OS === "web" ? 24 : insets.bottom;
 
   return (
-    <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false} style={styles.scroll}>
+    <View style={styles.root}>
+      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
-          <View style={[styles.caseFileBanner, { backgroundColor: `${c.gold}12`, borderColor: `${c.gold}40` }]}>
-            <View style={styles.bannerRow}>
-              <Feather name="folder" size={16} color={c.gold} />
-              <Text style={[styles.caseNumberText, { color: c.gold }]}>{caseData.caseNumber}</Text>
-            </View>
-            <Text style={[styles.caseTitleLarge, { color: c.foreground }]}>{caseData.title}</Text>
-            <Text style={[styles.bibleRef, { color: c.mutedForeground }]}>{caseData.bibleReference}</Text>
 
-            <View style={styles.metaRow}>
-              <View style={[styles.metaBadge, { backgroundColor: `${diffColor}20`, borderColor: diffColor }]}>
-                <Text style={[styles.metaBadgeText, { color: diffColor }]}>{caseData.difficulty}</Text>
-              </View>
-              <View style={[styles.metaBadge, { backgroundColor: c.muted, borderColor: c.border }]}>
-                <Feather name="user-x" size={10} color={c.mutedForeground} />
-                <Text style={[styles.metaBadgeText, { color: c.mutedForeground }]}>Victim: {caseData.victim}</Text>
-              </View>
+          {/* Hero banner */}
+          <LinearGradient
+            colors={["#1C2844", "#0E1628", "#070A13"]}
+            style={styles.heroBanner}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <View style={[styles.heroBorder, { borderColor: colors.goldBorder }]} />
+
+            <View style={styles.heroIcon}>
+              <LinearGradient colors={["rgba(212,150,42,0.3)", "rgba(196,125,26,0.1)"]} style={styles.heroIconBg}>
+                <Feather name="folder" size={28} color={colors.gold} />
+              </LinearGradient>
             </View>
+
+            <Text style={styles.heroLabel}>CASE FILE</Text>
+            <Text style={styles.heroTitle}>{caseData.title}</Text>
+            <Text style={styles.heroRef}>{caseData.bibleReference}</Text>
+
+            <View style={styles.heroBadges}>
+              <Badge label={caseData.difficulty} color={DIFF_COLOR[caseData.difficulty] ?? "gold"} />
+              <Badge label={`Victim: ${caseData.victim}`} color="muted" icon="user-x" />
+              <Badge label={`${caseData.rewards.xp} XP`} color="gold" icon="zap" />
+            </View>
+          </LinearGradient>
+
+          {/* Intro text */}
+          <View style={styles.introSection}>
+            <View style={styles.sectionHead}>
+              <View style={[styles.sectionAccent, { backgroundColor: colors.blue }]} />
+              <Text style={styles.sectionLabel}>CASE INTRODUCTION</Text>
+            </View>
+            <LinearGradient
+              colors={[colors.surface2, colors.surface1]}
+              style={styles.introCard}
+            >
+              <View style={[styles.introBorder, { borderColor: colors.border }]} />
+              <Text style={styles.introText}>{caseData.introduction}</Text>
+            </LinearGradient>
           </View>
 
-          <View style={[styles.introBox, { backgroundColor: c.card, borderColor: c.border }]}>
-            <Text style={[styles.introLabel, { color: c.gold }]}>CASE INTRODUCTION</Text>
-            <Text style={[styles.introText, { color: c.foreground }]}>{caseData.introduction}</Text>
-          </View>
-
-          <View style={[styles.fileCard, { backgroundColor: c.card, borderColor: c.border }]}>
-            <Text style={[styles.fileCardTitle, { color: c.mutedForeground }]}>CASE FILE OVERVIEW</Text>
-            <View style={styles.fileRow}>
-              <Feather name="users" size={14} color={c.gold} />
-              <Text style={[styles.fileLabel, { color: c.mutedForeground }]}>Suspects</Text>
-              <Text style={[styles.fileValue, { color: c.foreground }]}>{caseData.suspects.join(", ")}</Text>
+          {/* File overview */}
+          <View style={styles.introSection}>
+            <View style={styles.sectionHead}>
+              <View style={[styles.sectionAccent, { backgroundColor: colors.purple }]} />
+              <Text style={styles.sectionLabel}>FILE OVERVIEW</Text>
             </View>
-            <View style={styles.fileRow}>
-              <Feather name="search" size={14} color={c.gold} />
-              <Text style={[styles.fileLabel, { color: c.mutedForeground }]}>Evidence Items</Text>
-              <Text style={[styles.fileValue, { color: c.foreground }]}>{caseData.evidence.length}</Text>
-            </View>
-            <View style={styles.fileRow}>
-              <Feather name="mic" size={14} color={c.gold} />
-              <Text style={[styles.fileLabel, { color: c.mutedForeground }]}>Witnesses</Text>
-              <Text style={[styles.fileValue, { color: c.foreground }]}>{caseData.witnesses.length}</Text>
-            </View>
-            <View style={styles.fileRow}>
-              <Feather name="zap" size={14} color={c.gold} />
-              <Text style={[styles.fileLabel, { color: c.mutedForeground }]}>XP Reward</Text>
-              <Text style={[styles.fileValue, { color: c.gold }]}>{caseData.rewards.xp} XP</Text>
+            <View style={styles.fileGrid}>
+              {[
+                { icon: "users" as const, label: "Suspects", val: caseData.suspects.join(", ") },
+                { icon: "search" as const, label: "Evidence", val: `${caseData.evidence.length} items` },
+                { icon: "mic" as const, label: "Witnesses", val: `${caseData.witnesses.length} on record` },
+                { icon: "clock" as const, label: "Timeline Events", val: `${caseData.timeline.length} events` },
+              ].map((row, i) => (
+                <LinearGradient
+                  key={i}
+                  colors={[colors.surface2, colors.surface1]}
+                  style={styles.fileRow}
+                >
+                  <View style={[styles.fileRowBorder, { borderColor: colors.border }]} />
+                  <View style={[styles.fileIconBg, { backgroundColor: "rgba(74,126,232,0.12)" }]}>
+                    <Feather name={row.icon} size={14} color={colors.blue} />
+                  </View>
+                  <View style={styles.fileRowText}>
+                    <Text style={styles.fileRowLabel}>{row.label}</Text>
+                    <Text style={styles.fileRowVal}>{row.val}</Text>
+                  </View>
+                </LinearGradient>
+              ))}
             </View>
           </View>
 
@@ -85,80 +115,133 @@ export default function IntroScreen({ caseData, onContinue }: Props) {
         </Animated.View>
       </ScrollView>
 
-      <View style={[styles.footer, { borderTopColor: c.border, backgroundColor: c.background }]}>
-        <Pressable
+      {/* CTA */}
+      <LinearGradient
+        colors={["rgba(7,10,19,0)", "rgba(7,10,19,0.97)", "#070A13"]}
+        style={[styles.footer, { paddingBottom: bottomPad + 12 }]}
+      >
+        <GoldButton
+          label="Begin Investigation"
           onPress={onContinue}
-          style={({ pressed }) => [styles.beginBtn, { backgroundColor: c.gold, opacity: pressed ? 0.8 : 1 }]}
-        >
-          <Feather name="search" size={18} color={c.primaryForeground} />
-          <Text style={[styles.beginBtnText, { color: c.primaryForeground }]}>Begin Investigation</Text>
-        </Pressable>
-      </View>
+          icon="search"
+          iconRight={false}
+          size="lg"
+          style={styles.beginBtn}
+        />
+      </LinearGradient>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  root: { flex: 1, backgroundColor: colors.bg },
   scroll: { flex: 1, paddingHorizontal: 16 },
-  caseFileBanner: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 20,
+  heroBanner: {
+    borderRadius: colors.radius.lg,
+    padding: 22,
+    alignItems: "center",
     marginTop: 16,
-    marginBottom: 14,
-    gap: 6,
+    marginBottom: 18,
+    position: "relative",
+    overflow: "hidden",
   },
-  bannerRow: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 },
-  caseNumberText: { fontFamily: "Inter_600SemiBold", fontSize: 11, letterSpacing: 1.5 },
-  caseTitleLarge: { fontFamily: "Inter_700Bold", fontSize: 26 },
-  bibleRef: { fontFamily: "Inter_400Regular", fontSize: 14 },
-  metaRow: { flexDirection: "row", gap: 8, flexWrap: "wrap", marginTop: 8 },
-  metaBadge: {
+  heroBorder: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
+    borderWidth: 1,
+    borderRadius: colors.radius.lg,
+  },
+  heroIcon: { marginBottom: 12 },
+  heroIconBg: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1.5,
+    borderColor: colors.goldBorder,
+  },
+  heroLabel: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 9,
+    color: colors.gold,
+    letterSpacing: 3,
+    marginBottom: 6,
+  },
+  heroTitle: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 26,
+    color: colors.text,
+    textAlign: "center",
+    marginBottom: 4,
+  },
+  heroRef: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    color: colors.textMuted,
+    marginBottom: 14,
+  },
+  heroBadges: { flexDirection: "row", gap: 8, flexWrap: "wrap", justifyContent: "center" },
+  introSection: { marginBottom: 16 },
+  sectionHead: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10 },
+  sectionAccent: { width: 3, height: 14, borderRadius: 2 },
+  sectionLabel: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 10,
+    color: colors.textMuted,
+    letterSpacing: 1.5,
+  },
+  introCard: {
+    borderRadius: colors.radius.lg,
+    padding: 18,
+    position: "relative",
+    overflow: "hidden",
+  },
+  introBorder: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
+    borderWidth: 1,
+    borderRadius: colors.radius.lg,
+  },
+  introText: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 15,
+    color: colors.text,
+    lineHeight: 26,
+  },
+  fileGrid: { gap: 8 },
+  fileRow: {
+    borderRadius: colors.radius.md,
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    gap: 12,
+    padding: 14,
+    position: "relative",
+    overflow: "hidden",
   },
-  metaBadgeText: { fontFamily: "Inter_500Medium", fontSize: 12 },
-  introBox: {
-    borderRadius: 14,
+  fileRowBorder: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
     borderWidth: 1,
-    padding: 16,
-    marginBottom: 14,
-    gap: 8,
+    borderRadius: colors.radius.md,
   },
-  introLabel: { fontFamily: "Inter_600SemiBold", fontSize: 10, letterSpacing: 1.5 },
-  introText: { fontFamily: "Inter_400Regular", fontSize: 15, lineHeight: 26 },
-  fileCard: {
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 16,
-    gap: 10,
+  fileIconBg: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  fileCardTitle: { fontFamily: "Inter_600SemiBold", fontSize: 10, letterSpacing: 1.5, marginBottom: 2 },
-  fileRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  fileLabel: { fontFamily: "Inter_400Regular", fontSize: 13, flex: 1 },
-  fileValue: { fontFamily: "Inter_500Medium", fontSize: 13, textAlign: "right", flex: 2 },
+  fileRowText: { flex: 1 },
+  fileRowLabel: { fontFamily: "Inter_400Regular", fontSize: 11, color: colors.textMuted },
+  fileRowVal: { fontFamily: "Inter_600SemiBold", fontSize: 14, color: colors.text, marginTop: 1 },
   footer: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    padding: 16,
-    paddingBottom: 24,
-    borderTopWidth: 1,
+    paddingTop: 40,
+    paddingHorizontal: 16,
   },
-  beginBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    paddingVertical: 16,
-    borderRadius: 14,
-  },
-  beginBtnText: { fontFamily: "Inter_700Bold", fontSize: 16 },
+  beginBtn: { width: "100%" },
 });

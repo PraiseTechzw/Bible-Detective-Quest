@@ -1,7 +1,9 @@
 import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import colors from "@/constants/colors";
+import GoldButton from "@/components/ui/GoldButton";
 import type { Evidence } from "@/data/cases";
 
 interface Props {
@@ -11,182 +13,235 @@ interface Props {
 }
 
 const ICON_MAP: Record<string, keyof typeof Feather.glyphMap> = {
-  fire: "zap",
-  "alert-circle": "alert-circle",
-  frown: "frown",
-  "map-pin": "map-pin",
-  droplet: "droplet",
-  "shield-off": "shield-off",
-  coffee: "coffee",
-  user: "user",
-  heart: "heart",
-  "message-circle": "message-circle",
-  "eye-off": "eye-off",
-  gift: "gift",
-  moon: "moon",
-  "alert-triangle": "alert-triangle",
-  shield: "shield",
-  "dollar-sign": "dollar-sign",
+  fire: "zap", "alert-circle": "alert-circle", frown: "frown", "map-pin": "map-pin",
+  droplet: "droplet", "shield-off": "shield-off", coffee: "coffee", user: "user",
+  heart: "heart", "message-circle": "message-circle", "eye-off": "eye-off", gift: "gift",
+  moon: "moon", "alert-triangle": "alert-triangle", shield: "shield", "dollar-sign": "dollar-sign",
 };
 
 export default function EvidenceBoard({ evidence, onContinue, caseTitle }: Props) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [viewed, setViewed] = useState<Set<string>>(new Set());
-  const c = colors.light;
 
   const toggle = (id: string) => {
-    setViewed((prev) => new Set([...prev, id]));
-    setExpanded((prev) => (prev === id ? null : id));
+    setViewed((p) => new Set([...p, id]));
+    setExpanded((p) => (p === id ? null : id));
   };
 
   const allViewed = viewed.size >= evidence.length;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.topBar}>
-        <View style={styles.titleRow}>
-          <Feather name="search" size={18} color={c.gold} />
-          <Text style={[styles.sectionTitle, { color: c.gold }]}>Evidence Board</Text>
+    <View style={styles.root}>
+      {/* Sub header */}
+      <LinearGradient colors={["#0F1628", colors.bg]} style={styles.subHeader}>
+        <View style={styles.subHeaderRow}>
+          <View style={[styles.subHeaderAccent, { backgroundColor: colors.blue }]} />
+          <Text style={styles.subHeaderTitle}>Evidence Board</Text>
+          <View style={styles.progressChip}>
+            <Text style={styles.progressText}>{viewed.size}/{evidence.length}</Text>
+          </View>
         </View>
-        <Text style={[styles.subtitle, { color: c.mutedForeground }]}>
-          Tap each item to examine. {viewed.size}/{evidence.length} examined.
-        </Text>
-      </View>
+        <Text style={styles.subHeaderHint}>Tap each item to examine it</Text>
+        <View style={styles.progressBar}>
+          <LinearGradient
+            colors={[colors.blue, "#6A9EFF"]}
+            style={[styles.progressFill, { width: `${(viewed.size / evidence.length) * 100}%` }]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          />
+        </View>
+      </LinearGradient>
 
-      <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         {evidence.map((item) => {
           const isOpen = expanded === item.id;
           const isViewed = viewed.has(item.id);
-          const iconName = ICON_MAP[item.icon] ?? "circle";
+          const icon = ICON_MAP[item.icon] ?? "circle";
 
           return (
             <Pressable
               key={item.id}
               onPress={() => toggle(item.id)}
-              style={({ pressed }) => [
-                styles.card,
-                {
-                  borderColor: isOpen ? c.gold : c.border,
-                  backgroundColor: isOpen ? "#1E1A0E" : c.card,
-                  opacity: pressed ? 0.85 : 1,
-                },
-              ]}
+              style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1, marginBottom: 10 })}
             >
-              <View style={styles.cardHeader}>
-                <View style={[styles.iconBg, { backgroundColor: isOpen ? `${c.gold}30` : `${c.muted}` }]}>
-                  <Feather name={iconName} size={18} color={isOpen ? c.gold : c.mutedForeground} />
-                </View>
-                <View style={styles.cardTitleCol}>
-                  <Text style={[styles.evidenceTitle, { color: isViewed ? c.foreground : c.parchment }]}>
-                    {item.title}
-                  </Text>
-                  {!isOpen && (
-                    <Text style={[styles.tapHint, { color: c.mutedForeground }]}>Tap to examine</Text>
-                  )}
-                </View>
-                <View style={styles.statusRow}>
-                  {isViewed && <Feather name="check-circle" size={14} color="#22C55E" />}
-                  <Feather name={isOpen ? "chevron-up" : "chevron-down"} size={16} color={c.mutedForeground} />
-                </View>
-              </View>
+              <LinearGradient
+                colors={isOpen ? ["#182038", "#101828"] : [colors.surface2, colors.surface1]}
+                style={styles.card}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <View style={[styles.cardBorder, { borderColor: isOpen ? colors.goldBorder : colors.border }]} />
 
-              {isOpen && (
-                <View style={styles.expanded}>
-                  <View style={[styles.divider, { backgroundColor: c.border }]} />
-                  <Text style={[styles.description, { color: c.foreground }]}>{item.description}</Text>
-                  <View style={[styles.lessonBox, { backgroundColor: `${c.gold}15`, borderColor: `${c.gold}40` }]}>
-                    <Feather name="book-open" size={13} color={c.gold} />
-                    <Text style={[styles.lessonText, { color: c.gold }]}>{item.lesson}</Text>
+                <View style={styles.cardTop}>
+                  <LinearGradient
+                    colors={isOpen ? ["rgba(212,150,42,0.25)", "rgba(196,125,26,0.1)"] : ["rgba(74,126,232,0.12)", "rgba(74,126,232,0.04)"]}
+                    style={styles.iconBg}
+                  >
+                    <Feather name={icon} size={18} color={isOpen ? colors.gold : colors.blue} />
+                  </LinearGradient>
+
+                  <View style={styles.cardTitleWrap}>
+                    <Text style={[styles.cardTitle, { color: isViewed ? colors.text : colors.parchment }]}>
+                      {item.title}
+                    </Text>
+                    {!isOpen && (
+                      <Text style={styles.tapHint}>Tap to examine</Text>
+                    )}
+                  </View>
+
+                  <View style={styles.cardRight}>
+                    {isViewed && <Feather name="check-circle" size={13} color={colors.green} />}
+                    <Feather name={isOpen ? "chevron-up" : "chevron-down"} size={16} color={colors.textMuted} />
                   </View>
                 </View>
-              )}
+
+                {isOpen && (
+                  <View style={styles.expanded}>
+                    <View style={[styles.divider, { backgroundColor: colors.border }]} />
+                    <Text style={styles.description}>{item.description}</Text>
+                    <LinearGradient
+                      colors={["rgba(212,150,42,0.12)", "rgba(212,150,42,0.05)"]}
+                      style={styles.lessonBox}
+                    >
+                      <View style={[styles.lessonBoxBorder, { borderColor: colors.goldBorder }]} />
+                      <Feather name="book-open" size={13} color={colors.gold} />
+                      <Text style={styles.lessonText}>{item.lesson}</Text>
+                    </LinearGradient>
+                  </View>
+                )}
+              </LinearGradient>
             </Pressable>
           );
         })}
-        <View style={{ height: 100 }} />
+        <View style={{ height: 110 }} />
       </ScrollView>
 
-      <View style={[styles.footer, { borderTopColor: c.border }]}>
+      {/* Footer */}
+      <LinearGradient
+        colors={["rgba(7,10,19,0)", "rgba(7,10,19,0.97)", colors.bg]}
+        style={styles.footer}
+      >
         {!allViewed && (
-          <Text style={[styles.footerHint, { color: c.mutedForeground }]}>
-            Examine all evidence before proceeding
+          <Text style={styles.footerHint}>
+            Examine all {evidence.length} items to continue
           </Text>
         )}
-        <Pressable
-          onPress={allViewed ? onContinue : undefined}
-          style={({ pressed }) => [
-            styles.continueBtn,
-            {
-              backgroundColor: allViewed ? c.gold : c.muted,
-              opacity: pressed && allViewed ? 0.8 : 1,
-            },
-          ]}
-        >
-          <Text style={[styles.continueBtnText, { color: allViewed ? c.primaryForeground : c.mutedForeground }]}>
-            Proceed to Witnesses
-          </Text>
-          <Feather name="arrow-right" size={16} color={allViewed ? c.primaryForeground : c.mutedForeground} />
-        </Pressable>
-      </View>
+        <GoldButton
+          label="Proceed to Witnesses"
+          onPress={allViewed ? onContinue : () => {}}
+          icon="arrow-right"
+          disabled={!allViewed}
+          size="lg"
+          style={styles.btn}
+        />
+      </LinearGradient>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  topBar: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8 },
-  titleRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 },
-  sectionTitle: { fontFamily: "Inter_700Bold", fontSize: 20, letterSpacing: 0.5 },
-  subtitle: { fontFamily: "Inter_400Regular", fontSize: 13 },
-  list: { flex: 1, paddingHorizontal: 16 },
-  card: {
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 14,
-    marginBottom: 10,
+  root: { flex: 1, backgroundColor: colors.bg },
+  subHeader: {
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 14,
   },
-  cardHeader: { flexDirection: "row", alignItems: "center", gap: 12 },
+  subHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 4,
+  },
+  subHeaderAccent: { width: 3, height: 18, borderRadius: 2 },
+  subHeaderTitle: { fontFamily: "Inter_700Bold", fontSize: 18, color: colors.text, flex: 1 },
+  progressChip: {
+    backgroundColor: colors.surface3,
+    borderRadius: colors.radius.full,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  progressText: { fontFamily: "Inter_600SemiBold", fontSize: 11, color: colors.textMuted },
+  subHeaderHint: { fontFamily: "Inter_400Regular", fontSize: 12, color: colors.textMuted, marginBottom: 8 },
+  progressBar: {
+    height: 3,
+    backgroundColor: colors.surface3,
+    borderRadius: 2,
+    overflow: "hidden",
+  },
+  progressFill: { height: 3, borderRadius: 2 },
+  scroll: { flex: 1, paddingHorizontal: 16 },
+  card: {
+    borderRadius: colors.radius.lg,
+    padding: 14,
+    position: "relative",
+    overflow: "hidden",
+  },
+  cardBorder: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
+    borderWidth: 1,
+    borderRadius: colors.radius.lg,
+  },
+  cardTop: { flexDirection: "row", alignItems: "center", gap: 12 },
   iconBg: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
+    width: 42,
+    height: 42,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
   },
-  cardTitleCol: { flex: 1 },
-  evidenceTitle: { fontFamily: "Inter_600SemiBold", fontSize: 15 },
-  tapHint: { fontFamily: "Inter_400Regular", fontSize: 12, marginTop: 2 },
-  statusRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  expanded: { marginTop: 10 },
-  divider: { height: 1, marginBottom: 10 },
-  description: { fontFamily: "Inter_400Regular", fontSize: 14, lineHeight: 22, marginBottom: 12 },
+  cardTitleWrap: { flex: 1 },
+  cardTitle: { fontFamily: "Inter_600SemiBold", fontSize: 15 },
+  tapHint: { fontFamily: "Inter_400Regular", fontSize: 11, color: colors.textMuted, marginTop: 2 },
+  cardRight: { flexDirection: "row", alignItems: "center", gap: 6 },
+  expanded: { marginTop: 12 },
+  divider: { height: 1, marginBottom: 12 },
+  description: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    color: colors.text,
+    lineHeight: 23,
+    marginBottom: 12,
+  },
   lessonBox: {
     flexDirection: "row",
     gap: 8,
-    padding: 10,
-    borderRadius: 8,
-    borderWidth: 1,
+    padding: 12,
+    borderRadius: colors.radius.md,
     alignItems: "flex-start",
+    position: "relative",
+    overflow: "hidden",
   },
-  lessonText: { fontFamily: "Inter_500Medium", fontSize: 13, lineHeight: 20, flex: 1 },
+  lessonBoxBorder: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
+    borderWidth: 1,
+    borderRadius: colors.radius.md,
+  },
+  lessonText: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 13,
+    color: colors.gold,
+    lineHeight: 20,
+    flex: 1,
+  },
   footer: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    padding: 16,
+    paddingTop: 40,
+    paddingHorizontal: 16,
     paddingBottom: 24,
-    backgroundColor: colors.light.background,
-    borderTopWidth: 1,
   },
-  footerHint: { fontFamily: "Inter_400Regular", fontSize: 12, textAlign: "center", marginBottom: 8 },
-  continueBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 12,
+  footerHint: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+    color: colors.textMuted,
+    textAlign: "center",
+    marginBottom: 8,
   },
-  continueBtnText: { fontFamily: "Inter_700Bold", fontSize: 15 },
+  btn: { width: "100%" },
 });

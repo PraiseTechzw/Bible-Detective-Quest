@@ -1,31 +1,50 @@
 const colors = {
-  light: {
-    text: "#F0EBD8",
-    tint: "#C9A227",
-    background: "#0D0D12",
-    foreground: "#F0EBD8",
-    card: "#1A1A24",
-    cardForeground: "#F0EBD8",
-    primary: "#C9A227",
-    primaryForeground: "#0D0D12",
-    secondary: "#1E1E2E",
-    secondaryForeground: "#C9A227",
-    muted: "#2A2A3A",
-    mutedForeground: "#6B6B7F",
-    accent: "#E85D04",
-    accentForeground: "#F0EBD8",
-    destructive: "#DC2626",
-    destructiveForeground: "#F0EBD8",
-    border: "#2A2A3A",
-    input: "#2A2A3A",
-    gold: "#C9A227",
-    goldDim: "#8B6D18",
-    parchment: "#F0EBD8",
-    danger: "#E85D04",
-    success: "#22C55E",
-    purple: "#7C3AED",
+  bg: "#070A13",
+  surface1: "#0D1220",
+  surface2: "#141C32",
+  surface3: "#1A2340",
+
+  gold: "#D4962A",
+  goldLight: "#F0B93E",
+  goldDim: "#8B6018",
+  goldGlow: "rgba(212,150,42,0.25)",
+  goldBorder: "rgba(212,150,42,0.35)",
+  goldGradient: ["#F0B93E", "#C47D1A"] as const,
+  goldGradientSubtle: ["rgba(240,185,62,0.15)", "rgba(196,125,26,0.05)"] as const,
+
+  parchment: "#F0E9D2",
+  text: "#E8E2D0",
+  textMuted: "#7A85A3",
+  textFaint: "#3A4260",
+
+  blue: "#4A7EE8",
+  blueGlow: "rgba(74,126,232,0.2)",
+  purple: "#7C5EE8",
+  purpleGlow: "rgba(124,94,232,0.2)",
+  red: "#E84040",
+  redGlow: "rgba(232,64,64,0.2)",
+  green: "#2ECC8E",
+  greenGlow: "rgba(46,204,142,0.2)",
+  amber: "#F5A623",
+
+  border: "rgba(255,255,255,0.07)",
+  borderBright: "rgba(255,255,255,0.12)",
+
+  radius: {
+    sm: 8,
+    md: 14,
+    lg: 20,
+    xl: 28,
+    full: 999,
   },
-  radius: 12,
-};
+
+  spacing: {
+    xs: 4,
+    sm: 8,
+    md: 14,
+    lg: 20,
+    xl: 28,
+  },
+} as const;
 
 export default colors;

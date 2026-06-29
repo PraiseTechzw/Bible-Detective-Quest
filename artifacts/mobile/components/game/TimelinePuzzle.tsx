@@ -1,8 +1,10 @@
 import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import React, { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import colors from "@/constants/colors";
+import GoldButton from "@/components/ui/GoldButton";
 import type { TimelineEvent } from "@/data/cases";
 
 interface Props {
@@ -11,56 +13,55 @@ interface Props {
 }
 
 function shuffle<T>(arr: T[]): T[] {
-  const copy = [...arr];
-  for (let i = copy.length - 1; i > 0; i--) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
+    [a[i], a[j]] = [a[j], a[i]];
   }
-  return copy;
+  return a;
 }
 
 export default function TimelinePuzzle({ events, onContinue }: Props) {
-  const c = colors.light;
   const shuffled = useMemo(() => shuffle(events), [events]);
-  const [order, setOrder] = useState<(string | null)[]>(new Array(events.length).fill(null));
+  const [order, setOrder] = useState<(string | null)[]>(Array(events.length).fill(null));
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState(0);
 
-  const assignedIds = order.filter(Boolean) as string[];
-  const unassigned = shuffled.filter((e) => !assignedIds.includes(e.id));
+  const assigned = order.filter(Boolean) as string[];
+  const unassigned = shuffled.filter((e) => !assigned.includes(e.id));
+  const allPlaced = order.every(Boolean);
 
-  const handleEventTap = (id: string) => {
+  const place = (id: string) => {
     if (submitted) return;
-    const firstEmpty = order.findIndex((o) => o === null);
-    if (firstEmpty === -1) return;
-    const newOrder = [...order];
-    newOrder[firstEmpty] = id;
-    setOrder(newOrder);
+    const first = order.findIndex((o) => !o);
+    if (first === -1) return;
+    const next = [...order];
+    next[first] = id;
+    setOrder(next);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
-  const handleSlotTap = (slotIdx: number) => {
+  const remove = (idx: number) => {
     if (submitted) return;
-    if (order[slotIdx] === null) return;
-    const newOrder = [...order];
-    newOrder[slotIdx] = null;
-    setOrder(newOrder);
+    const next = [...order];
+    next[idx] = null;
+    setOrder(next);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
-  const handleReset = () => {
-    setOrder(new Array(events.length).fill(null));
+  const reset = () => {
+    setOrder(Array(events.length).fill(null));
     setSubmitted(false);
     setScore(0);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   };
 
-  const handleSubmit = () => {
-    if (order.some((o) => o === null)) return;
+  const submit = () => {
+    if (!allPlaced) return;
     let correct = 0;
     order.forEach((id, idx) => {
-      const event = events.find((e) => e.id === id);
-      if (event && event.correctOrder === idx + 1) correct++;
+      const e = events.find((ev) => ev.id === id);
+      if (e?.correctOrder === idx + 1) correct++;
     });
     setScore(correct);
     setSubmitted(true);
@@ -71,177 +72,183 @@ export default function TimelinePuzzle({ events, onContinue }: Props) {
     );
   };
 
-  const isCorrect = (slotIdx: number) => {
-    const id = order[slotIdx];
-    const event = events.find((e) => e.id === id);
-    return event?.correctOrder === slotIdx + 1;
+  const isCorrect = (idx: number) => {
+    const e = events.find((ev) => ev.id === order[idx]);
+    return e?.correctOrder === idx + 1;
   };
 
   const perfect = submitted && score === events.length;
-  const allPlaced = order.every((o) => o !== null);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.topBar}>
-        <View style={styles.titleRow}>
-          <Feather name="clock" size={18} color={c.gold} />
-          <Text style={[styles.sectionTitle, { color: c.gold }]}>Timeline Puzzle</Text>
+    <View style={styles.root}>
+      {/* Sub header */}
+      <LinearGradient colors={["#0F1628", colors.bg]} style={styles.subHeader}>
+        <View style={styles.subHeaderRow}>
+          <View style={[styles.accent, { backgroundColor: colors.amber }]} />
+          <Text style={styles.subHeaderTitle}>Timeline Puzzle</Text>
+          <View style={styles.progressChip}>
+            <Text style={styles.progressText}>{assigned.length}/{events.length}</Text>
+          </View>
         </View>
-        <Text style={[styles.subtitle, { color: c.mutedForeground }]}>
-          Tap events below to place them in the correct chronological order.
-        </Text>
-      </View>
+        <Text style={styles.hint}>Tap events below to place them in chronological order</Text>
+      </LinearGradient>
 
-      <ScrollView showsVerticalScrollIndicator={false} style={styles.scroll}>
-        <View style={styles.slots}>
+      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+        {/* Placement slots */}
+        <View style={styles.slotsWrap}>
           {order.map((id, idx) => {
             const event = events.find((e) => e.id === id);
             const correct = submitted && id ? isCorrect(idx) : null;
-            let borderColor = c.border;
-            if (submitted && id) {
-              borderColor = correct ? "#22C55E" : "#EF4444";
-            } else if (id) {
-              borderColor = c.gold;
-            }
+            const borderColor = submitted && id
+              ? correct ? "rgba(46,204,142,0.5)" : "rgba(232,64,64,0.5)"
+              : id ? colors.goldBorder : colors.border;
+            const gradColors: readonly [string, string] = submitted && id
+              ? correct
+                ? ["rgba(46,204,142,0.12)", "rgba(46,204,142,0.04)"]
+                : ["rgba(232,64,64,0.12)", "rgba(232,64,64,0.04)"]
+              : id
+              ? ["rgba(212,150,42,0.12)", "rgba(212,150,42,0.04)"]
+              : [colors.surface2, colors.surface1];
 
             return (
               <Pressable
                 key={idx}
-                onPress={() => handleSlotTap(idx)}
-                style={({ pressed }) => [
-                  styles.slot,
-                  {
-                    borderColor,
-                    backgroundColor: id ? (submitted ? (correct ? "#22C55E15" : "#EF444415") : `${c.gold}10`) : c.card,
-                    opacity: pressed && !submitted ? 0.8 : 1,
-                  },
-                ]}
+                onPress={() => remove(idx)}
+                style={({ pressed }) => ({ opacity: pressed && !submitted && !!id ? 0.8 : 1 })}
               >
-                <View style={[styles.slotNumber, { backgroundColor: borderColor }]}>
-                  <Text style={[styles.slotNumText, { color: id ? c.primaryForeground : c.mutedForeground }]}>
-                    {idx + 1}
+                <LinearGradient colors={gradColors} style={[styles.slot, { borderColor }]}>
+                  <LinearGradient
+                    colors={id ? [colors.gold, colors.goldDim] : [colors.surface3, colors.surface2]}
+                    style={styles.slotNum}
+                  >
+                    <Text style={[styles.slotNumText, { color: id ? "#000" : colors.textMuted }]}>{idx + 1}</Text>
+                  </LinearGradient>
+                  <Text style={[styles.slotText, { color: id ? colors.text : colors.textFaint, fontStyle: id ? "normal" : "italic" }]}>
+                    {event ? event.text : "Tap an event below to place it here"}
                   </Text>
-                </View>
-                <Text
-                  style={[
-                    styles.slotText,
-                    {
-                      color: id ? c.foreground : c.mutedForeground,
-                      fontStyle: id ? "normal" : "italic",
-                    },
-                  ]}
-                >
-                  {event ? event.text : "Tap an event below to place it here"}
-                </Text>
-                {submitted && id && (
-                  <Feather
-                    name={correct ? "check-circle" : "x-circle"}
-                    size={16}
-                    color={correct ? "#22C55E" : "#EF4444"}
-                  />
-                )}
-                {!submitted && id && <Feather name="x" size={14} color={c.mutedForeground} />}
+                  {submitted && id && (
+                    <Feather name={correct ? "check-circle" : "x-circle"} size={16} color={correct ? colors.green : colors.red} />
+                  )}
+                  {!submitted && id && <Feather name="x" size={13} color={colors.textMuted} />}
+                </LinearGradient>
               </Pressable>
             );
           })}
         </View>
 
-        {!submitted && (
-          <View style={styles.eventPool}>
-            <Text style={[styles.poolLabel, { color: c.mutedForeground }]}>
-              {unassigned.length > 0 ? "Available Events — tap to place" : "All events placed"}
-            </Text>
+        {/* Event pool */}
+        {!submitted && unassigned.length > 0 && (
+          <View style={styles.poolSection}>
+            <View style={styles.poolHeader}>
+              <View style={[styles.accent, { backgroundColor: colors.textMuted }]} />
+              <Text style={styles.poolLabel}>Available Events</Text>
+            </View>
             {unassigned.map((event) => (
               <Pressable
                 key={event.id}
-                onPress={() => handleEventTap(event.id)}
-                style={({ pressed }) => [
-                  styles.eventChip,
-                  { backgroundColor: c.card, borderColor: c.border, opacity: pressed ? 0.8 : 1 },
-                ]}
+                onPress={() => place(event.id)}
+                style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1, marginBottom: 8 })}
               >
-                <Feather name="circle" size={8} color={c.gold} />
-                <Text style={[styles.eventChipText, { color: c.foreground }]}>{event.text}</Text>
+                <LinearGradient
+                  colors={["rgba(255,255,255,0.06)", "rgba(255,255,255,0.02)"]}
+                  style={styles.eventChip}
+                >
+                  <View style={[styles.eventChipBorder, { borderColor: colors.border }]} />
+                  <View style={styles.eventDot} />
+                  <Text style={styles.eventChipText}>{event.text}</Text>
+                  <Feather name="plus" size={14} color={colors.textMuted} />
+                </LinearGradient>
               </Pressable>
             ))}
           </View>
         )}
 
+        {/* Result */}
         {submitted && (
-          <View style={[styles.resultBox, { backgroundColor: perfect ? "#22C55E15" : "#F59E0B15", borderColor: perfect ? "#22C55E" : "#F59E0B" }]}>
-            <Feather name={perfect ? "award" : "alert-circle"} size={24} color={perfect ? "#22C55E" : "#F59E0B"} />
+          <LinearGradient
+            colors={perfect
+              ? ["rgba(46,204,142,0.15)", "rgba(46,204,142,0.05)"]
+              : ["rgba(245,166,35,0.15)", "rgba(245,166,35,0.05)"]}
+            style={styles.resultBox}
+          >
+            <View style={[styles.resultBorder, { borderColor: perfect ? "rgba(46,204,142,0.45)" : "rgba(245,166,35,0.45)" }]} />
+            <Feather name={perfect ? "award" : "alert-circle"} size={26} color={perfect ? colors.green : colors.amber} />
             <View style={styles.resultText}>
-              <Text style={[styles.resultTitle, { color: perfect ? "#22C55E" : "#F59E0B" }]}>
-                {perfect ? "Perfect Order!" : `${score} / ${events.length} Correct`}
+              <Text style={[styles.resultTitle, { color: perfect ? colors.green : colors.amber }]}>
+                {perfect ? "Perfect Chronology!" : `${score} / ${events.length} Correct`}
               </Text>
-              <Text style={[styles.resultSub, { color: c.mutedForeground }]}>
-                {perfect
-                  ? "You reconstructed the biblical timeline perfectly."
-                  : "Review the highlighted events and study the sequence."}
+              <Text style={styles.resultSub}>
+                {perfect ? "You reconstructed the biblical timeline accurately." : "Review the timeline and study the biblical sequence."}
               </Text>
             </View>
-          </View>
+          </LinearGradient>
         )}
 
-        <View style={{ height: 120 }} />
+        <View style={{ height: 110 }} />
       </ScrollView>
 
-      <View style={[styles.footer, { borderTopColor: c.border }]}>
+      {/* Footer */}
+      <LinearGradient
+        colors={["rgba(7,10,19,0)", "rgba(7,10,19,0.97)", colors.bg]}
+        style={styles.footer}
+      >
         <View style={styles.footerBtns}>
           {(submitted || allPlaced) && (
-            <Pressable
-              onPress={handleReset}
-              style={({ pressed }) => [styles.resetBtn, { borderColor: c.border, opacity: pressed ? 0.8 : 1 }]}
-            >
-              <Feather name="rotate-ccw" size={16} color={c.mutedForeground} />
-              <Text style={[styles.resetBtnText, { color: c.mutedForeground }]}>Reset</Text>
+            <Pressable onPress={reset} style={[styles.resetBtn, { borderColor: colors.border }]}>
+              <Feather name="rotate-ccw" size={16} color={colors.textMuted} />
             </Pressable>
           )}
-
           {!submitted ? (
-            <Pressable
-              onPress={handleSubmit}
-              style={({ pressed }) => [
-                styles.mainBtn,
-                { backgroundColor: allPlaced ? c.gold : c.muted, opacity: pressed && allPlaced ? 0.8 : 1, flex: 1 },
-              ]}
-            >
-              <Text style={[styles.mainBtnText, { color: allPlaced ? c.primaryForeground : c.mutedForeground }]}>
-                Submit Order
-              </Text>
-            </Pressable>
+            <GoldButton
+              label="Submit Order"
+              onPress={submit}
+              disabled={!allPlaced}
+              size="lg"
+              style={styles.mainBtn}
+            />
           ) : (
-            <Pressable
+            <GoldButton
+              label="Examine Suspects"
               onPress={onContinue}
-              style={({ pressed }) => [styles.mainBtn, { backgroundColor: c.gold, opacity: pressed ? 0.8 : 1, flex: 1 }]}
-            >
-              <Text style={[styles.mainBtnText, { color: c.primaryForeground }]}>Examine Suspects</Text>
-              <Feather name="arrow-right" size={16} color={c.primaryForeground} />
-            </Pressable>
+              icon="arrow-right"
+              size="lg"
+              style={styles.mainBtn}
+            />
           )}
         </View>
-      </View>
+      </LinearGradient>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  topBar: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8 },
-  titleRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 },
-  sectionTitle: { fontFamily: "Inter_700Bold", fontSize: 20, letterSpacing: 0.5 },
-  subtitle: { fontFamily: "Inter_400Regular", fontSize: 13 },
+  root: { flex: 1, backgroundColor: colors.bg },
+  subHeader: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 12 },
+  subHeaderRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 },
+  accent: { width: 3, height: 18, borderRadius: 2 },
+  subHeaderTitle: { fontFamily: "Inter_700Bold", fontSize: 18, color: colors.text, flex: 1 },
+  progressChip: {
+    backgroundColor: colors.surface3,
+    borderRadius: colors.radius.full,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  progressText: { fontFamily: "Inter_600SemiBold", fontSize: 11, color: colors.textMuted },
+  hint: { fontFamily: "Inter_400Regular", fontSize: 12, color: colors.textMuted },
   scroll: { flex: 1, paddingHorizontal: 16 },
-  slots: { gap: 8, paddingTop: 8 },
+  slotsWrap: { gap: 8, paddingTop: 8 },
   slot: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    borderRadius: 12,
-    borderWidth: 1.5,
     padding: 12,
+    borderRadius: colors.radius.md,
+    borderWidth: 1.5,
+    overflow: "hidden",
   },
-  slotNumber: {
+  slotNum: {
     width: 28,
     height: 28,
     borderRadius: 14,
@@ -249,59 +256,68 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     minWidth: 28,
   },
-  slotNumText: { fontFamily: "Inter_700Bold", fontSize: 13 },
+  slotNumText: { fontFamily: "Inter_700Bold", fontSize: 12 },
   slotText: { fontFamily: "Inter_400Regular", fontSize: 13, lineHeight: 20, flex: 1 },
-  eventPool: { marginTop: 20, gap: 8 },
-  poolLabel: { fontFamily: "Inter_500Medium", fontSize: 12, letterSpacing: 0.5, marginBottom: 2 },
+  poolSection: { marginTop: 20 },
+  poolHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10 },
+  poolLabel: { fontFamily: "Inter_600SemiBold", fontSize: 10, color: colors.textMuted, letterSpacing: 1 },
   eventChip: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    borderRadius: 10,
-    borderWidth: 1,
     padding: 12,
+    borderRadius: colors.radius.md,
+    position: "relative",
+    overflow: "hidden",
   },
-  eventChipText: { fontFamily: "Inter_400Regular", fontSize: 13, lineHeight: 20, flex: 1 },
+  eventChipBorder: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
+    borderWidth: 1,
+    borderRadius: colors.radius.md,
+  },
+  eventDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.gold,
+  },
+  eventChipText: { fontFamily: "Inter_400Regular", fontSize: 13, flex: 1, color: colors.text, lineHeight: 20 },
   resultBox: {
     flexDirection: "row",
     gap: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 14,
+    borderRadius: colors.radius.lg,
+    padding: 16,
     marginTop: 16,
     alignItems: "flex-start",
+    position: "relative",
+    overflow: "hidden",
+  },
+  resultBorder: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
+    borderWidth: 1,
+    borderRadius: colors.radius.lg,
   },
   resultText: { flex: 1 },
   resultTitle: { fontFamily: "Inter_700Bold", fontSize: 16 },
-  resultSub: { fontFamily: "Inter_400Regular", fontSize: 13, marginTop: 4, lineHeight: 20 },
+  resultSub: { fontFamily: "Inter_400Regular", fontSize: 13, color: colors.textMuted, marginTop: 4, lineHeight: 20 },
   footer: {
     position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 16,
+    bottom: 0, left: 0, right: 0,
+    paddingTop: 40,
+    paddingHorizontal: 16,
     paddingBottom: 24,
-    backgroundColor: colors.light.background,
-    borderTopWidth: 1,
   },
   footerBtns: { flexDirection: "row", gap: 10 },
   resetBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-  },
-  resetBtnText: { fontFamily: "Inter_500Medium", fontSize: 14 },
-  mainBtn: {
-    flexDirection: "row",
+    width: 50,
+    height: 50,
+    borderRadius: colors.radius.md,
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 12,
+    borderWidth: 1,
+    backgroundColor: colors.surface2,
   },
-  mainBtnText: { fontFamily: "Inter_700Bold", fontSize: 15 },
+  mainBtn: { flex: 1 },
 });

@@ -1,7 +1,10 @@
 import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import * as Haptics from "expo-haptics";
 import React, { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import colors from "@/constants/colors";
+import GoldButton from "@/components/ui/GoldButton";
 import type { Witness } from "@/data/cases";
 
 interface Props {
@@ -10,31 +13,36 @@ interface Props {
 }
 
 export default function WitnessInterview({ witnesses, onContinue }: Props) {
-  const c = colors.light;
-  const [activeWitness, setActiveWitness] = useState(0);
-  const [questionPhase, setQuestionPhase] = useState<"statement" | "questions">("statement");
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [phase, setPhase] = useState<"statement" | "questions">("statement");
   const [answers, setAnswers] = useState<Record<string, number | null>>({});
   const [submitted, setSubmitted] = useState<Record<string, boolean>>({});
   const [allDone, setAllDone] = useState(false);
 
-  const witness = witnesses[activeWitness];
+  const witness = witnesses[activeIdx];
+  const allAnswered = witness.questions.every((q) => submitted[q.id]);
 
-  const selectAnswer = (qId: string, idx: number) => {
+  const select = (qId: string, idx: number) => {
     if (submitted[qId]) return;
-    setAnswers((prev) => ({ ...prev, [qId]: idx }));
+    setAnswers((p) => ({ ...p, [qId]: idx }));
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
-  const submitAnswer = (qId: string) => {
+  const submit = (qId: string) => {
     if (answers[qId] == null) return;
-    setSubmitted((prev) => ({ ...prev, [qId]: true }));
+    setSubmitted((p) => ({ ...p, [qId]: true }));
+    Haptics.notificationAsync(
+      answers[qId] === witness.questions.find((q) => q.id === qId)?.correctIndex
+        ? Haptics.NotificationFeedbackType.Success
+        : Haptics.NotificationFeedbackType.Warning
+    );
   };
 
-  const allQuestionsAnswered = witness.questions.every((q) => submitted[q.id]);
-
-  const goNextWitness = () => {
-    if (activeWitness < witnesses.length - 1) {
-      setActiveWitness((prev) => prev + 1);
-      setQuestionPhase("statement");
+  const nextWitness = () => {
+    if (activeIdx < witnesses.length - 1) {
+      setActiveIdx((p) => p + 1);
+      setPhase("statement");
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     } else {
       setAllDone(true);
     }
@@ -42,153 +50,175 @@ export default function WitnessInterview({ witnesses, onContinue }: Props) {
 
   if (allDone) {
     return (
-      <View style={styles.doneContainer}>
-        <View style={[styles.doneIcon, { backgroundColor: `${c.gold}20` }]}>
-          <Feather name="check-circle" size={48} color={c.gold} />
-        </View>
-        <Text style={[styles.doneTitle, { color: c.foreground }]}>All Witnesses Heard</Text>
-        <Text style={[styles.doneSubtitle, { color: c.mutedForeground }]}>
-          You've gathered testimony from all witnesses. Now it's time to examine the timeline.
-        </Text>
-        <Pressable
-          onPress={onContinue}
-          style={({ pressed }) => [styles.continueBtn, { backgroundColor: c.gold, opacity: pressed ? 0.8 : 1 }]}
-        >
-          <Text style={[styles.continueBtnText, { color: c.primaryForeground }]}>Examine Timeline</Text>
-          <Feather name="arrow-right" size={16} color={c.primaryForeground} />
-        </Pressable>
+      <View style={styles.doneRoot}>
+        <LinearGradient colors={["#1A2640", "#0E1628", colors.bg]} style={StyleSheet.absoluteFill} />
+        <LinearGradient colors={["rgba(46,204,142,0.2)", "rgba(46,204,142,0.05)"]} style={styles.doneIconBg}>
+          <Feather name="check-circle" size={44} color={colors.green} />
+        </LinearGradient>
+        <Text style={styles.doneTitle}>All Witnesses Heard</Text>
+        <Text style={styles.doneSub}>Testimony gathered. The timeline awaits your analysis.</Text>
+        <GoldButton label="Examine Timeline" onPress={onContinue} icon="clock" iconRight size="lg" style={styles.doneBtn} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.topBar}>
-        <View style={styles.titleRow}>
-          <Feather name="mic" size={18} color={c.gold} />
-          <Text style={[styles.sectionTitle, { color: c.gold }]}>Witness Interviews</Text>
+    <View style={styles.root}>
+      {/* Sub header */}
+      <LinearGradient colors={["#0F1628", colors.bg]} style={styles.subHeader}>
+        <View style={styles.subHeaderRow}>
+          <View style={[styles.accent, { backgroundColor: colors.purple }]} />
+          <Text style={styles.subHeaderTitle}>Witness Interview</Text>
+          <View style={styles.progressChip}>
+            <Text style={styles.progressText}>{activeIdx + 1}/{witnesses.length}</Text>
+          </View>
         </View>
-        <Text style={[styles.witnessCounter, { color: c.mutedForeground }]}>
-          Witness {activeWitness + 1} of {witnesses.length}
-        </Text>
-      </View>
+        <View style={styles.dotRow}>
+          {witnesses.map((_, i) => (
+            <View
+              key={i}
+              style={[
+                styles.witnessDot,
+                i < activeIdx
+                  ? { backgroundColor: colors.green }
+                  : i === activeIdx
+                  ? { backgroundColor: colors.purple }
+                  : { backgroundColor: colors.surface3 },
+              ]}
+            />
+          ))}
+        </View>
+      </LinearGradient>
 
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-        <View style={[styles.witnessCard, { backgroundColor: c.card, borderColor: c.border }]}>
-          <View style={styles.witnessHeader}>
-            <View style={[styles.witnessAvatar, { backgroundColor: `${c.gold}20`, borderColor: `${c.gold}40` }]}>
-              <Feather name="user" size={22} color={c.gold} />
-            </View>
+        {/* Witness card */}
+        <LinearGradient
+          colors={["#1C1840", "#0F0E28", "#0A0A1A"]}
+          style={styles.witnessCard}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <View style={[styles.cardBorder, { borderColor: "rgba(124,94,232,0.35)" }]} />
+          <View style={styles.witnessTop}>
+            <LinearGradient
+              colors={["rgba(124,94,232,0.25)", "rgba(124,94,232,0.08)"]}
+              style={styles.witnessAvatar}
+            >
+              <Feather name="user" size={24} color={colors.purple} />
+            </LinearGradient>
             <View style={styles.witnessInfo}>
-              <Text style={[styles.witnessName, { color: c.foreground }]}>{witness.name}</Text>
-              <Text style={[styles.witnessRole, { color: c.mutedForeground }]}>{witness.role}</Text>
+              <Text style={styles.witnessName}>{witness.name}</Text>
+              <Text style={styles.witnessRole}>{witness.role}</Text>
             </View>
           </View>
-        </View>
+        </LinearGradient>
 
-        {questionPhase === "statement" ? (
+        {phase === "statement" ? (
           <View>
-            <View style={[styles.statementBox, { backgroundColor: "#1A1A24", borderColor: c.border }]}>
-              <Text style={[styles.statementLabel, { color: c.gold }]}>Statement</Text>
-              <Text style={[styles.statementText, { color: c.foreground }]}>"{witness.statement}"</Text>
-            </View>
-            <Pressable
-              onPress={() => setQuestionPhase("questions")}
-              style={({ pressed }) => [styles.nextBtn, { backgroundColor: c.gold, opacity: pressed ? 0.8 : 1 }]}
-            >
-              <Text style={[styles.nextBtnText, { color: c.primaryForeground }]}>Begin Questioning</Text>
-              <Feather name="help-circle" size={16} color={c.primaryForeground} />
-            </Pressable>
+            <LinearGradient colors={[colors.surface2, colors.surface1]} style={styles.statementCard}>
+              <View style={[styles.cardBorder, { borderColor: colors.border }]} />
+              <Text style={styles.statementLabel}>RECORDED STATEMENT</Text>
+              <Text style={styles.statementText}>"{witness.statement}"</Text>
+            </LinearGradient>
+            <GoldButton
+              label="Begin Questioning"
+              onPress={() => setPhase("questions")}
+              icon="help-circle"
+              iconRight={false}
+              size="lg"
+              style={styles.actionBtn}
+            />
           </View>
         ) : (
-          <View>
+          <View style={styles.questions}>
             {witness.questions.map((q) => {
-              const selected = answers[q.id];
+              const sel = answers[q.id];
               const isSubmitted = submitted[q.id];
-              const isCorrect = isSubmitted && selected === q.correctIndex;
 
               return (
-                <View key={q.id} style={[styles.questionCard, { backgroundColor: c.card, borderColor: c.border }]}>
-                  <Text style={[styles.questionText, { color: c.foreground }]}>{q.text}</Text>
-                  {q.options.map((opt, idx) => {
-                    let bg = c.muted;
-                    let border = c.border;
-                    let textColor = c.foreground;
+                <LinearGradient key={q.id} colors={[colors.surface2, colors.surface1]} style={styles.questionCard}>
+                  <View style={[styles.cardBorder, { borderColor: colors.border }]} />
+                  <Text style={styles.questionText}>{q.text}</Text>
 
-                    if (isSubmitted) {
-                      if (idx === q.correctIndex) {
-                        bg = "#22C55E20";
-                        border = "#22C55E";
-                        textColor = "#22C55E";
-                      } else if (idx === selected) {
-                        bg = "#EF444420";
-                        border = "#EF4444";
-                        textColor = "#EF4444";
-                      }
-                    } else if (selected === idx) {
-                      bg = `${c.gold}20`;
-                      border = c.gold;
-                      textColor = c.gold;
-                    }
+                  {q.options.map((opt, idx) => {
+                    const isCorrect = isSubmitted && idx === q.correctIndex;
+                    const isWrong = isSubmitted && idx === sel && idx !== q.correctIndex;
+                    const isSelected = !isSubmitted && sel === idx;
 
                     return (
                       <Pressable
                         key={idx}
-                        onPress={() => selectAnswer(q.id, idx)}
-                        style={[styles.option, { backgroundColor: bg, borderColor: border }]}
+                        onPress={() => select(q.id, idx)}
+                        style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
                       >
-                        <View style={[styles.optionBullet, { borderColor: border }]}>
-                          {isSubmitted && idx === q.correctIndex && (
-                            <Feather name="check" size={10} color="#22C55E" />
-                          )}
-                          {isSubmitted && idx === selected && idx !== q.correctIndex && (
-                            <Feather name="x" size={10} color="#EF4444" />
-                          )}
-                          {!isSubmitted && selected === idx && (
-                            <View style={[styles.optionDot, { backgroundColor: c.gold }]} />
-                          )}
-                        </View>
-                        <Text style={[styles.optionText, { color: textColor }]}>{opt}</Text>
+                        <LinearGradient
+                          colors={
+                            isCorrect
+                              ? ["rgba(46,204,142,0.18)", "rgba(46,204,142,0.06)"]
+                              : isWrong
+                              ? ["rgba(232,64,64,0.18)", "rgba(232,64,64,0.06)"]
+                              : isSelected
+                              ? ["rgba(212,150,42,0.18)", "rgba(212,150,42,0.06)"]
+                              : ["rgba(255,255,255,0.04)", "rgba(255,255,255,0.02)"]
+                          }
+                          style={[
+                            styles.option,
+                            {
+                              borderColor: isCorrect
+                                ? "rgba(46,204,142,0.5)"
+                                : isWrong
+                                ? "rgba(232,64,64,0.5)"
+                                : isSelected
+                                ? colors.goldBorder
+                                : colors.border,
+                            },
+                          ]}
+                        >
+                          <View style={[styles.optionBullet, {
+                            borderColor: isCorrect ? colors.green : isWrong ? colors.red : isSelected ? colors.gold : colors.border,
+                            backgroundColor: isCorrect ? "rgba(46,204,142,0.2)" : isWrong ? "rgba(232,64,64,0.2)" : isSelected ? "rgba(212,150,42,0.2)" : "transparent",
+                          }]}>
+                            {isCorrect && <Feather name="check" size={10} color={colors.green} />}
+                            {isWrong && <Feather name="x" size={10} color={colors.red} />}
+                          </View>
+                          <Text style={[styles.optionText, { color: isCorrect ? colors.green : isWrong ? colors.red : isSelected ? colors.gold : colors.text }]}>
+                            {opt}
+                          </Text>
+                        </LinearGradient>
                       </Pressable>
                     );
                   })}
 
                   {!isSubmitted ? (
-                    <Pressable
-                      onPress={() => submitAnswer(q.id)}
-                      style={[
-                        styles.submitBtn,
-                        {
-                          backgroundColor: selected != null ? c.gold : c.muted,
-                        },
-                      ]}
-                    >
-                      <Text
-                        style={[styles.submitBtnText, { color: selected != null ? c.primaryForeground : c.mutedForeground }]}
-                      >
-                        Submit Answer
-                      </Text>
-                    </Pressable>
+                    <GoldButton
+                      label="Confirm Answer"
+                      onPress={() => submit(q.id)}
+                      disabled={sel == null}
+                      size="md"
+                      style={styles.submitBtn}
+                    />
                   ) : (
-                    <View style={[styles.explanationBox, { backgroundColor: `${c.gold}10`, borderColor: `${c.gold}30` }]}>
-                      <Feather name="book-open" size={13} color={c.gold} />
-                      <Text style={[styles.explanationText, { color: c.parchment }]}>{q.explanation}</Text>
-                    </View>
+                    <LinearGradient
+                      colors={["rgba(212,150,42,0.12)", "rgba(212,150,42,0.04)"]}
+                      style={styles.explanationBox}
+                    >
+                      <View style={[styles.explanationBorder, { borderColor: colors.goldBorder }]} />
+                      <Feather name="book-open" size={13} color={colors.gold} />
+                      <Text style={styles.explanationText}>{q.explanation}</Text>
+                    </LinearGradient>
                   )}
-                </View>
+                </LinearGradient>
               );
             })}
 
-            {allQuestionsAnswered && (
-              <Pressable
-                onPress={goNextWitness}
-                style={({ pressed }) => [styles.nextBtn, { backgroundColor: c.gold, opacity: pressed ? 0.8 : 1, marginTop: 4 }]}
-              >
-                <Text style={[styles.nextBtnText, { color: c.primaryForeground }]}>
-                  {activeWitness < witnesses.length - 1 ? "Next Witness" : "All Witnesses Heard"}
-                </Text>
-                <Feather name="arrow-right" size={16} color={c.primaryForeground} />
-              </Pressable>
+            {allAnswered && (
+              <GoldButton
+                label={activeIdx < witnesses.length - 1 ? "Next Witness" : "All Witnesses Heard"}
+                onPress={nextWitness}
+                icon="arrow-right"
+                size="lg"
+                style={styles.actionBtn}
+              />
             )}
           </View>
         )}
@@ -199,116 +229,124 @@ export default function WitnessInterview({ witnesses, onContinue }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  topBar: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8 },
-  titleRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 },
-  sectionTitle: { fontFamily: "Inter_700Bold", fontSize: 20, letterSpacing: 0.5 },
-  witnessCounter: { fontFamily: "Inter_400Regular", fontSize: 13 },
+  root: { flex: 1, backgroundColor: colors.bg },
+  subHeader: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 14 },
+  subHeaderRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10 },
+  accent: { width: 3, height: 18, borderRadius: 2 },
+  subHeaderTitle: { fontFamily: "Inter_700Bold", fontSize: 18, color: colors.text, flex: 1 },
+  progressChip: {
+    backgroundColor: colors.surface3,
+    borderRadius: colors.radius.full,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  progressText: { fontFamily: "Inter_600SemiBold", fontSize: 11, color: colors.textMuted },
+  dotRow: { flexDirection: "row", gap: 6 },
+  witnessDot: { width: 24, height: 4, borderRadius: 2 },
   scroll: { flex: 1, paddingHorizontal: 16 },
   witnessCard: {
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 14,
+    borderRadius: colors.radius.lg,
+    padding: 16,
+    marginTop: 4,
     marginBottom: 12,
+    position: "relative",
+    overflow: "hidden",
   },
-  witnessHeader: { flexDirection: "row", alignItems: "center", gap: 12 },
+  cardBorder: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
+    borderWidth: 1,
+    borderRadius: colors.radius.lg,
+  },
+  witnessTop: { flexDirection: "row", alignItems: "center", gap: 14 },
   witnessAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 2,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1.5,
+    borderColor: "rgba(124,94,232,0.4)",
   },
   witnessInfo: { flex: 1 },
-  witnessName: { fontFamily: "Inter_700Bold", fontSize: 17 },
-  witnessRole: { fontFamily: "Inter_400Regular", fontSize: 13, marginTop: 2 },
-  statementBox: {
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 16,
+  witnessName: { fontFamily: "Inter_700Bold", fontSize: 18, color: colors.text },
+  witnessRole: { fontFamily: "Inter_400Regular", fontSize: 12, color: colors.textMuted, marginTop: 2 },
+  statementCard: {
+    borderRadius: colors.radius.lg,
+    padding: 18,
     marginBottom: 14,
-  },
-  statementLabel: { fontFamily: "Inter_600SemiBold", fontSize: 11, letterSpacing: 1, marginBottom: 8 },
-  statementText: { fontFamily: "Inter_400Regular", fontSize: 15, lineHeight: 24, fontStyle: "italic" },
-  nextBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    position: "relative",
+    overflow: "hidden",
     gap: 8,
-    paddingVertical: 14,
-    borderRadius: 12,
-    marginBottom: 16,
   },
-  nextBtnText: { fontFamily: "Inter_700Bold", fontSize: 15 },
+  statementLabel: { fontFamily: "Inter_600SemiBold", fontSize: 9, color: colors.textMuted, letterSpacing: 2 },
+  statementText: { fontFamily: "Inter_400Regular", fontSize: 15, color: colors.parchment, lineHeight: 25, fontStyle: "italic" },
+  questions: { gap: 12 },
   questionCard: {
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 14,
-    marginBottom: 12,
-    gap: 8,
+    borderRadius: colors.radius.lg,
+    padding: 16,
+    position: "relative",
+    overflow: "hidden",
+    gap: 10,
   },
-  questionText: { fontFamily: "Inter_600SemiBold", fontSize: 15, lineHeight: 22, marginBottom: 4 },
+  questionText: { fontFamily: "Inter_600SemiBold", fontSize: 15, color: colors.text, lineHeight: 22, marginBottom: 2 },
   option: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
     padding: 12,
-    borderRadius: 10,
+    borderRadius: colors.radius.md,
     borderWidth: 1,
   },
   optionBullet: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 1,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 1.5,
     alignItems: "center",
     justifyContent: "center",
   },
-  optionDot: { width: 8, height: 8, borderRadius: 4 },
-  optionText: { fontFamily: "Inter_400Regular", fontSize: 14, flex: 1 },
-  submitBtn: {
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: "center",
-    marginTop: 4,
-  },
-  submitBtnText: { fontFamily: "Inter_600SemiBold", fontSize: 14 },
+  optionText: { fontFamily: "Inter_400Regular", fontSize: 14, flex: 1, lineHeight: 20 },
+  submitBtn: { marginTop: 4, width: "100%" },
   explanationBox: {
     flexDirection: "row",
     gap: 8,
-    padding: 10,
-    borderRadius: 8,
-    borderWidth: 1,
+    padding: 12,
+    borderRadius: colors.radius.md,
     alignItems: "flex-start",
     marginTop: 4,
+    position: "relative",
+    overflow: "hidden",
   },
-  explanationText: { fontFamily: "Inter_400Regular", fontSize: 13, lineHeight: 20, flex: 1 },
-  doneContainer: {
+  explanationBorder: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
+    borderWidth: 1,
+    borderRadius: colors.radius.md,
+  },
+  explanationText: { fontFamily: "Inter_400Regular", fontSize: 13, color: colors.text, lineHeight: 20, flex: 1 },
+  actionBtn: { width: "100%", marginTop: 4, marginBottom: 4 },
+  doneRoot: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     padding: 32,
     gap: 16,
+    backgroundColor: colors.bg,
   },
-  doneIcon: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+  doneIconBg: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1.5,
+    borderColor: "rgba(46,204,142,0.4)",
     marginBottom: 8,
   },
-  doneTitle: { fontFamily: "Inter_700Bold", fontSize: 24, textAlign: "center" },
-  doneSubtitle: { fontFamily: "Inter_400Regular", fontSize: 15, textAlign: "center", lineHeight: 24 },
-  continueBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingVertical: 14,
-    paddingHorizontal: 28,
-    borderRadius: 12,
-    marginTop: 8,
-  },
-  continueBtnText: { fontFamily: "Inter_700Bold", fontSize: 15 },
+  doneTitle: { fontFamily: "Inter_700Bold", fontSize: 24, color: colors.text, textAlign: "center" },
+  doneSub: { fontFamily: "Inter_400Regular", fontSize: 15, color: colors.textMuted, textAlign: "center", lineHeight: 24 },
+  doneBtn: { width: "100%", marginTop: 8 },
 });

@@ -1,8 +1,11 @@
 import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import React, { useEffect, useRef } from "react";
-import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Animated, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import colors from "@/constants/colors";
+import GoldButton from "@/components/ui/GoldButton";
 import type { Case } from "@/data/cases";
 
 interface Props {
@@ -11,186 +14,322 @@ interface Props {
 }
 
 export default function RevealScreen({ caseData, onFinish }: Props) {
-  const c = colors.light;
+  const insets = useSafeAreaInsets();
+  const topPad = Platform.OS === "web" ? 60 : insets.top;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 700, useNativeDriver: true }),
     ]).start();
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   }, []);
 
+  const bottomPad = Platform.OS === "web" ? 24 : insets.bottom;
+
   return (
-    <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-      <Animated.View style={[styles.container, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-        <View style={[styles.headerBanner, { backgroundColor: `${c.gold}15`, borderColor: `${c.gold}40` }]}>
-          <Feather name="book-open" size={28} color={c.gold} />
-          <Text style={[styles.bannerTitle, { color: c.gold }]}>Case Revealed</Text>
-          <Text style={[styles.bannerRef, { color: c.mutedForeground }]}>{caseData.bibleReference}</Text>
-        </View>
+    <View style={[styles.root, { paddingTop: topPad }]}>
+      <LinearGradient colors={["#0A0F1E", colors.bg]} style={StyleSheet.absoluteFill} />
 
-        <Text style={[styles.revealText, { color: c.foreground }]}>{caseData.revealText}</Text>
+      <ScrollView showsVerticalScrollIndicator={false} style={styles.scroll}>
+        <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
+          {/* Hero */}
+          <LinearGradient
+            colors={["#1E2844", "#0E1628", "#070A13"]}
+            style={styles.heroBanner}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <View style={[styles.heroBorder, { borderColor: colors.goldBorder }]} />
+            <LinearGradient
+              colors={["rgba(212,150,42,0.3)", "rgba(212,150,42,0.08)"]}
+              style={styles.heroIconBg}
+            >
+              <Feather name="book-open" size={32} color={colors.gold} />
+            </LinearGradient>
+            <Text style={styles.heroLabel}>CASE REVEALED</Text>
+            <Text style={styles.heroTitle}>{caseData.title}</Text>
+            <Text style={styles.heroRef}>{caseData.bibleReference}</Text>
+          </LinearGradient>
 
-        <View style={[styles.verseBox, { backgroundColor: "#1E1A0E", borderColor: c.gold }]}>
-          <Feather name="bookmark" size={16} color={c.gold} />
-          <Text style={[styles.verseText, { color: c.parchment }]}>{caseData.revealVerse}</Text>
-        </View>
+          {/* Reveal text */}
+          <Section title="Biblical Account" accentColor={colors.gold}>
+            <LinearGradient colors={[colors.surface2, colors.surface1]} style={styles.textCard}>
+              <View style={[styles.textCardBorder, { borderColor: colors.border }]} />
+              <Text style={styles.revealText}>{caseData.revealText}</Text>
+            </LinearGradient>
+          </Section>
 
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: c.gold }]}>Detective Lessons</Text>
-          {caseData.lessons.map((lesson, i) => (
-            <View key={i} style={[styles.lessonCard, { backgroundColor: c.card, borderColor: c.border }]}>
-              <View style={[styles.lessonTypeBadge, { backgroundColor: `${c.gold}20` }]}>
-                <Text style={[styles.lessonType, { color: c.gold }]}>{lesson.type.toUpperCase()}</Text>
-              </View>
-              <Text style={[styles.lessonText, { color: c.foreground }]}>{lesson.text}</Text>
+          {/* Verse */}
+          <LinearGradient
+            colors={["rgba(212,150,42,0.12)", "rgba(212,150,42,0.04)"]}
+            style={styles.verseBox}
+          >
+            <View style={[styles.verseBorder, { borderColor: colors.goldBorder }]} />
+            <View style={[styles.verseAccent, { backgroundColor: colors.gold }]} />
+            <View style={styles.verseContent}>
+              <Text style={styles.verseText}>{caseData.revealVerse}</Text>
             </View>
-          ))}
-        </View>
+          </LinearGradient>
 
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: c.gold }]}>Reflection Questions</Text>
-          {caseData.reflectionQuestions.map((q, i) => (
-            <View key={i} style={[styles.reflectionCard, { backgroundColor: c.card, borderColor: c.border }]}>
-              <Text style={[styles.reflectionNum, { color: c.gold }]}>{i + 1}</Text>
-              <Text style={[styles.reflectionText, { color: c.foreground }]}>{q}</Text>
+          {/* Lessons */}
+          <Section title="Detective Lessons" accentColor={colors.blue}>
+            <View style={styles.lessonsGrid}>
+              {caseData.lessons.map((lesson, i) => (
+                <LinearGradient key={i} colors={[colors.surface2, colors.surface1]} style={styles.lessonCard}>
+                  <View style={[styles.lessonBorder, { borderColor: colors.border }]} />
+                  <View style={[styles.lessonTypeBadge, { backgroundColor: "rgba(74,126,232,0.15)", borderColor: "rgba(74,126,232,0.35)" }]}>
+                    <Text style={[styles.lessonType, { color: colors.blue }]}>{lesson.type.toUpperCase()}</Text>
+                  </View>
+                  <Text style={styles.lessonText}>{lesson.text}</Text>
+                </LinearGradient>
+              ))}
             </View>
-          ))}
-        </View>
+          </Section>
 
-        <View style={[styles.rewardsBox, { backgroundColor: "#1A2A1A", borderColor: "#22C55E50" }]}>
-          <Text style={[styles.rewardsTitle, { color: "#22C55E" }]}>Case Rewards Earned</Text>
-          <View style={styles.rewardsGrid}>
-            <View style={styles.rewardItem}>
-              <Feather name="zap" size={20} color={c.gold} />
-              <Text style={[styles.rewardVal, { color: c.foreground }]}>{caseData.rewards.xp}</Text>
-              <Text style={[styles.rewardLabel, { color: c.mutedForeground }]}>XP</Text>
-            </View>
-            <View style={styles.rewardItem}>
-              <Feather name="circle" size={20} color="#F59E0B" />
-              <Text style={[styles.rewardVal, { color: c.foreground }]}>{caseData.rewards.coins}</Text>
-              <Text style={[styles.rewardLabel, { color: c.mutedForeground }]}>Coins</Text>
-            </View>
-            <View style={styles.rewardItem}>
-              <Feather name="award" size={20} color={c.gold} />
-              <Text style={[styles.rewardVal, { color: c.foreground }]} numberOfLines={2}>
-                {caseData.rewards.badge}
-              </Text>
-              <Text style={[styles.rewardLabel, { color: c.mutedForeground }]}>Badge</Text>
-            </View>
-            <View style={styles.rewardItem}>
-              <Feather name="trending-up" size={20} color="#22C55E" />
-              <Text style={[styles.rewardVal, { color: c.foreground }]}>+{caseData.rewards.rankProgress}%</Text>
-              <Text style={[styles.rewardLabel, { color: c.mutedForeground }]}>Rank</Text>
-            </View>
-          </View>
-        </View>
+          {/* Reflection */}
+          <Section title="Reflection Questions" accentColor={colors.purple}>
+            {caseData.reflectionQuestions.map((q, i) => (
+              <LinearGradient key={i} colors={[colors.surface2, colors.surface1]} style={styles.reflectionCard}>
+                <View style={[styles.reflectionBorder, { borderColor: colors.border }]} />
+                <LinearGradient
+                  colors={["rgba(124,94,232,0.25)", "rgba(124,94,232,0.08)"]}
+                  style={styles.reflectionNum}
+                >
+                  <Text style={styles.reflectionNumText}>{i + 1}</Text>
+                </LinearGradient>
+                <Text style={styles.reflectionText}>{q}</Text>
+              </LinearGradient>
+            ))}
+          </Section>
 
-        <View style={[styles.closingBox, { backgroundColor: c.card, borderColor: c.border }]}>
-          <Text style={[styles.closingText, { color: c.mutedForeground }]}>{caseData.closingText}</Text>
+          {/* Rewards */}
+          <LinearGradient
+            colors={["rgba(46,204,142,0.12)", "rgba(46,204,142,0.04)"]}
+            style={styles.rewardsBox}
+          >
+            <View style={[styles.rewardsBorder, { borderColor: "rgba(46,204,142,0.35)" }]} />
+            <Text style={styles.rewardsTitle}>Case Rewards</Text>
+            <View style={styles.rewardsGrid}>
+              {[
+                { icon: "zap" as const, val: `+${caseData.rewards.xp}`, label: "XP", color: colors.gold },
+                { icon: "disc" as const, val: `+${caseData.rewards.coins}`, label: "Coins", color: colors.amber },
+                { icon: "award" as const, val: caseData.rewards.badge, label: "Badge", color: colors.purple },
+                { icon: "trending-up" as const, val: `+${caseData.rewards.rankProgress}%`, label: "Rank", color: colors.green },
+              ].map((r, i) => (
+                <View key={i} style={styles.rewardItem}>
+                  <LinearGradient
+                    colors={[`${r.color}20`, `${r.color}06`]}
+                    style={styles.rewardIconBg}
+                  >
+                    <Feather name={r.icon} size={18} color={r.color} />
+                  </LinearGradient>
+                  <Text style={[styles.rewardVal, { color: r.color }]} numberOfLines={1}>{r.val}</Text>
+                  <Text style={styles.rewardLabel}>{r.label}</Text>
+                </View>
+              ))}
+            </View>
+          </LinearGradient>
+
+          {/* Closing */}
           {caseData.nextCaseTitle && (
-            <View style={styles.nextCaseRow}>
-              <Feather name="chevron-right" size={14} color={c.gold} />
-              <Text style={[styles.nextCaseText, { color: c.gold }]}>
-                Next: {caseData.nextCaseTitle}
-              </Text>
-            </View>
+            <LinearGradient colors={[colors.surface2, colors.surface1]} style={styles.closingCard}>
+              <View style={[styles.closingBorder, { borderColor: colors.border }]} />
+              <Text style={styles.closingText}>{caseData.closingText}</Text>
+              <View style={styles.nextCaseRow}>
+                <Feather name="arrow-right" size={13} color={colors.gold} />
+                <Text style={styles.nextCaseText}>Next: {caseData.nextCaseTitle}</Text>
+              </View>
+            </LinearGradient>
           )}
-        </View>
 
-        <Pressable
-          onPress={onFinish}
-          style={({ pressed }) => [styles.finishBtn, { backgroundColor: c.gold, opacity: pressed ? 0.8 : 1 }]}
-        >
-          <Feather name="home" size={16} color={c.primaryForeground} />
-          <Text style={[styles.finishBtnText, { color: c.primaryForeground }]}>Return to Case Files</Text>
-        </Pressable>
-
-        <View style={{ height: 40 }} />
-      </Animated.View>
-    </ScrollView>
+          <GoldButton
+            label="Return to Case Files"
+            onPress={onFinish}
+            icon="home"
+            iconRight={false}
+            size="lg"
+            style={styles.finishBtn}
+          />
+          <View style={{ height: bottomPad + 24 }} />
+        </Animated.View>
+      </ScrollView>
+    </View>
   );
 }
 
+function Section({ title, accentColor, children }: { title: string; accentColor: string; children: React.ReactNode }) {
+  return (
+    <View style={sectionStyles.wrap}>
+      <View style={sectionStyles.head}>
+        <View style={[sectionStyles.accent, { backgroundColor: accentColor }]} />
+        <Text style={sectionStyles.title}>{title}</Text>
+      </View>
+      {children}
+    </View>
+  );
+}
+
+const sectionStyles = StyleSheet.create({
+  wrap: { marginBottom: 20 },
+  head: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10 },
+  accent: { width: 3, height: 18, borderRadius: 2 },
+  title: { fontFamily: "Inter_700Bold", fontSize: 17, color: colors.text },
+});
+
 const styles = StyleSheet.create({
-  scroll: { flex: 1 },
-  container: { padding: 20, gap: 16 },
-  headerBanner: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 20,
+  root: { flex: 1, backgroundColor: colors.bg },
+  scroll: { flex: 1, paddingHorizontal: 16 },
+  heroBanner: {
+    borderRadius: colors.radius.lg,
+    padding: 24,
     alignItems: "center",
+    marginTop: 16,
+    marginBottom: 20,
     gap: 6,
+    position: "relative",
+    overflow: "hidden",
   },
-  bannerTitle: { fontFamily: "Inter_700Bold", fontSize: 22 },
-  bannerRef: { fontFamily: "Inter_400Regular", fontSize: 14 },
-  revealText: { fontFamily: "Inter_400Regular", fontSize: 15, lineHeight: 26 },
+  heroBorder: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
+    borderWidth: 1,
+    borderRadius: colors.radius.lg,
+  },
+  heroIconBg: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1.5,
+    borderColor: colors.goldBorder,
+    marginBottom: 8,
+  },
+  heroLabel: { fontFamily: "Inter_600SemiBold", fontSize: 9, color: colors.gold, letterSpacing: 3 },
+  heroTitle: { fontFamily: "Inter_700Bold", fontSize: 24, color: colors.text, textAlign: "center" },
+  heroRef: { fontFamily: "Inter_400Regular", fontSize: 13, color: colors.textMuted },
+  textCard: {
+    borderRadius: colors.radius.lg,
+    padding: 18,
+    position: "relative",
+    overflow: "hidden",
+  },
+  textCardBorder: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
+    borderWidth: 1,
+    borderRadius: colors.radius.lg,
+  },
+  revealText: { fontFamily: "Inter_400Regular", fontSize: 15, color: colors.text, lineHeight: 26 },
   verseBox: {
     flexDirection: "row",
-    gap: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-    padding: 14,
-    alignItems: "flex-start",
-    borderLeftWidth: 3,
+    borderRadius: colors.radius.lg,
+    overflow: "hidden",
+    marginBottom: 20,
+    position: "relative",
   },
-  verseText: { fontFamily: "Inter_400Regular", fontSize: 14, fontStyle: "italic", lineHeight: 22, flex: 1 },
-  section: { gap: 8 },
-  sectionTitle: { fontFamily: "Inter_700Bold", fontSize: 18, marginBottom: 2 },
-  lessonCard: {
-    borderRadius: 12,
+  verseBorder: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
     borderWidth: 1,
+    borderRadius: colors.radius.lg,
+  },
+  verseAccent: { width: 3 },
+  verseContent: { flex: 1, padding: 16 },
+  verseText: { fontFamily: "Inter_400Regular", fontSize: 14, color: colors.parchment, lineHeight: 23, fontStyle: "italic" },
+  lessonsGrid: { gap: 8 },
+  lessonCard: {
+    borderRadius: colors.radius.md,
     padding: 14,
     gap: 6,
+    position: "relative",
+    overflow: "hidden",
+  },
+  lessonBorder: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
+    borderWidth: 1,
+    borderRadius: colors.radius.md,
   },
   lessonTypeBadge: {
     alignSelf: "flex-start",
+    borderWidth: 1,
+    borderRadius: colors.radius.full,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 6,
   },
-  lessonType: { fontFamily: "Inter_600SemiBold", fontSize: 10, letterSpacing: 1 },
-  lessonText: { fontFamily: "Inter_400Regular", fontSize: 14, lineHeight: 22 },
+  lessonType: { fontFamily: "Inter_600SemiBold", fontSize: 9, letterSpacing: 1.2 },
+  lessonText: { fontFamily: "Inter_400Regular", fontSize: 14, color: colors.text, lineHeight: 22 },
   reflectionCard: {
     flexDirection: "row",
     gap: 12,
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: colors.radius.md,
     padding: 14,
+    marginBottom: 8,
     alignItems: "flex-start",
+    position: "relative",
+    overflow: "hidden",
   },
-  reflectionNum: { fontFamily: "Inter_700Bold", fontSize: 18, minWidth: 20 },
-  reflectionText: { fontFamily: "Inter_400Regular", fontSize: 14, lineHeight: 22, flex: 1 },
-  rewardsBox: {
-    borderRadius: 16,
+  reflectionBorder: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
     borderWidth: 1,
-    padding: 18,
-    gap: 14,
+    borderRadius: colors.radius.md,
   },
-  rewardsTitle: { fontFamily: "Inter_700Bold", fontSize: 16, textAlign: "center" },
-  rewardsGrid: { flexDirection: "row", justifyContent: "space-around" },
-  rewardItem: { alignItems: "center", gap: 4, flex: 1 },
-  rewardVal: { fontFamily: "Inter_700Bold", fontSize: 15, textAlign: "center" },
-  rewardLabel: { fontFamily: "Inter_400Regular", fontSize: 11 },
-  closingBox: {
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 16,
-    gap: 10,
-  },
-  closingText: { fontFamily: "Inter_400Regular", fontSize: 14, lineHeight: 22, fontStyle: "italic", textAlign: "center" },
-  nextCaseRow: { flexDirection: "row", alignItems: "center", gap: 4, justifyContent: "center" },
-  nextCaseText: { fontFamily: "Inter_600SemiBold", fontSize: 13 },
-  finishBtn: {
-    flexDirection: "row",
+  reflectionNum: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
-    paddingVertical: 16,
-    borderRadius: 14,
+    minWidth: 30,
   },
-  finishBtnText: { fontFamily: "Inter_700Bold", fontSize: 16 },
+  reflectionNumText: { fontFamily: "Inter_700Bold", fontSize: 14, color: colors.purple },
+  reflectionText: { fontFamily: "Inter_400Regular", fontSize: 14, color: colors.text, lineHeight: 22, flex: 1 },
+  rewardsBox: {
+    borderRadius: colors.radius.lg,
+    padding: 18,
+    marginBottom: 16,
+    position: "relative",
+    overflow: "hidden",
+  },
+  rewardsBorder: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
+    borderWidth: 1,
+    borderRadius: colors.radius.lg,
+  },
+  rewardsTitle: { fontFamily: "Inter_700Bold", fontSize: 15, color: colors.green, textAlign: "center", marginBottom: 14 },
+  rewardsGrid: { flexDirection: "row", justifyContent: "space-around" },
+  rewardItem: { alignItems: "center", gap: 6, flex: 1 },
+  rewardIconBg: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  rewardVal: { fontFamily: "Inter_700Bold", fontSize: 13, textAlign: "center" },
+  rewardLabel: { fontFamily: "Inter_400Regular", fontSize: 10, color: colors.textMuted },
+  closingCard: {
+    borderRadius: colors.radius.lg,
+    padding: 18,
+    marginBottom: 16,
+    gap: 10,
+    position: "relative",
+    overflow: "hidden",
+  },
+  closingBorder: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
+    borderWidth: 1,
+    borderRadius: colors.radius.lg,
+  },
+  closingText: { fontFamily: "Inter_400Regular", fontSize: 14, color: colors.textMuted, lineHeight: 22, fontStyle: "italic", textAlign: "center" },
+  nextCaseRow: { flexDirection: "row", alignItems: "center", gap: 6, justifyContent: "center" },
+  nextCaseText: { fontFamily: "Inter_600SemiBold", fontSize: 13, color: colors.gold },
+  finishBtn: { width: "100%", marginBottom: 8 },
 });
