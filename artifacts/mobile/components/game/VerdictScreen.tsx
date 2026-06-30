@@ -5,12 +5,15 @@ import React, { useEffect, useRef, useState } from "react";
 import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import colors from "@/constants/colors";
 import GoldButton from "@/components/ui/GoldButton";
+import type { GameMode } from "@/context/GameContext";
+import { IconGavel } from "@/components/ui/SvgIcons";
 
 interface Props {
   suspects: string[];
   correctSuspect: string;
   onCorrect: () => void;
   onWrong: () => void;
+  mode?: GameMode;
 }
 
 function PulsingGlow() {
@@ -42,7 +45,7 @@ const glowStyles = StyleSheet.create({
   ring: { position: "absolute", width: 110, height: 110, borderRadius: 55, backgroundColor: colors.gold },
 });
 
-export default function VerdictScreen({ suspects, correctSuspect, onCorrect, onWrong }: Props) {
+export default function VerdictScreen({ suspects, correctSuspect, onCorrect, onWrong, mode = "story" }: Props) {
   const [selected, setSelected] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
@@ -55,6 +58,8 @@ export default function VerdictScreen({ suspects, correctSuspect, onCorrect, onW
 
   const isCorrectAnswer = submitted && selected === correctSuspect;
   const isWrongAnswer = submitted && selected !== correctSuspect;
+
+  const isSurvival = mode === "survival";
 
   useEffect(() => {
     Animated.parallel([
@@ -95,13 +100,24 @@ export default function VerdictScreen({ suspects, correctSuspect, onCorrect, onW
           <View style={styles.heroBg}>
             <PulsingGlow />
             <LinearGradient colors={["rgba(212,150,42,0.25)", "rgba(212,150,42,0.08)"]} style={styles.heroIcon}>
-              <Feather name="scale" size={36} color={colors.gold} />
+              <IconGavel size={36} color={colors.gold} />
             </LinearGradient>
           </View>
         </Animated.View>
 
         <Text style={styles.title}>Final Verdict</Text>
-        <Text style={styles.subtitle}>You have examined the evidence, heard the witnesses, studied the timeline, and analysed every suspect.{"\n\n"}The truth now rests in your judgment.</Text>
+        <Text style={styles.subtitle}>
+          You have examined the evidence, heard the witnesses, studied the timeline, and analysed every suspect.{"\n\n"}
+          {isSurvival
+            ? "Survival Mode: This is your one chance. Choose wrong and the case ends."
+            : "The truth now rests in your judgment."}
+        </Text>
+        {isSurvival && (
+          <View style={styles.survivalWarning}>
+            <View style={[styles.swBorder, { borderColor: "rgba(155,89,182,0.4)" }]} />
+            <Text style={styles.swText}>One shot. One verdict. No second chances.</Text>
+          </View>
+        )}
         <Text style={styles.question}>Who is responsible?</Text>
 
         <View style={styles.options}>
@@ -144,10 +160,14 @@ export default function VerdictScreen({ suspects, correctSuspect, onCorrect, onW
               <Feather name={isCorrectAnswer ? "award" : "alert-triangle"} size={24} color={isCorrectAnswer ? colors.green : colors.red} />
               <View style={styles.resultText}>
                 <Text style={[styles.resultTitle, { color: isCorrectAnswer ? colors.green : colors.red }]}>
-                  {isCorrectAnswer ? "Correct! Justice Served." : "Not Quite…"}
+                  {isCorrectAnswer ? "Correct! Justice Served." : "Not Quite..."}
                 </Text>
                 <Text style={styles.resultSub}>
-                  {isCorrectAnswer ? "Your detective instincts are sharp. Now hear the full biblical account." : "The evidence points elsewhere. Read the full case reveal to discover the truth."}
+                  {isCorrectAnswer
+                    ? "Your detective instincts are sharp. Now hear the full biblical account."
+                    : isSurvival
+                    ? "Wrong answer in Survival Mode. The ancient tribunal is not amused."
+                    : "The evidence points elsewhere. Read the full case reveal to discover the truth."}
                 </Text>
               </View>
             </LinearGradient>
@@ -172,6 +192,9 @@ const styles = StyleSheet.create({
   heroIcon: { width: 90, height: 90, borderRadius: 45, alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: colors.goldBorder },
   title: { fontFamily: "Inter_700Bold", fontSize: 28, color: colors.text, textAlign: "center" },
   subtitle: { fontFamily: "Inter_400Regular", fontSize: 14, color: colors.textMuted, textAlign: "center", lineHeight: 23 },
+  survivalWarning: { width: "100%", backgroundColor: "rgba(155,89,182,0.12)", borderRadius: colors.radius.md, padding: 12, position: "relative", overflow: "hidden" },
+  swBorder: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, borderWidth: 1, borderRadius: colors.radius.md },
+  swText: { fontFamily: "Inter_600SemiBold", fontSize: 13, color: colors.purple, textAlign: "center" },
   question: { fontFamily: "Inter_600SemiBold", fontSize: 16, color: colors.gold, letterSpacing: 0.5, textAlign: "center" },
   options: { width: "100%", gap: 10 },
   option: { flexDirection: "row", alignItems: "center", gap: 12, padding: 16, borderRadius: colors.radius.lg, borderWidth: 1.5 },

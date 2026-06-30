@@ -7,9 +7,13 @@ import colors from "@/constants/colors";
 import GoldButton from "@/components/ui/GoldButton";
 import type { TimelineEvent } from "@/data/cases";
 
+import type { GameMode } from "@/context/GameContext";
+
 interface Props {
   events: TimelineEvent[];
   onContinue: () => void;
+  mode?: GameMode;
+  onPenalize?: () => void;
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -21,7 +25,7 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-export default function TimelinePuzzle({ events, onContinue }: Props) {
+export default function TimelinePuzzle({ events, onContinue, mode = "story", onPenalize }: Props) {
   const shuffled = useMemo(() => shuffle(events), [events]);
   const [order, setOrder] = useState<(string | null)[]>(Array(events.length).fill(null));
   const [submitted, setSubmitted] = useState(false);

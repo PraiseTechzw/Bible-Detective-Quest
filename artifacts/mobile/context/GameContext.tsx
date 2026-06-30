@@ -1,6 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 
+export type GameMode = "story" | "timeAttack" | "survival" | "daily";
+
 interface GameState {
   playerName: string;
   level: number;
@@ -15,6 +17,10 @@ interface GameState {
   totalXPEarned: number;
   casesAttempted: number;
   gamesPlayed: number;
+  timeAttackBestTimes: Record<string, number>;
+  survivalHighScore: number;
+  onboardingComplete: boolean;
+  pendingLevelUp: number | null;
 }
 
 interface GameContextValue extends GameState {
@@ -22,9 +28,13 @@ interface GameContextValue extends GameState {
   isCaseSolved: (caseId: string) => boolean;
   isCaseLocked: (caseId: string, index: number) => boolean;
   recordPlay: () => void;
+  recordTimeAttackBest: (caseId: string, timeMs: number) => void;
+  recordSurvivalScore: (score: number) => void;
+  completeOnboarding: (name: string) => void;
+  clearPendingLevelUp: () => void;
 }
 
-const STORAGE_KEY = "@bible_detective_game_state_v2";
+const STORAGE_KEY = "@bible_detective_game_state_v3";
 
 const defaultState: GameState = {
   playerName: "Detective",
@@ -40,6 +50,10 @@ const defaultState: GameState = {
   totalXPEarned: 0,
   casesAttempted: 0,
   gamesPlayed: 0,
+  timeAttackBestTimes: {},
+  survivalHighScore: 0,
+  onboardingComplete: false,
+  pendingLevelUp: null,
 };
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -109,10 +123,12 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         let level = prev.level;
         let xp = newXP;
         let xpToNextLevel = prev.xpToNextLevel;
+        let didLevelUp = false;
         while (xp >= xpToNextLevel) {
           xp -= xpToNextLevel;
           level += 1;
           xpToNextLevel = Math.floor(xpToNextLevel * 1.5);
+          didLevelUp = true;
         }
 
         return {
@@ -126,12 +142,43 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           totalRankProgress: newRankProgress,
           totalXPEarned: prev.totalXPEarned + rewards.xp,
           casesAttempted: prev.casesAttempted + 1,
+          pendingLevelUp: didLevelUp ? level : prev.pendingLevelUp,
           ...streakData,
         };
       });
     },
     []
   );
+
+  const recordTimeAttackBest = useCallback((caseId: string, timeMs: number) => {
+    setState((prev) => {
+      const existing = prev.timeAttackBestTimes[caseId];
+      if (existing && existing <= timeMs) return prev;
+      return {
+        ...prev,
+        timeAttackBestTimes: { ...prev.timeAttackBestTimes, [caseId]: timeMs },
+      };
+    });
+  }, []);
+
+  const recordSurvivalScore = useCallback((score: number) => {
+    setState((prev) => ({
+      ...prev,
+      survivalHighScore: Math.max(prev.survivalHighScore, score),
+    }));
+  }, []);
+
+  const completeOnboarding = useCallback((name: string) => {
+    setState((prev) => ({
+      ...prev,
+      playerName: name,
+      onboardingComplete: true,
+    }));
+  }, []);
+
+  const clearPendingLevelUp = useCallback(() => {
+    setState((prev) => ({ ...prev, pendingLevelUp: null }));
+  }, []);
 
   const isCaseSolved = useCallback(
     (caseId: string) => state.solvedCases.includes(caseId),
@@ -150,7 +197,17 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   if (!loaded) return null;
 
   return (
-    <GameContext.Provider value={{ ...state, completeCase, isCaseSolved, isCaseLocked, recordPlay }}>
+    <GameContext.Provider value={{
+      ...state,
+      completeCase,
+      isCaseSolved,
+      isCaseLocked,
+      recordPlay,
+      recordTimeAttackBest,
+      recordSurvivalScore,
+      completeOnboarding,
+      clearPendingLevelUp,
+    }}>
       {children}
     </GameContext.Provider>
   );

@@ -1,4 +1,3 @@
-import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useEffect, useRef } from "react";
@@ -10,7 +9,8 @@ import { BADGE_DEFS } from "@/constants/badges";
 import { CASES } from "@/data/cases";
 import { useGame } from "@/context/GameContext";
 import CaseCard from "@/components/game/CaseCard";
-
+import LevelUpModal from "@/components/game/LevelUpModal";
+import { RankIcon, IconCoin, IconFolder, IconAward, IconZap } from "@/components/ui/SvgIcons";
 
 function useEntrance(delay = 0) {
   const opacity = useRef(new Animated.Value(0)).current;
@@ -44,11 +44,16 @@ const xpStyles = StyleSheet.create({
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { level, xp, xpToNextLevel, coins, solvedCases, badges, isCaseSolved, isCaseLocked, streak } = useGame();
+  const { level, xp, xpToNextLevel, coins, solvedCases, badges, isCaseSolved, isCaseLocked, streak, pendingLevelUp, clearPendingLevelUp, playerName } = useGame();
   const rank = getRankForLevel(level);
   const xpPct = Math.min((xp / xpToNextLevel) * 100, 100);
   const ownedBadges = BADGE_DEFS.filter(b => b.matchFn(badges, solvedCases, level, streak));
   const topPad = Platform.OS === "web" ? 60 : insets.top;
+  const [showLevelUp, setShowLevelUp] = React.useState(false);
+
+  useEffect(() => {
+    if (pendingLevelUp) setShowLevelUp(true);
+  }, [pendingLevelUp]);
 
   const header = useEntrance(0);
   const profileCard = useEntrance(80);
@@ -67,7 +72,7 @@ export default function HomeScreen() {
         </View>
         <Pressable style={styles.coinsBtn}>
           <LinearGradient colors={["rgba(212,150,42,0.2)", "rgba(196,125,26,0.08)"]} style={styles.coinsBg}>
-            <Feather name="disc" size={14} color={colors.gold} />
+            <IconCoin size={14} color={colors.gold} />
             <Text style={styles.coinsVal}>{coins}</Text>
           </LinearGradient>
         </Pressable>
@@ -79,18 +84,21 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Animated.View style={[styles.profileWrap, profileCard]}>
-          <LinearGradient colors={["#1C2640", "#0F1628", "#0A0F1E"]} style={styles.profileCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-            <View style={[styles.profileGoldBorder, { borderColor: colors.goldBorder }]} />
+          <LinearGradient colors={[rank.gradTop, rank.gradBot, "#0A0F1E"]} style={styles.profileCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+            <View style={[styles.profileBorder, { borderColor: rank.rimColor + "60" }]} />
             <View style={styles.profileTop}>
               <View style={styles.badgeWrap}>
-                <LinearGradient colors={["rgba(212,150,42,0.25)", "rgba(196,125,26,0.08)"]} style={styles.badgeBg}>
-                  <Feather name="shield" size={26} color={colors.gold} />
+                <LinearGradient colors={[rank.rimColor + "40", rank.rimColor + "10"]} style={styles.badgeBg}>
+                  <RankIcon id={rank.svgIcon} size={28} color={rank.color} />
                 </LinearGradient>
-                <View style={styles.levelPill}><Text style={styles.levelPillText}>{level}</Text></View>
+                <View style={[styles.levelPill, { backgroundColor: rank.color }]}>
+                  <Text style={styles.levelPillText}>{level}</Text>
+                </View>
               </View>
               <View style={styles.profileMid}>
-                <Text style={styles.rankTitle}>{rankTitle}</Text>
-                <Text style={styles.rankSub}>Sacred Investigator</Text>
+                <Text style={styles.rankTitle}>{rank.title}</Text>
+                <Text style={[styles.rankSub, { color: rank.color }]}>{rank.shortTitle}</Text>
+                <Text style={styles.playerName} numberOfLines={1}>{playerName}</Text>
               </View>
               <View style={styles.solvedWrap}>
                 <Text style={styles.solvedNum}>{solvedCases.length}</Text>
@@ -103,14 +111,13 @@ export default function HomeScreen() {
                 <Text style={styles.xpVal}>{xp} <Text style={styles.xpMax}>/ {xpToNextLevel}</Text></Text>
               </View>
               <AnimatedXPBar pct={xpPct} />
-              <Text style={styles.nextLevelLabel}>Level {level + 1} → {xpToNextLevel - xp} XP needed</Text>
+              <Text style={styles.nextLevelLabel}>Level {level + 1} requires {xpToNextLevel - xp} more XP</Text>
             </View>
-            {badges.length > 0 && (
+            {ownedBadges.length > 0 && (
               <View style={styles.badgesRow}>
-                {badges.slice(0, 3).map((b, i) => (
-                  <View key={i} style={styles.badgeChip}>
-                    <Feather name="award" size={9} color={colors.gold} />
-                    <Text style={styles.badgeChipText} numberOfLines={1}>{b}</Text>
+                {ownedBadges.slice(0, 3).map((b) => (
+                  <View key={b.id} style={[styles.badgeChip, { backgroundColor: b.rarityColor + "15", borderColor: b.rarityColor + "45" }]}>
+                    <Text style={[styles.badgeChipText, { color: b.rarityColor }]} numberOfLines={1}>{b.name}</Text>
                   </View>
                 ))}
               </View>
@@ -120,16 +127,13 @@ export default function HomeScreen() {
 
         <Animated.View style={[styles.statsRow, stats]}>
           {[
-            { icon: "folder" as const, label: "Cases", val: `${solvedCases.length}/${CASES.length}` },
-            { icon: "award" as const, label: "Badges", val: String(badges.length) },
-            { icon: "zap" as const, label: "Total XP", val: String(xp + solvedCases.reduce((acc, id) => {
-              const c = CASES.find(c => c.id === id);
-              return acc + (c?.rewards.xp ?? 0);
-            }, 0)) },
+            { icon: <IconFolder size={16} color={colors.gold} />, label: "Cases", val: `${solvedCases.length}/${CASES.length}` },
+            { icon: <IconAward size={16} color={colors.purple} />, label: "Badges", val: `${ownedBadges.length}/${BADGE_DEFS.length}` },
+            { icon: <IconZap size={16} color={colors.blue} />, label: "Streak", val: `${streak}d` },
           ].map((s, i) => (
             <View key={i} style={styles.statCard}>
               <LinearGradient colors={[colors.surface2, colors.surface1]} style={styles.statCardInner}>
-                <Feather name={s.icon} size={16} color={colors.gold} />
+                {s.icon}
                 <Text style={styles.statVal}>{s.val}</Text>
                 <Text style={styles.statLabel}>{s.label}</Text>
               </LinearGradient>
@@ -149,16 +153,25 @@ export default function HomeScreen() {
             caseData={c}
             solved={isCaseSolved(c.id)}
             locked={isCaseLocked(c.id, idx)}
-            onPress={() => router.push(`/case/${c.id}`)}
+            onPress={() => router.push(`/case/${c.id}` as any)}
             entranceDelay={280 + idx * 70}
           />
         ))}
 
         <View style={styles.footer}>
-          <Feather name="book" size={12} color={colors.textFaint} />
+          <View style={styles.footerLine} />
           <Text style={styles.footerText}>All cases grounded strictly in biblical scripture</Text>
         </View>
       </ScrollView>
+
+      <LevelUpModal
+        visible={showLevelUp}
+        level={pendingLevelUp ?? level}
+        onDismiss={() => {
+          setShowLevelUp(false);
+          clearPendingLevelUp();
+        }}
+      />
     </View>
   );
 }
@@ -175,15 +188,16 @@ const styles = StyleSheet.create({
   coinsVal: { fontFamily: "Inter_700Bold", fontSize: 15, color: colors.gold },
   profileWrap: { marginHorizontal: 16, marginBottom: 14 },
   profileCard: { borderRadius: colors.radius.lg, padding: 18, position: "relative", overflow: "hidden" },
-  profileGoldBorder: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, borderWidth: 1, borderRadius: colors.radius.lg },
+  profileBorder: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, borderWidth: 1.5, borderRadius: colors.radius.lg },
   profileTop: { flexDirection: "row", alignItems: "center", gap: 14, marginBottom: 18 },
   badgeWrap: { position: "relative" },
-  badgeBg: { width: 58, height: 58, borderRadius: 29, alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: colors.goldBorder },
-  levelPill: { position: "absolute", bottom: -2, right: -2, backgroundColor: colors.gold, borderRadius: 10, width: 20, height: 20, alignItems: "center", justifyContent: "center" },
+  badgeBg: { width: 60, height: 60, borderRadius: 30, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "rgba(255,255,255,0.1)" },
+  levelPill: { position: "absolute", bottom: -2, right: -2, borderRadius: 10, width: 20, height: 20, alignItems: "center", justifyContent: "center" },
   levelPillText: { fontFamily: "Inter_700Bold", fontSize: 11, color: "#000" },
-  profileMid: { flex: 1 },
-  rankTitle: { fontFamily: "Inter_700Bold", fontSize: 17, color: colors.text },
-  rankSub: { fontFamily: "Inter_400Regular", fontSize: 12, color: colors.textMuted, marginTop: 2 },
+  profileMid: { flex: 1, gap: 2 },
+  rankTitle: { fontFamily: "Inter_700Bold", fontSize: 16, color: colors.text },
+  rankSub: { fontFamily: "Inter_600SemiBold", fontSize: 10, letterSpacing: 1 },
+  playerName: { fontFamily: "Inter_400Regular", fontSize: 12, color: colors.textMuted, marginTop: 2 },
   solvedWrap: { alignItems: "center" },
   solvedNum: { fontFamily: "Inter_700Bold", fontSize: 28, color: colors.text },
   solvedLabel: { fontFamily: "Inter_400Regular", fontSize: 10, color: colors.textMuted, letterSpacing: 0.5 },
@@ -194,8 +208,8 @@ const styles = StyleSheet.create({
   xpMax: { color: colors.textMuted },
   nextLevelLabel: { fontFamily: "Inter_400Regular", fontSize: 10, color: colors.textFaint },
   badgesRow: { flexDirection: "row", gap: 6, marginTop: 12, flexWrap: "wrap" },
-  badgeChip: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "rgba(212,150,42,0.1)", borderWidth: 1, borderColor: colors.goldBorder, borderRadius: colors.radius.full, paddingHorizontal: 8, paddingVertical: 3 },
-  badgeChipText: { fontFamily: "Inter_500Medium", fontSize: 9, color: colors.gold },
+  badgeChip: { borderWidth: 1, borderRadius: colors.radius.full, paddingHorizontal: 8, paddingVertical: 3 },
+  badgeChipText: { fontFamily: "Inter_500Medium", fontSize: 9 },
   statsRow: { flexDirection: "row", gap: 10, paddingHorizontal: 16, marginBottom: 20 },
   statCard: { flex: 1 },
   statCardInner: { borderRadius: colors.radius.md, padding: 12, alignItems: "center", gap: 4, borderWidth: 1, borderColor: colors.border },
@@ -205,6 +219,7 @@ const styles = StyleSheet.create({
   sectionAccent: { width: 3, height: 18, borderRadius: 2 },
   sectionTitle: { fontFamily: "Inter_700Bold", fontSize: 16, color: colors.text, flex: 1 },
   sectionCount: { fontFamily: "Inter_400Regular", fontSize: 13, color: colors.textMuted },
-  footer: { flexDirection: "row", gap: 6, alignItems: "center", justifyContent: "center", marginTop: 10, paddingHorizontal: 20 },
+  footer: { alignItems: "center", marginTop: 10, paddingHorizontal: 20, gap: 8 },
+  footerLine: { width: 40, height: 1, backgroundColor: colors.border },
   footerText: { fontFamily: "Inter_400Regular", fontSize: 11, color: colors.textFaint, textAlign: "center" },
 });

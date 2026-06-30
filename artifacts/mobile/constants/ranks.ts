@@ -1,9 +1,11 @@
+import type { RankIconId } from "@/components/ui/SvgIcons";
+
 export interface RankTier {
   minLevel: number;
   maxLevel: number;
   title: string;
   shortTitle: string;
-  crest: string;
+  svgIcon: RankIconId;
   color: string;
   gradTop: string;
   gradBot: string;
@@ -18,7 +20,7 @@ export const RANK_TIERS: RankTier[] = [
     maxLevel: 2,
     title: "Rookie Detective",
     shortTitle: "ROOKIE",
-    crest: "🔍",
+    svgIcon: "rookie",
     color: "#7A85A3",
     gradTop: "#1A1E2E",
     gradBot: "#0E1220",
@@ -31,7 +33,7 @@ export const RANK_TIERS: RankTier[] = [
     maxLevel: 4,
     title: "Junior Investigator",
     shortTitle: "JUNIOR",
-    crest: "📋",
+    svgIcon: "junior",
     color: "#2ECC8E",
     gradTop: "#0A2018",
     gradBot: "#051008",
@@ -44,20 +46,20 @@ export const RANK_TIERS: RankTier[] = [
     maxLevel: 7,
     title: "Field Detective",
     shortTitle: "FIELD",
-    crest: "🕵️",
+    svgIcon: "field",
     color: "#4A7EE8",
     gradTop: "#0A1830",
     gradBot: "#050C18",
     rimColor: "#2050A0",
     description: "Out of the office, into the ancient Near East. Watch your sandals.",
-    perks: ["Access to all cases", "Time Attack mode unlocked", "2× XP events eligible"],
+    perks: ["Access to all cases", "Time Attack mode unlocked", "2x XP events eligible"],
   },
   {
     minLevel: 8,
     maxLevel: 11,
     title: "Senior Detective",
     shortTitle: "SENIOR",
-    crest: "⚖️",
+    svgIcon: "senior",
     color: "#9B59B6",
     gradTop: "#180A28",
     gradBot: "#0C0515",
@@ -70,7 +72,7 @@ export const RANK_TIERS: RankTier[] = [
     maxLevel: 16,
     title: "Lead Investigator",
     shortTitle: "LEAD",
-    crest: "🏛️",
+    svgIcon: "lead",
     color: "#D4962A",
     gradTop: "#251400",
     gradBot: "#130A00",
@@ -83,7 +85,7 @@ export const RANK_TIERS: RankTier[] = [
     maxLevel: 22,
     title: "Chief Detective",
     shortTitle: "CHIEF",
-    crest: "👮",
+    svgIcon: "chief",
     color: "#F5A623",
     gradTop: "#251800",
     gradBot: "#130C00",
@@ -96,7 +98,7 @@ export const RANK_TIERS: RankTier[] = [
     maxLevel: 999,
     title: "Master Sleuth",
     shortTitle: "MASTER",
-    crest: "📜",
+    svgIcon: "master",
     color: "#E84040",
     gradTop: "#280808",
     gradBot: "#140404",

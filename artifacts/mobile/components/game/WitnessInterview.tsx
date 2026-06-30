@@ -6,10 +6,14 @@ import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from "react-n
 import colors from "@/constants/colors";
 import GoldButton from "@/components/ui/GoldButton";
 import type { Witness } from "@/data/cases";
+import type { GameMode } from "@/context/GameContext";
+import { IconCheckCircle } from "@/components/ui/SvgIcons";
 
 interface Props {
   witnesses: Witness[];
   onContinue: () => void;
+  mode?: GameMode;
+  onPenalize?: () => void;
 }
 
 function useShakeAnimation() {
@@ -37,7 +41,7 @@ function useFlashAnimation(color: string) {
   return { opacity, color, trigger };
 }
 
-export default function WitnessInterview({ witnesses, onContinue }: Props) {
+export default function WitnessInterview({ witnesses, onContinue, mode = "story", onPenalize }: Props) {
   const [activeIdx, setActiveIdx] = useState(0);
   const [phase, setPhase] = useState<"statement" | "questions">("statement");
   const [answers, setAnswers] = useState<Record<string, number | null>>({});
@@ -49,6 +53,9 @@ export default function WitnessInterview({ witnesses, onContinue }: Props) {
 
   const witness = witnesses[activeIdx];
   const allAnswered = witness.questions.every((q) => submitted[q.id]);
+
+  const isTimed = mode === "timeAttack";
+  const isSurvival = mode === "survival";
 
   const select = (qId: string, idx: number) => {
     if (submitted[qId]) return;
@@ -67,6 +74,7 @@ export default function WitnessInterview({ witnesses, onContinue }: Props) {
     } else {
       shakeAnim();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      onPenalize?.();
     }
   };
 
@@ -90,7 +98,7 @@ export default function WitnessInterview({ witnesses, onContinue }: Props) {
         <LinearGradient colors={["#1A2640", "#0E1628", colors.bg]} style={StyleSheet.absoluteFill} />
         <Animated.View style={{ opacity: doneOpacity, transform: [{ scale: doneScale }], alignItems: "center", gap: 16 }}>
           <LinearGradient colors={["rgba(46,204,142,0.2)", "rgba(46,204,142,0.05)"]} style={styles.doneIconBg}>
-            <Feather name="check-circle" size={44} color={colors.green} />
+            <IconCheckCircle size={44} color={colors.green} />
           </LinearGradient>
           <Text style={styles.doneTitle}>All Witnesses Heard</Text>
           <Text style={styles.doneSub}>Testimony gathered. The timeline awaits your analysis.</Text>
@@ -106,7 +114,16 @@ export default function WitnessInterview({ witnesses, onContinue }: Props) {
         <View style={styles.subHeaderRow}>
           <View style={[styles.accent, { backgroundColor: colors.purple }]} />
           <Text style={styles.subHeaderTitle}>Witness Interview</Text>
-          <View style={styles.progressChip}><Text style={styles.progressText}>{activeIdx + 1}/{witnesses.length}</Text></View>
+          <View style={styles.progressChip}>
+            <Text style={styles.progressText}>{activeIdx + 1}/{witnesses.length}</Text>
+          </View>
+          {(isTimed || isSurvival) && (
+            <View style={[styles.modePill, { backgroundColor: isTimed ? "rgba(232,64,64,0.15)" : "rgba(155,89,182,0.15)", borderColor: isTimed ? "rgba(232,64,64,0.4)" : "rgba(155,89,182,0.4)" }]}>
+              <Text style={[styles.modePillText, { color: isTimed ? colors.red : colors.purple }]}>
+                {isTimed ? "TIMED" : "SURVIVAL"}
+              </Text>
+            </View>
+          )}
         </View>
         <View style={styles.dotRow}>
           {witnesses.map((_, i) => (
@@ -142,6 +159,12 @@ export default function WitnessInterview({ witnesses, onContinue }: Props) {
               <Text style={styles.statementLabel}>RECORDED STATEMENT</Text>
               <Text style={styles.statementText}>"{witness.statement}"</Text>
             </LinearGradient>
+            {isSurvival && (
+              <LinearGradient colors={["rgba(155,89,182,0.1)", "rgba(155,89,182,0.04)"]} style={styles.survivalHint}>
+                <View style={[styles.cardBorder, { borderColor: "rgba(155,89,182,0.3)" }]} />
+                <Text style={styles.survivalHintText}>Survival Mode: Wrong answers cost a life. Read carefully.</Text>
+              </LinearGradient>
+            )}
             <GoldButton label="Begin Questioning" onPress={() => setPhase("questions")} icon="help-circle" iconRight={false} size="lg" style={styles.actionBtn} />
           </View>
         ) : (
@@ -156,7 +179,6 @@ export default function WitnessInterview({ witnesses, onContinue }: Props) {
                 <Animated.View key={q.id} style={shake.style}>
                   <LinearGradient colors={[colors.surface2, colors.surface1]} style={styles.questionCard}>
                     <View style={[styles.cardBorder, { borderColor: colors.border }]} />
-                    {/* Green flash overlay */}
                     <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: flash.color, opacity: flash.opacity, borderRadius: colors.radius.lg }]} pointerEvents="none" />
                     <Text style={styles.questionText}>{q.text}</Text>
                     {q.options.map((opt, idx) => {
@@ -210,6 +232,8 @@ const styles = StyleSheet.create({
   subHeaderTitle: { fontFamily: "Inter_700Bold", fontSize: 18, color: colors.text, flex: 1 },
   progressChip: { backgroundColor: colors.surface3, borderRadius: colors.radius.full, paddingHorizontal: 10, paddingVertical: 3, borderWidth: 1, borderColor: colors.border },
   progressText: { fontFamily: "Inter_600SemiBold", fontSize: 11, color: colors.textMuted },
+  modePill: { borderWidth: 1, borderRadius: colors.radius.full, paddingHorizontal: 8, paddingVertical: 2 },
+  modePillText: { fontFamily: "Inter_700Bold", fontSize: 9, letterSpacing: 1 },
   dotRow: { flexDirection: "row", gap: 6 },
   witnessDot: { width: 24, height: 4, borderRadius: 2 },
   scroll: { flex: 1, paddingHorizontal: 16 },
@@ -223,6 +247,8 @@ const styles = StyleSheet.create({
   statementCard: { borderRadius: colors.radius.lg, padding: 18, marginBottom: 14, position: "relative", overflow: "hidden", gap: 8 },
   statementLabel: { fontFamily: "Inter_600SemiBold", fontSize: 9, color: colors.textMuted, letterSpacing: 2 },
   statementText: { fontFamily: "Inter_400Regular", fontSize: 15, color: colors.parchment, lineHeight: 25, fontStyle: "italic" },
+  survivalHint: { borderRadius: colors.radius.md, padding: 12, marginBottom: 12, position: "relative", overflow: "hidden" },
+  survivalHintText: { fontFamily: "Inter_500Medium", fontSize: 12, color: colors.purple },
   questions: { gap: 12 },
   questionCard: { borderRadius: colors.radius.lg, padding: 16, position: "relative", overflow: "hidden", gap: 10 },
   questionText: { fontFamily: "Inter_600SemiBold", fontSize: 15, color: colors.text, lineHeight: 22, marginBottom: 2 },

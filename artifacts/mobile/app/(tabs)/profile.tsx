@@ -1,4 +1,3 @@
-import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
@@ -9,9 +8,10 @@ import { BADGE_DEFS } from "@/constants/badges";
 import { getRankForLevel } from "@/constants/ranks";
 import { useGame } from "@/context/GameContext";
 import { CASES } from "@/data/cases";
+import { BadgeIcon, RankIcon, IconSettings, IconLock, IconCheck, IconFire, IconTrendingUp, IconFolder, IconCoin, IconAward } from "@/components/ui/SvgIcons";
 
 type Rarity = "COMMON" | "RARE" | "EPIC" | "LEGENDARY";
-const RARITY_LABEL: Record<Rarity, string> = { COMMON: "◆ COMMON", RARE: "◆◆ RARE", EPIC: "◆◆◆ EPIC", LEGENDARY: "★ LEGENDARY" };
+const RARITY_LABEL: Record<Rarity, string> = { COMMON: "COMMON", RARE: "RARE", EPIC: "EPIC", LEGENDARY: "LEGENDARY" };
 
 function BadgeCard({ badge, owned }: { badge: typeof BADGE_DEFS[0]; owned: boolean }) {
   const glow = useRef(new Animated.Value(0)).current;
@@ -34,21 +34,21 @@ function BadgeCard({ badge, owned }: { badge: typeof BADGE_DEFS[0]; owned: boole
         colors={owned ? [badge.gradTop, badge.gradBot] : [colors.surface2, colors.surface1]}
         style={badgeStyles.card}
       >
-        {/* Rarity border */}
         <View style={[badgeStyles.border, { borderColor: owned ? badge.rimColor : colors.border }]} />
 
-        {/* Glow behind medallion */}
         {owned && (
           <Animated.View style={[badgeStyles.glowRing, { backgroundColor: badge.rimColor, opacity: glow }]} />
         )}
 
-        {/* Medallion */}
         <LinearGradient
           colors={owned ? [badge.rimColor + "60", badge.rimColor + "18"] : [colors.surface3, colors.surface2]}
           style={badgeStyles.medallionOuter}
         >
           <View style={[badgeStyles.medallionInner, { borderColor: owned ? badge.rimColor : colors.border, backgroundColor: owned ? badge.gradTop : colors.surface3 }]}>
-            <Text style={badgeStyles.emoji}>{owned ? badge.emoji : "🔒"}</Text>
+            {owned
+              ? <BadgeIcon id={badge.svgIcon} size={28} color={badge.rimColor} rimColor={badge.gradTop} />
+              : <IconLock size={22} color={colors.textFaint} />
+            }
           </View>
         </LinearGradient>
 
@@ -59,7 +59,6 @@ function BadgeCard({ badge, owned }: { badge: typeof BADGE_DEFS[0]; owned: boole
           {badge.desc}
         </Text>
 
-        {/* Rarity pill */}
         <View style={[badgeStyles.rarityPill, {
           backgroundColor: owned ? badge.rarityColor + "22" : "transparent",
           borderColor: owned ? badge.rarityColor + "55" : colors.border,
@@ -86,7 +85,6 @@ const badgeStyles = StyleSheet.create({
   glowRing: { position: "absolute", top: 18, width: 66, height: 66, borderRadius: 33 },
   medallionOuter: { width: 72, height: 72, borderRadius: 36, alignItems: "center", justifyContent: "center", marginTop: 4 },
   medallionInner: { width: 58, height: 58, borderRadius: 29, alignItems: "center", justifyContent: "center", borderWidth: 2 },
-  emoji: { fontSize: 26 },
   name: { fontFamily: "Inter_700Bold", fontSize: 12, textAlign: "center", lineHeight: 16 },
   desc: { fontFamily: "Inter_400Regular", fontSize: 9, textAlign: "center", lineHeight: 13 },
   rarityPill: { borderWidth: 1, borderRadius: colors.radius.full, paddingHorizontal: 7, paddingVertical: 2 },
@@ -112,7 +110,7 @@ function RankCrest({ level }: { level: number }) {
     <View style={{ alignItems: "center", justifyContent: "center", width: 80, height: 80 }}>
       <Animated.View style={{ transform: [{ scale: pulse }] }}>
         <LinearGradient colors={[rank.gradTop, rank.gradBot]} style={[crestStyles.outer, { borderColor: rank.rimColor }]}>
-          <Text style={crestStyles.crestEmoji}>{rank.crest}</Text>
+          <RankIcon id={rank.svgIcon} size={36} color={rank.color} />
           <View style={[crestStyles.levelPip, { backgroundColor: rank.color }]}>
             <Text style={crestStyles.levelPipText}>{level}</Text>
           </View>
@@ -123,18 +121,17 @@ function RankCrest({ level }: { level: number }) {
 }
 const crestStyles = StyleSheet.create({
   outer: { width: 78, height: 78, borderRadius: 39, alignItems: "center", justifyContent: "center", borderWidth: 2.5 },
-  crestEmoji: { fontSize: 32 },
   levelPip: { position: "absolute", bottom: -1, right: -1, width: 24, height: 24, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   levelPipText: { fontFamily: "Inter_700Bold", fontSize: 11, color: "#000" },
 });
 
 const ACHIEVEMENTS = [
-  { emoji: "✅", label: "Cases Solved", color: colors.green, getValue: (g: any) => `${g.solvedCases.length} / ${CASES.length}`, isDone: (g: any) => g.solvedCases.length === CASES.length },
-  { emoji: "⚡", label: "XP Earned", color: colors.gold, getValue: (g: any) => `${g.totalXPEarned} XP`, isDone: (g: any) => g.totalXPEarned >= 500 },
-  { emoji: "🪙", label: "Coins Collected", color: colors.amber, getValue: (g: any) => `${g.coins} coins`, isDone: (g: any) => g.coins >= 100 },
-  { emoji: "🔥", label: "Streak Record", color: colors.red, getValue: (g: any) => `${g.streak} days`, isDone: (g: any) => g.streak >= 7 },
-  { emoji: "🏆", label: "Level 5 Reached", color: colors.blue, getValue: (g: any) => `Level ${g.level}`, isDone: (g: any) => g.level >= 5 },
-  { emoji: "🕵️", label: "10 Cases Attempted", color: colors.purple, getValue: (g: any) => `${g.casesAttempted} attempts`, isDone: (g: any) => g.casesAttempted >= 10 },
+  { icon: (c: string) => <IconFolder size={22} color={c} />, label: "Cases Solved", color: colors.green, getValue: (g: any) => `${g.solvedCases.length} / ${CASES.length}`, isDone: (g: any) => g.solvedCases.length === CASES.length },
+  { icon: (c: string) => <IconTrendingUp size={22} color={c} />, label: "XP Earned", color: colors.gold, getValue: (g: any) => `${g.totalXPEarned} XP`, isDone: (g: any) => g.totalXPEarned >= 500 },
+  { icon: (c: string) => <IconCoin size={22} color={c} />, label: "Coins Collected", color: colors.amber, getValue: (g: any) => `${g.coins} coins`, isDone: (g: any) => g.coins >= 100 },
+  { icon: (c: string) => <IconFire size={22} color={c} />, label: "Streak Record", color: colors.red, getValue: (g: any) => `${g.streak} days`, isDone: (g: any) => g.streak >= 7 },
+  { icon: (c: string) => <RankIcon id="chief" size={22} color={c} />, label: "Level 5 Reached", color: colors.blue, getValue: (g: any) => `Level ${g.level}`, isDone: (g: any) => g.level >= 5 },
+  { icon: (c: string) => <IconAward size={22} color={c} />, label: "10 Cases Attempted", color: colors.purple, getValue: (g: any) => `${g.casesAttempted} attempts`, isDone: (g: any) => g.casesAttempted >= 10 },
 ];
 
 function useEntrance(delay = 0) {
@@ -158,7 +155,7 @@ export default function ProfileScreen() {
   const [activeTab, setActiveTab] = useState<"achievements" | "badges">("badges");
 
   const card = useEntrance(0);
-  const stats = useEntrance(80);
+  const statsAnim = useEntrance(80);
   const tabs = useEntrance(140);
 
   const ownedCount = BADGE_DEFS.filter(b => b.matchFn(game.badges, game.solvedCases, game.level, game.streak)).length;
@@ -174,7 +171,7 @@ export default function ProfileScreen() {
         </View>
         <Pressable onPress={() => router.push("/settings" as any)} style={styles.settingsBtn}>
           <LinearGradient colors={[colors.surface2, colors.surface1]} style={styles.settingsBg}>
-            <Text style={{ fontSize: 16 }}>⚙️</Text>
+            <IconSettings size={18} color={colors.textMuted} />
           </LinearGradient>
         </Pressable>
       </View>
@@ -182,7 +179,6 @@ export default function ProfileScreen() {
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: (Platform.OS === "web" ? 24 : insets.bottom) + 80 }}>
 
-        {/* Identity card */}
         <Animated.View style={card}>
           <LinearGradient colors={[rank.gradTop, rank.gradBot, "#0A0F1E"]} style={styles.identityCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
             <View style={[styles.identityBorder, { borderColor: rank.rimColor + "80" }]} />
@@ -191,46 +187,43 @@ export default function ProfileScreen() {
               <View style={styles.identityMid}>
                 <Text style={styles.playerName}>{game.playerName}</Text>
                 <View style={[styles.rankPill, { backgroundColor: rank.color + "18", borderColor: rank.color + "45" }]}>
-                  <Text style={[styles.rankTitle, { color: rank.color }]}>{rank.crest} {rank.title}</Text>
+                  <Text style={[styles.rankTitle, { color: rank.color }]}>{rank.title}</Text>
                 </View>
                 <Text style={styles.rankDesc} numberOfLines={2}>{rank.description}</Text>
               </View>
             </View>
 
-            {/* Rank perks */}
             <View style={styles.perksRow}>
               {rank.perks.slice(0, 2).map((p, i) => (
                 <View key={i} style={[styles.perkChip, { borderColor: rank.rimColor + "40" }]}>
-                  <Text style={[styles.perkText, { color: rank.color }]}>✓ {p}</Text>
+                  <Text style={[styles.perkText, { color: rank.color }]}>{p}</Text>
                 </View>
               ))}
             </View>
 
-            {/* XP bar */}
             <View style={styles.xpSection}>
               <View style={styles.xpRow}>
-                <Text style={styles.xpLabel}>LEVEL {game.level} → {game.level + 1}</Text>
+                <Text style={styles.xpLabel}>LEVEL {game.level} TO {game.level + 1}</Text>
                 <Text style={[styles.xpVal, { color: rank.color }]}>{game.xp}<Text style={styles.xpMax}> / {game.xpToNextLevel} XP</Text></Text>
               </View>
               <View style={styles.xpBarBg}>
-                <LinearGradient colors={[rank.rimColor, rank.color]} style={[styles.xpFill, { width: `${xpPct}%` }]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
+                <LinearGradient colors={[rank.rimColor, rank.color]} style={[styles.xpFill, { width: `${xpPct}%` as any }]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} />
               </View>
-              <Text style={styles.xpNext}>{game.xpToNextLevel - game.xp} XP to Level {game.level + 1} — next rank: {getRankForLevel(game.level + 1).title}</Text>
+              <Text style={styles.xpNext}>{game.xpToNextLevel - game.xp} XP to Level {game.level + 1}</Text>
             </View>
           </LinearGradient>
         </Animated.View>
 
-        {/* Stats */}
-        <Animated.View style={[styles.statsRow, stats]}>
+        <Animated.View style={[styles.statsRow, statsAnim]}>
           {[
-            { emoji: "📁", label: "Solved", val: String(game.solvedCases.length), color: colors.green },
-            { emoji: "🪙", label: "Coins", val: String(game.coins), color: colors.amber },
-            { emoji: "🏅", label: "Badges", val: `${ownedCount}/${BADGE_DEFS.length}`, color: colors.purple },
-            { emoji: "🔥", label: "Streak", val: `${game.streak}d`, color: colors.red },
+            { icon: <IconFolder size={18} color={colors.green} />, label: "Solved", val: String(game.solvedCases.length), color: colors.green },
+            { icon: <IconCoin size={18} color={colors.amber} />, label: "Coins", val: String(game.coins), color: colors.amber },
+            { icon: <IconAward size={18} color={colors.purple} />, label: "Badges", val: `${ownedCount}/${BADGE_DEFS.length}`, color: colors.purple },
+            { icon: <IconFire size={18} color={colors.red} />, label: "Streak", val: `${game.streak}d`, color: colors.red },
           ].map((s) => (
             <View key={s.label} style={styles.statCard}>
               <LinearGradient colors={[colors.surface2, colors.surface1]} style={styles.statCardInner}>
-                <Text style={{ fontSize: 18, marginBottom: 2 }}>{s.emoji}</Text>
+                {s.icon}
                 <Text style={[styles.statVal, { color: s.color }]}>{s.val}</Text>
                 <Text style={styles.statLabel}>{s.label}</Text>
               </LinearGradient>
@@ -238,17 +231,16 @@ export default function ProfileScreen() {
           ))}
         </Animated.View>
 
-        {/* Tabs */}
         <Animated.View style={[styles.tabs, tabs]}>
           {(["badges", "achievements"] as const).map((tab) => (
             <Pressable key={tab} onPress={() => setActiveTab(tab)} style={styles.tab}>
               {activeTab === tab ? (
                 <LinearGradient colors={[colors.goldLight, colors.gold]} style={styles.tabActive}>
-                  <Text style={styles.tabActiveText}>{tab === "badges" ? "🏅 Badge Hall" : "🏆 Achievements"}</Text>
+                  <Text style={styles.tabActiveText}>{tab === "badges" ? "Badge Hall" : "Achievements"}</Text>
                 </LinearGradient>
               ) : (
                 <View style={styles.tabInactive}>
-                  <Text style={styles.tabInactiveText}>{tab === "badges" ? "🏅 Badge Hall" : "🏆 Achievements"}</Text>
+                  <Text style={styles.tabInactiveText}>{tab === "badges" ? "Badge Hall" : "Achievements"}</Text>
                 </View>
               )}
             </Pressable>
@@ -260,7 +252,7 @@ export default function ProfileScreen() {
             <View style={styles.badgeSummaryRow}>
               <Text style={styles.badgeSummaryText}>{ownedCount} of {BADGE_DEFS.length} earned</Text>
               <View style={styles.badgeSummaryBar}>
-                <View style={[styles.badgeSummaryFill, { width: `${(ownedCount / BADGE_DEFS.length) * 100}%`, backgroundColor: colors.gold }]} />
+                <View style={[styles.badgeSummaryFill, { width: `${(ownedCount / BADGE_DEFS.length) * 100}%` as any, backgroundColor: colors.gold }]} />
               </View>
             </View>
             <View style={styles.badgesGrid}>
@@ -271,8 +263,8 @@ export default function ProfileScreen() {
             </View>
             {ownedCount === 0 && (
               <View style={styles.emptyBadges}>
-                <Text style={styles.emptyBadgesEmoji}>🔒</Text>
-                <Text style={styles.emptyBadgesText}>No badges yet — solve your first case to start earning!</Text>
+                <IconLock size={40} color={colors.textFaint} />
+                <Text style={styles.emptyBadgesText}>No badges yet — solve your first case to start earning them.</Text>
               </View>
             )}
           </View>
@@ -284,14 +276,17 @@ export default function ProfileScreen() {
                 <LinearGradient key={ach.label} colors={done ? [ach.color + "14", ach.color + "05"] : [colors.surface2, colors.surface1]} style={styles.achCard}>
                   <View style={[styles.achBorder, { borderColor: done ? ach.color + "45" : colors.border }]} />
                   <View style={[styles.achEmojiWrap, { backgroundColor: ach.color + "18" }]}>
-                    <Text style={styles.achEmoji}>{ach.emoji}</Text>
+                    {ach.icon(ach.color)}
                   </View>
                   <View style={styles.achText}>
                     <Text style={[styles.achLabel, { color: done ? colors.text : colors.textMuted }]}>{ach.label}</Text>
                     <Text style={[styles.achVal, { color: done ? ach.color : colors.textFaint }]}>{ach.getValue(game)}</Text>
                   </View>
                   <View style={[styles.achStatus, { backgroundColor: done ? ach.color + "20" : "transparent", borderColor: done ? ach.color + "45" : colors.border }]}>
-                    <Text style={{ fontSize: 14 }}>{done ? "✅" : "🔒"}</Text>
+                    {done
+                      ? <IconCheck size={18} color={ach.color} />
+                      : <IconLock size={16} color={colors.textFaint} />
+                    }
                   </View>
                 </LinearGradient>
               );
@@ -299,7 +294,6 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        {/* Case progress */}
         <View style={styles.caseProgressSection}>
           <View style={styles.sectionRow}>
             <View style={[styles.sectionAccent, { backgroundColor: colors.gold }]} />
@@ -309,11 +303,17 @@ export default function ProfileScreen() {
           {CASES.map((c, i) => {
             const solved = game.isCaseSolved(c.id);
             const locked = game.isCaseLocked(c.id, i);
-            const statusEmoji = solved ? "✅" : locked ? "🔒" : "🔍";
             return (
               <LinearGradient key={c.id} colors={solved ? ["rgba(46,204,142,0.1)", "rgba(46,204,142,0.04)"] : [colors.surface2, colors.surface1]} style={styles.caseRow}>
                 <View style={[styles.caseRowBorder, { borderColor: solved ? "rgba(46,204,142,0.3)" : colors.border }]} />
-                <Text style={{ fontSize: 18, width: 28, textAlign: "center" }}>{statusEmoji}</Text>
+                <View style={styles.caseStatusIcon}>
+                  {solved
+                    ? <IconCheck size={20} color={colors.green} />
+                    : locked
+                    ? <IconLock size={18} color={colors.textFaint} />
+                    : <RankIcon id="rookie" size={18} color={colors.gold} />
+                  }
+                </View>
                 <View style={styles.caseRowText}>
                   <Text style={[styles.caseRowTitle, { color: locked ? colors.textMuted : colors.text }]}>{c.title}</Text>
                   <Text style={styles.caseRowRef}>{c.bibleReference} · {c.difficulty}</Text>
@@ -378,13 +378,11 @@ const styles = StyleSheet.create({
   badgeSummaryFill: { height: 4, borderRadius: 2 },
   badgesGrid: { flexDirection: "row", flexWrap: "wrap", gap: "4%" as any, rowGap: 12, marginBottom: 16 },
   emptyBadges: { alignItems: "center", gap: 10, paddingVertical: 30 },
-  emptyBadgesEmoji: { fontSize: 40 },
   emptyBadgesText: { fontFamily: "Inter_400Regular", fontSize: 14, color: colors.textMuted, textAlign: "center" },
   achievementsWrap: { gap: 8, marginBottom: 22 },
   achCard: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: colors.radius.md, padding: 13, position: "relative", overflow: "hidden" },
   achBorder: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, borderWidth: 1, borderRadius: colors.radius.md },
   achEmojiWrap: { width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  achEmoji: { fontSize: 22 },
   achText: { flex: 1 },
   achLabel: { fontFamily: "Inter_600SemiBold", fontSize: 14 },
   achVal: { fontFamily: "Inter_400Regular", fontSize: 12, marginTop: 2 },
@@ -396,6 +394,7 @@ const styles = StyleSheet.create({
   sectionCount: { fontFamily: "Inter_400Regular", fontSize: 13, color: colors.textMuted },
   caseRow: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: colors.radius.md, padding: 13, marginBottom: 8, position: "relative", overflow: "hidden" },
   caseRowBorder: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, borderWidth: 1, borderRadius: colors.radius.md },
+  caseStatusIcon: { width: 28, alignItems: "center" },
   caseRowText: { flex: 1 },
   caseRowTitle: { fontFamily: "Inter_600SemiBold", fontSize: 14 },
   caseRowRef: { fontFamily: "Inter_400Regular", fontSize: 11, color: colors.textMuted, marginTop: 1 },
