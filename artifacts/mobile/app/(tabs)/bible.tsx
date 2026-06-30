@@ -1,6 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useCallback, useMemo, useState } from "react";
-import { FlatList, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import colors from "@/constants/colors";
 import {
@@ -48,8 +48,13 @@ function BookCard({ book, onPress }: { book: BibleBook; onPress: () => void }) {
         colors={hasContent ? ["rgba(212,150,42,0.1)", "rgba(212,150,42,0.03)"] : [colors.surface2, colors.surface1]}
         style={[bkStyles.card, { borderColor: hasContent ? colors.goldBorder : colors.border }]}
       >
-        <Text style={[bkStyles.abbr, { color: hasContent ? colors.gold : colors.textMuted }]}>{book.abbr}</Text>
-        <Text style={[bkStyles.name, { color: hasContent ? colors.text : colors.textMuted }]} numberOfLines={2}>{book.name}</Text>
+        <Text style={[bkStyles.abbr, { color: hasContent ? colors.gold : colors.textMuted }]} numberOfLines={1}>{book.abbr}</Text>
+        <Text
+          style={[bkStyles.name, { color: hasContent ? colors.text : colors.textMuted }]}
+          numberOfLines={2}
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+        >{book.name}</Text>
         <Text style={bkStyles.meta}>{book.chapters} ch</Text>
         {book.gameCases && (
           <View style={bkStyles.gamePip}>
@@ -62,9 +67,9 @@ function BookCard({ book, onPress }: { book: BibleBook; onPress: () => void }) {
 }
 const bkStyles = StyleSheet.create({
   wrap: { width: "31%", marginBottom: 8 },
-  card: { borderRadius: colors.radius.md, padding: 10, alignItems: "center", gap: 3, borderWidth: 1, minHeight: 72, justifyContent: "center", position: "relative", overflow: "hidden" },
-  abbr: { fontFamily: "Inter_700Bold", fontSize: 13 },
-  name: { fontFamily: "Inter_400Regular", fontSize: 9, textAlign: "center", lineHeight: 13 },
+  card: { borderRadius: colors.radius.md, paddingHorizontal: 6, paddingVertical: 8, alignItems: "center", gap: 2, borderWidth: 1, height: 88, justifyContent: "center", position: "relative", overflow: "hidden" },
+  abbr: { fontFamily: "Inter_700Bold", fontSize: 13, width: "100%", textAlign: "center" },
+  name: { fontFamily: "Inter_400Regular", fontSize: 9, textAlign: "center", lineHeight: 13, width: "100%" },
   meta: { fontFamily: "Inter_400Regular", fontSize: 9, color: colors.textFaint },
   gamePip: { position: "absolute", top: 3, right: 3, backgroundColor: colors.gold, borderRadius: 3, paddingHorizontal: 3, paddingVertical: 1 },
   gamePipText: { fontFamily: "Inter_700Bold", fontSize: 6, color: "#000", letterSpacing: 0.3 },

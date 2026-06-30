@@ -13,10 +13,21 @@ interface Props {
 }
 
 const ICON_MAP: Record<string, keyof typeof Feather.glyphMap> = {
-  fire: "zap", "alert-circle": "alert-circle", frown: "frown", "map-pin": "map-pin",
+  fire: "zap", zap: "zap", "alert-circle": "alert-circle", frown: "frown", "map-pin": "map-pin",
   droplet: "droplet", "shield-off": "shield-off", coffee: "coffee", user: "user",
   heart: "heart", "message-circle": "message-circle", "eye-off": "eye-off", gift: "gift",
   moon: "moon", "alert-triangle": "alert-triangle", shield: "shield", "dollar-sign": "dollar-sign",
+  book: "book", "book-open": "book-open", scroll: "file-text", scale: "award",
+  star: "star", check: "check-circle", cross: "plus-circle", church: "home",
+  cloud: "cloud", sword: "activity", crown: "award", lamb: "heart",
+  snake: "alert-triangle", dove: "send", wheat: "layers", stone: "box",
+  blood: "droplet", coin: "circle", coat: "tag", pit: "arrow-down",
+  dream: "moon", prison: "lock", ring: "circle", staff: "minus",
+  robe: "tag", tomb: "box", bread: "package", vine: "share-2",
+  fish: "anchor", sheep: "users", field: "map", well: "droplet",
+  tent: "home", ark: "anchor", fire2: "zap", angel: "star",
+  bowl: "circle", trumpet: "bell", light: "sun", lamp: "sun",
+  oil: "droplet", tree: "share-2", fruit: "circle", seed: "circle",
 };
 
 export default function EvidenceBoard({ evidence, onContinue, caseTitle }: Props) {

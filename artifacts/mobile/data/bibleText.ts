@@ -43,7 +43,7 @@ export const TRANSLATIONS: Translation[] = [
     name: "OSCB",
     fullName: "Open Shona Contemporary Bible",
     year: "2012",
-    language: "Shona (ChiShona)",
+    language: "Shona",
     license: "CC BY-SA 4.0",
     description: "Bhaibheri muChiShona — inoshandiswa muZimbabwe nevanhu vanosvika mamiriyoni gumi. Yakaitwa nevanhu vemakereke eZimbabwe. © Open Shona Bible Project (CC BY-SA 4.0).",
   },
