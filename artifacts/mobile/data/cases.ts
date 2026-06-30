@@ -686,8 +686,546 @@ export const CASES: Case[] = [
       badge: "Depths of Betrayal",
       rankProgress: 12,
     },
-    nextCaseTitle: "The Plagues of Egypt",
+    nextCaseTitle: "The Samson Betrayal",
     closingText:
       "Joseph went down into a pit and came out a ruler. Every step of suffering was a step toward destiny. The case is solved — but the story of redemption has only begun.",
+  },
+
+  // ─── CASE #004 ────────────────────────────────────────────────────
+  {
+    id: "004",
+    caseNumber: "CASE #004",
+    title: "The Samson Betrayal",
+    bibleReference: "Judges 13–16",
+    difficulty: "Intermediate",
+    victim: "Samson",
+    suspects: ["Delilah", "The Philistine Lords", "Samson Himself"],
+    introduction:
+      "The mightiest judge of Israel has fallen. Samson — a Nazarite consecrated from birth, empowered by the Spirit of God to deliver his people — lies blind and chained in a Philistine prison. His supernatural strength is gone. The secret of his power has been revealed. Someone is responsible. Was it the woman he loved? The enemies who hated him? Or the man himself who could not guard his own heart?",
+    evidence: [
+      {
+        id: "e001",
+        icon: "scissors",
+        title: "The Shaved Head",
+        description:
+          "Samson's seven locks of hair were shaved while he slept on Delilah's knees. The Nazarite vow — the source of the covenant with God that sustained his strength — was broken through this single act. 'He did not know that the LORD had left him.' (Judges 16:20)",
+        lesson:
+          "Spiritual power comes from covenant obedience. When we allow others to slowly erode our consecration, we lose the divine anointing we depend on.",
+      },
+      {
+        id: "e002",
+        icon: "dollar-sign",
+        title: "Eleven Hundred Pieces of Silver",
+        description:
+          "Each of the five Philistine lords promised Delilah 1,100 pieces of silver to discover the secret of Samson's strength. This enormous sum — 5,500 pieces total — reveals a calculated, financially motivated conspiracy, not merely a romantic betrayal.",
+        lesson:
+          "Greed can corrupt even intimate relationships. Delilah's repeated questioning was not curiosity but a paid mission. Money can motivate profound betrayal.",
+      },
+      {
+        id: "e003",
+        icon: "alert-triangle",
+        title: "Three Failed Attempts",
+        description:
+          "Delilah asked Samson his secret four times. Three times he lied. Three times she used the false answer against him. Three times he saw the pattern — and stayed anyway. His persistence in the relationship after clear warning signs reveals a fatal character flaw.",
+        lesson:
+          "God often warns us through repeated patterns before a final fall. Ignoring clear evidence of danger is not love — it is self-destruction.",
+      },
+      {
+        id: "e004",
+        icon: "eye-off",
+        title: "His Blinded Eyes",
+        description:
+          "The Philistines gouged out Samson's eyes — the very organs with which he had repeatedly 'seen' foreign women and followed his passions. The physical blindness mirrors the spiritual blindness that led him to this moment.",
+        lesson:
+          "What we fix our eyes upon shapes our destiny. Samson's physical blindness was the consequence of long-practiced spiritual blindness to God's purposes.",
+      },
+      {
+        id: "e005",
+        icon: "anchor",
+        title: "Bronze Chains at the Mill",
+        description:
+          "Samson was bound with bronze chains and forced to grind grain like an animal. Yet in prison, his hair began to grow again — and with it, the possibility of restoration. 'However, the hair of his head began to grow back.' (Judges 16:22)",
+        lesson:
+          "God's grace does not abandon us even in the consequences of our failures. New growth is possible even after catastrophic loss.",
+      },
+      {
+        id: "e006",
+        icon: "heart",
+        title: "A Pattern of Foreign Loves",
+        description:
+          "Delilah was not Samson's first Philistine weakness. He had previously married a Philistine woman from Timnah and visited a prostitute in Gaza. His attraction to the enemies of Israel was a recurring vulnerability that his opponents understood and exploited.",
+        lesson:
+          "Unaddressed patterns of compromise do not stay small. Each yielding makes the next betrayal easier to engineer.",
+      },
+    ],
+    witnesses: [
+      {
+        id: "w001",
+        name: "Manoah",
+        role: "Samson's Father",
+        statement:
+          "My son was set apart before he was born. The angel of the LORD told us: no razor shall come upon his head, for he shall be a Nazirite to God from the womb. I do not understand how he could have shared this with anyone. We told him it was sacred.",
+        questions: [
+          {
+            id: "q001",
+            text: "What was the sign of Samson's Nazirite consecration?",
+            options: [
+              "A special garment he wore",
+              "His uncut hair from birth",
+              "A mark on his hand",
+              "A golden ring in his ear",
+            ],
+            correctIndex: 1,
+            explanation:
+              "The Nazirite vow included abstaining from wine, avoiding the dead, and never cutting one's hair. The uncut hair was the visible, external sign of Samson's covenant dedication to God (Numbers 6:1-21).",
+          },
+          {
+            id: "q002",
+            text: "Who told Manoah's wife that Samson would be a Nazirite?",
+            options: ["A prophet of Israel", "An angel of the LORD", "The high priest", "Manoah himself"],
+            correctIndex: 1,
+            explanation:
+              "An angel of the LORD appeared to Manoah's wife — and later to Manoah himself — announcing that she would conceive a son who would be a Nazirite and begin to deliver Israel from the Philistines (Judges 13:3-5).",
+          },
+        ],
+      },
+      {
+        id: "w002",
+        name: "A Philistine Lord",
+        role: "One of the Five City Rulers",
+        statement:
+          "We had tried everything. He killed thirty of our men at Ashkelon for a riddle. He set fire to our fields with foxes. He slaughtered thousands with a jawbone. When we found his weakness was women — specifically that woman — we moved quickly. It was a business transaction.",
+        questions: [
+          {
+            id: "q003",
+            text: "How many Philistine lords commissioned Delilah?",
+            options: ["Three", "Seven", "Five", "Twelve"],
+            correctIndex: 2,
+            explanation:
+              "The five lords of the Philistines each offered Delilah 1,100 pieces of silver — a total of 5,500 pieces — to find the source of Samson's strength (Judges 16:5). These five lords ruled the five Philistine city-states.",
+          },
+        ],
+      },
+    ],
+    timeline: [
+      { id: "t001", text: "Angel announces Samson's birth and Nazirite calling to his mother", correctOrder: 1 },
+      { id: "t002", text: "Samson kills a lion barehanded on the way to Timnah", correctOrder: 2 },
+      { id: "t003", text: "Samson marries a Philistine woman and poses a riddle at the feast", correctOrder: 3 },
+      { id: "t004", text: "Samson catches 300 foxes and burns the Philistine fields", correctOrder: 4 },
+      { id: "t005", text: "Samson falls in love with Delilah in the Valley of Sorek", correctOrder: 5 },
+      { id: "t006", text: "Delilah asks three times; Samson lies each time but stays", correctOrder: 6 },
+      { id: "t007", text: "Samson reveals the secret of his strength; his head is shaved", correctOrder: 7 },
+      { id: "t008", text: "Samson is captured, blinded, and forced to grind grain in prison", correctOrder: 8 },
+      { id: "t009", text: "Samson pulls down the temple of Dagon, killing more in death than in life", correctOrder: 9 },
+    ],
+    suspectProfiles: [
+      {
+        name: "Delilah",
+        motive: "5,500 pieces of silver from the five Philistine lords",
+        evidenceStrength: "High",
+        description:
+          "Delilah was directly commissioned and paid by the Philistine lords. She persistently nagged Samson until he could bear it no longer. She had the means, motive, and opportunity. The text leaves no ambiguity about her role: she caused his downfall for money.",
+      },
+      {
+        name: "The Philistine Lords",
+        motive: "To neutralise the greatest military threat to Philistine dominance",
+        evidenceStrength: "High",
+        description:
+          "The five lords were the architects of the conspiracy. They identified Samson's weakness, funded the operation, and were present for the capture. Delilah was their instrument. The ultimate responsibility in the external world rests with them.",
+      },
+      {
+        name: "Samson Himself",
+        motive: "No external motive — internal failure of discipline and discernment",
+        evidenceStrength: "Medium",
+        description:
+          "Samson was warned three times by Delilah's own actions. He saw the pattern and remained. His repeated vulnerability to his passions, his willingness to trade sacred secrets for momentary comfort — these were the open door through which his enemies entered. In a spiritual sense, he was complicit in his own fall.",
+      },
+    ],
+    correctSuspect: "Delilah",
+    revealText:
+      "Delilah, motivated by an enormous sum of silver, persistently wore down Samson's resistance through emotional manipulation. After three failed attempts, Samson finally told her everything: 'A razor has never come upon my head, for I have been a Nazirite to God from my mother's womb. If my head is shaved, then my strength will leave me.' (Judges 16:17). She had his head shaved while he slept. The LORD left him. He was captured, blinded, and enslaved. Yet in his final act — calling on God one last time in the temple of Dagon — Samson killed more Philistines in his death than in his life, fulfilling his calling even through his failures.",
+    revealVerse:
+      '"Then Samson called to the LORD and said, \'O Lord GOD, please remember me and please strengthen me only this once, O God, that I may be avenged on the Philistines for my two eyes.\'" — Judges 16:28',
+    lessons: [
+      { type: "Warning", text: "When someone repeatedly tries to find the source of your anointing, they are not your ally — they are after your consecration." },
+      { type: "Grace", text: "Even after catastrophic failure through his own choices, Samson's hair grew back. God's grace makes room for a final act of faithfulness." },
+      { type: "Pattern", text: "Three ignored warnings preceded the fatal fourth. Pay attention to patterns of compromise before the fourth comes." },
+    ],
+    reflectionQuestions: [
+      "Samson stayed in the relationship even after three clear betrayals. When has comfort or desire caused you to ignore obvious warning signs?",
+      "His physical blindness mirrored long-practiced spiritual blindness. In what area of your life might you be spiritually blind right now?",
+      "Samson's hair began to grow in prison. Where in your life is God growing something new even in a season of consequence?",
+    ],
+    rewards: { xp: 250, coins: 80, badge: "Broken Chains", rankProgress: 9 },
+    nextCaseTitle: "The Judgment of Solomon",
+    closingText:
+      "The strongest man who ever lived was undone not by armies but by a whisper. Yet God redeemed even his final moment. Strength without self-mastery is the most dangerous gift.",
+  },
+
+  // ─── CASE #005 ────────────────────────────────────────────────────
+  {
+    id: "005",
+    caseNumber: "CASE #005",
+    title: "The Judgment of Solomon",
+    bibleReference: "1 Kings 3:16–28",
+    difficulty: "Beginner",
+    victim: "A Newborn Child",
+    suspects: ["The First Woman", "The Second Woman"],
+    introduction:
+      "Two women stand before the throne of King Solomon, each claiming to be the true mother of a living infant. The other child — born just three days after the first — is dead. One woman says the other rolled onto her baby in the night and then switched the infants while she slept. The other denies it entirely. There are no witnesses. No physical evidence. Only two women, one baby, and the wisdom of a king who asked God for an understanding heart.",
+    evidence: [
+      {
+        id: "e001",
+        icon: "moon",
+        title: "The Night Substitution",
+        description:
+          "The first woman claims she woke at midnight to nurse her son, discovered he was dead, and then realised by morning light that the dead child was not hers. 'When I rose in the morning to nurse my child, behold, he was dead. But when I looked at him closely in the morning, behold, he was not the child that I had borne.' (1 Kings 3:21)",
+        lesson:
+          "Deception often happens in darkness and is only revealed by morning light. Truth, like dawn, cannot be suppressed forever.",
+      },
+      {
+        id: "e002",
+        icon: "home",
+        title: "The Shared Living Space",
+        description:
+          "Both women lived together in the same house. There were no other witnesses present. This is the central challenge of the case: with no third-party testimony and no forensic evidence, the truth could only be exposed through the heart's response to an extreme circumstance.",
+        lesson:
+          "Some truths cannot be proven with evidence — they are revealed by how a person responds under pressure.",
+      },
+      {
+        id: "e003",
+        icon: "heart",
+        title: "The Mother's Instinct",
+        description:
+          "When Solomon proposed cutting the child in two, the true mother immediately cried out: 'Oh, my lord, give her the living child, and by no means put him to death!' The false claimant said: 'He shall be neither mine nor yours; divide him.' The contrast was immediate and absolute.",
+        lesson:
+          "True love prefers the other's life over its own claim. False love is willing to destroy what it cannot possess.",
+      },
+      {
+        id: "e004",
+        icon: "user",
+        title: "Solomon's Unusual Verdict",
+        description:
+          "Solomon did not call witnesses or conduct an investigation in any conventional sense. He called for a sword. The verdict was a test: only the response to an impossible choice could cut through the impossible deception.",
+        lesson:
+          "Wisdom sometimes creates a revealing situation rather than following conventional procedure. God gives understanding that goes beyond normal human methods.",
+      },
+      {
+        id: "e005",
+        icon: "shield",
+        title: "The Reaction of All Israel",
+        description:
+          "When news of the verdict spread, 'all Israel heard of the judgment that the king had rendered, and they stood in awe of the king, because they perceived that the wisdom of God was in him to do justice.' (1 Kings 3:28)",
+        lesson:
+          "True justice builds trust in leadership. When wisdom is seen to be at work, it produces reverence — not just satisfaction.",
+      },
+    ],
+    witnesses: [
+      {
+        id: "w001",
+        name: "The First Woman",
+        role: "Claimant — asserts the living child is hers",
+        statement:
+          "We both gave birth within three days of each other in that house. In the night she lay on her child and he died. She arose and took my son from beside me while I slept and laid her dead child in my arms. When the morning came, I saw it was not my son.",
+        questions: [
+          {
+            id: "q001",
+            text: "What did the first woman claim happened in the night?",
+            options: [
+              "The second woman deliberately harmed her child",
+              "The second woman accidentally smothered her baby and swapped them",
+              "The baby was taken by a stranger",
+              "She fell asleep and confused the children herself",
+            ],
+            correctIndex: 1,
+            explanation:
+              "The first woman's account is that the second woman accidentally lay on her own child, causing his death, and then — to conceal it — swapped the dead child for the living one while the first woman slept (1 Kings 3:19-20).",
+          },
+          {
+            id: "q002",
+            text: "How did the first woman know the dead child was not hers?",
+            options: [
+              "She had marked her child with a cloth",
+              "The dead child was a different gender",
+              "She examined the child carefully in the morning light",
+              "A neighbour confirmed it",
+            ],
+            correctIndex: 2,
+            explanation:
+              "'When I looked at him closely in the morning, behold, he was not the child that I had borne.' (1 Kings 3:21). The morning light gave her the clarity to perceive what darkness had concealed.",
+          },
+        ],
+      },
+      {
+        id: "w002",
+        name: "King Solomon",
+        role: "Judge — possessor of God-given wisdom",
+        statement:
+          "I asked God for an understanding heart to govern this people, to discern between good and evil. When these two women came before me, I saw that no evidence could resolve the matter. Only the heart, pressed to an extreme, would reveal its true nature.",
+        questions: [
+          {
+            id: "q003",
+            text: "What did Solomon ask God for at Gibeon?",
+            options: [
+              "Long life and wealth",
+              "Victory over his enemies",
+              "An understanding heart to judge the people",
+              "The power to perform miracles",
+            ],
+            correctIndex: 2,
+            explanation:
+              "When God offered Solomon anything he wished, he asked for 'an understanding heart to govern your people, that I may discern between good and evil.' (1 Kings 3:9). God was so pleased with this request that He granted him wisdom surpassing all others.",
+          },
+          {
+            id: "q004",
+            text: "Why did the true mother's response reveal her identity?",
+            options: [
+              "She knew a secret about the child's birth",
+              "She wept louder than the other woman",
+              "Her love could not bear the child's death even if it meant losing her claim",
+              "Solomon recognised her from a previous case",
+            ],
+            correctIndex: 2,
+            explanation:
+              "True maternal love prioritises the child's life above all personal claims. The false claimant agreed to division, revealing she had no genuine love for the child — only a desire to win the dispute.",
+          },
+        ],
+      },
+    ],
+    timeline: [
+      { id: "t001", text: "God appears to Solomon in a dream and offers him anything he wishes", correctOrder: 1 },
+      { id: "t002", text: "Solomon asks for wisdom; God grants wisdom, wealth, and long life", correctOrder: 2 },
+      { id: "t003", text: "Two women in the same house each give birth three days apart", correctOrder: 3 },
+      { id: "t004", text: "One child dies in the night; the mother swaps the infants before dawn", correctOrder: 4 },
+      { id: "t005", text: "The first woman discovers the swap in the morning light", correctOrder: 5 },
+      { id: "t006", text: "Both women come before Solomon with their competing claims", correctOrder: 6 },
+      { id: "t007", text: "Solomon calls for a sword to divide the living child in two", correctOrder: 7 },
+      { id: "t008", text: "The true mother surrenders her claim to save the child's life", correctOrder: 8 },
+      { id: "t009", text: "Solomon awards the living child to the compassionate woman; all Israel marvels", correctOrder: 9 },
+    ],
+    suspectProfiles: [
+      {
+        name: "The First Woman",
+        motive: "Claims the living child is her son stolen in the night",
+        evidenceStrength: "Low",
+        description:
+          "Her reaction to Solomon's sword test — immediately choosing the child's life over her claim — demonstrates genuine maternal love. She is almost certainly the true mother. Her testimony is internally consistent and her response under pressure reveals selfless love rather than possessiveness.",
+      },
+      {
+        name: "The Second Woman",
+        motive: "To conceal her child's accidental death by claiming the surviving baby",
+        evidenceStrength: "High",
+        description:
+          "Her agreement to divide the child was the decisive evidence against her. No true mother would consent to her child's death rather than allow him to live with another. Her willingness to destroy what she could not possess revealed that her claim was false.",
+      },
+    ],
+    correctSuspect: "The Second Woman",
+    revealText:
+      "The Second Woman was the deceiver. After accidentally smothering her own baby, she swapped the children in the night to conceal her loss. When Solomon's sword test created an impossible choice, her response exposed her: she agreed to kill the living child rather than see it go to its true mother. The First Woman — the true mother — surrendered her claim to save her son's life. Solomon recognised that only love acts this way. He awarded her the child, and all Israel saw that the wisdom of God was at work in their king.",
+    revealVerse:
+      '"Then the king answered and said, \'Give the living child to the first woman, and by no means put him to death; she is his mother.\' And all Israel heard of the judgment that the king had rendered, and they stood in awe of the king." — 1 Kings 3:27-28',
+    lessons: [
+      { type: "Wisdom", text: "God-given wisdom sees what evidence cannot show. Solomon created a situation that bypassed deception and revealed the heart directly." },
+      { type: "Love", text: "True love is defined by what it is willing to surrender. The true mother's willingness to lose her claim to save the child was the proof of her love." },
+      { type: "Justice", text: "When justice is genuinely wise, it produces awe — not merely satisfaction. People recognise the difference between clever judgement and divine understanding." },
+    ],
+    reflectionQuestions: [
+      "Solomon chose wisdom over wealth, power, or long life. If God asked you the same question tonight, what would your answer reveal about your priorities?",
+      "The true mother was willing to lose everything — her legal claim, her child — to ensure the child lived. Where in your life is God asking you to surrender a legitimate claim for a greater love?",
+      "The false claimant agreed to destroy what she could not own. Where do you see this pattern in the world around you today?",
+    ],
+    rewards: { xp: 200, coins: 70, badge: "Wisdom's Crown", rankProgress: 8 },
+    nextCaseTitle: "The Betrayal in the Garden",
+    closingText:
+      "The wisest king who ever lived solved the unsolvable with a sword he never intended to use. Wisdom does not always need more evidence — sometimes it needs a more revealing question.",
+  },
+
+  // ─── CASE #006 ────────────────────────────────────────────────────
+  {
+    id: "006",
+    caseNumber: "CASE #006",
+    title: "The Betrayal in the Garden",
+    bibleReference: "Matthew 26 / Luke 22 / John 13",
+    difficulty: "Advanced",
+    victim: "Jesus of Nazareth",
+    suspects: ["Judas Iscariot", "The Chief Priests", "The Disciples' Collective Failure"],
+    introduction:
+      "In the Garden of Gethsemane, the Son of God was arrested. The instrument of his capture was a man who had walked with him for three years — one of the Twelve. Judas Iscariot identified Jesus to the temple guards with a kiss. But this case asks a harder question than 'who gave the signal?' The money, the motive, the moment, and the movement behind it all demand a deeper investigation. Was this merely a crime of greed? Or something far more ancient and complex?",
+    evidence: [
+      {
+        id: "e001",
+        icon: "dollar-sign",
+        title: "Thirty Pieces of Silver",
+        description:
+          "Judas agreed to betray Jesus to the chief priests for thirty pieces of silver — the price of a slave under Mosaic law (Exodus 21:32), and the exact figure prophesied by Zechariah 500 years earlier (Zechariah 11:12-13). He later threw the money back and hanged himself.",
+        lesson:
+          "The price of betraying the Son of God was the valuation of a slave. What we consider 'small' amounts can cost us everything. Judas gained thirty coins and lost his soul.",
+      },
+      {
+        id: "e002",
+        icon: "moon",
+        title: "The Garden of Gethsemane",
+        description:
+          "Jesus withdrew to pray while his disciples slept. He prayed three times that 'this cup might pass' — yet submitted to the Father's will. When Judas arrived with a crowd carrying swords and clubs, Jesus did not flee. He stepped forward: 'Whom do you seek?' His cooperation was not defeat — it was sovereign intention.",
+        lesson:
+          "Jesus was not a victim of circumstances. He walked willingly into the arrest. True courage is choosing the path of obedience when escape is possible.",
+      },
+      {
+        id: "e003",
+        icon: "coffee",
+        title: "The Last Supper — The Warning Given",
+        description:
+          "At the final Passover meal, Jesus told his disciples: 'One of you will betray me.' He identified Judas by saying the betrayer would be 'the one who has dipped his hand in the dish with me.' He gave Judas the bread — an act of final grace and an unmistakable, personal call to turn back.",
+        lesson:
+          "God warns before he judges. Even to Judas, Jesus extended a final invitation. The offer was not withdrawn — it was refused.",
+      },
+      {
+        id: "e004",
+        icon: "alert-circle",
+        title: "Satan Entered Judas",
+        description:
+          "The Gospel of Luke records: 'Then Satan entered into Judas called Iscariot.' (Luke 22:3) The Gospel of John adds that after Judas took the bread at the Last Supper, 'Satan entered into him.' (John 13:27). There is a spiritual dimension to this betrayal that no human court can fully adjudicate.",
+        lesson:
+          "Behind human betrayal there are often spiritual forces at work. This does not remove personal responsibility — Judas still chose. But it reminds us that spiritual vulnerability opens doors to deeper corruption.",
+      },
+      {
+        id: "e005",
+        icon: "heart",
+        title: "The Kiss — A Signal of Intimacy Used as a Weapon",
+        description:
+          "The pre-arranged signal was a kiss — the Middle Eastern greeting between a student and his rabbi, a sign of honour and affection. Judas used the most intimate gesture of the relationship as the mechanism of betrayal. Jesus responded: 'Friend, do what you came to do.' (Matthew 26:50)",
+        lesson:
+          "The deepest betrayals use the vocabulary of love. That Jesus called Judas 'Friend' in that moment is one of the most arresting words in Scripture — grace extended at the point of maximum treachery.",
+      },
+      {
+        id: "e006",
+        icon: "alert-triangle",
+        title: "The Chief Priests' Conspiracy",
+        description:
+          "The religious authorities had been seeking to kill Jesus for some time. They feared his popularity with the crowds, felt their authority threatened, and viewed him as a blasphemer. When Judas approached them, they were already assembled and already planning — he simply provided the opportunity they had been waiting for.",
+        lesson:
+          "Personal sin and institutional corruption often converge to produce the worst outcomes. Neither the crowd nor the individual is ever purely innocent in a conspiracy.",
+      },
+    ],
+    witnesses: [
+      {
+        id: "w001",
+        name: "Peter",
+        role: "Apostle — present in the garden",
+        statement:
+          "I cut off the servant's ear — I was ready to fight. But the Lord told me to put my sword away. He said he could call twelve legions of angels if he chose. And yet he did not. He healed the man's ear. I followed at a distance after they took him. Then I denied I knew him. Three times. I am not proud of any of it.",
+        questions: [
+          {
+            id: "q001",
+            text: "What did Jesus do when Peter cut off the servant's ear?",
+            options: [
+              "Commended Peter for defending him",
+              "Called twelve legions of angels to intervene",
+              "Rebuked Peter and healed the servant's ear",
+              "Fled into the darkness",
+            ],
+            correctIndex: 2,
+            explanation:
+              "Jesus rebuked Peter, saying 'Put your sword back into its place.' He then healed the servant (Luke 22:51, John 18:11). This showed his deliberate choice to submit to arrest rather than resist — the kingdom of God does not advance through violence.",
+          },
+          {
+            id: "q002",
+            text: "How many times did Peter deny knowing Jesus that night?",
+            options: ["Once", "Twice", "Three times", "He did not deny him"],
+            correctIndex: 2,
+            explanation:
+              "Peter denied knowing Jesus three times before the rooster crowed, exactly as Jesus had prophesied at the Last Supper (Matthew 26:34, 69-75). The three denials mirror and contrast with Judas's single act — failure comes in many forms.",
+          },
+        ],
+      },
+      {
+        id: "w002",
+        name: "Caiaphas",
+        role: "High Priest — orchestrator of the trial",
+        statement:
+          "He was a danger to the nation. If we did nothing, the Romans would come and take away both our place and our people. One man must die for the people. It is better that one man dies than the whole nation perish. I do not repent of the decision.",
+        questions: [
+          {
+            id: "q003",
+            text: "What was the chief priests' primary stated fear about Jesus?",
+            options: [
+              "That he would lead an armed rebellion",
+              "That the Romans would destroy the nation if they did not act",
+              "That he was using dark powers",
+              "That he would replace the temple with a new one",
+            ],
+            correctIndex: 1,
+            explanation:
+              "'If we let him go on like this, everyone will believe in him, and the Romans will come and take away both our place and our nation.' (John 11:48). Ironically, the very outcome they feared happened 40 years later in AD 70 — despite their actions.",
+          },
+          {
+            id: "q004",
+            text: "What charge did the Sanhedrin ultimately use to condemn Jesus?",
+            options: [
+              "Sedition against Rome",
+              "Association with tax collectors",
+              "Blasphemy — claiming to be the Son of God",
+              "Breaking the Sabbath",
+            ],
+            correctIndex: 2,
+            explanation:
+              "When Jesus answered Caiaphas' direct question — 'Are you the Christ, the Son of the Blessed?' — with 'I am,' the high priest tore his robes and declared it blasphemy (Mark 14:61-64). This was the formal charge that brought the death sentence in the Jewish court.",
+          },
+        ],
+      },
+    ],
+    timeline: [
+      { id: "t001", text: "Judas approaches the chief priests and agrees to betray Jesus for thirty silver coins", correctOrder: 1 },
+      { id: "t002", text: "Jesus shares the Last Supper with his disciples and identifies his betrayer", correctOrder: 2 },
+      { id: "t003", text: "Jesus washes the disciples' feet — including Judas's — and gives him the bread", correctOrder: 3 },
+      { id: "t004", text: "Jesus prays in Gethsemane three times while the disciples sleep", correctOrder: 4 },
+      { id: "t005", text: "Judas arrives with guards and betrays Jesus with a kiss", correctOrder: 5 },
+      { id: "t006", text: "Peter cuts off Malchus's ear; Jesus heals it and surrenders himself", correctOrder: 6 },
+      { id: "t007", text: "Jesus is taken to Caiaphas and the Sanhedrin for an overnight trial", correctOrder: 7 },
+      { id: "t008", text: "Peter denies Jesus three times before the rooster crows", correctOrder: 8 },
+      { id: "t009", text: "Judas repents, throws down the silver, and takes his own life", correctOrder: 9 },
+    ],
+    suspectProfiles: [
+      {
+        name: "Judas Iscariot",
+        motive: "Thirty pieces of silver — and possibly disillusioned messianic expectations",
+        evidenceStrength: "High",
+        description:
+          "Judas initiated contact with the authorities, agreed to a price, provided the signal, and executed the plan. His guilt in the act of betrayal is undeniable. Yet Scripture also records that he repented, returned the money, and declared 'I have sinned by betraying innocent blood.' He was the instrument of betrayal — but not the only architect.",
+      },
+      {
+        name: "The Chief Priests",
+        motive: "Elimination of a perceived political and religious threat to their authority",
+        evidenceStrength: "High",
+        description:
+          "The chief priests and Sanhedrin had already decided Jesus must die before Judas came to them. They funded the operation, conducted the illegal night trial, and pressured Pilate into the crucifixion. Their institutional power gave Judas's betrayal its lethal consequence.",
+      },
+      {
+        name: "The Disciples' Collective Failure",
+        motive: "Fear, confusion, and self-preservation",
+        evidenceStrength: "Medium",
+        description:
+          "All the disciples fled. Peter denied. Thomas doubted. None stood with Jesus during his trial. While this does not constitute conspiracy, it represents a universal human failure: when the cost becomes real, even those who walked closest can abandon. This 'suspect' forces the detective to examine themselves.",
+      },
+    ],
+    correctSuspect: "Judas Iscariot",
+    revealText:
+      "Judas Iscariot was the proximate cause of the arrest — the one who made the agreement, gave the signal, and identified Jesus to the guards. The chief priests were the institutional architects who made the execution possible. Satan was the spiritual force who entered Judas and accelerated his choice. And all the disciples — all of us — represent the universal human pattern of abandoning what is right under pressure.\n\nYet the deepest truth of this case is that none of this was beyond God's foreknowledge or outside his sovereign plan. 'This Jesus, delivered up according to the definite plan and foreknowledge of God, you crucified and killed by the hands of lawless men.' (Acts 2:23). The greatest crime in history became the foundation of the greatest redemption in history.",
+    revealVerse:
+      '"For I delivered to you as of first importance what I also received: that Christ died for our sins in accordance with the Scriptures." — 1 Corinthians 15:3',
+    lessons: [
+      { type: "Sovereignty", text: "The greatest betrayal in history was within God's plan. This does not excuse sin — it reveals that God is not defeated by human treachery but works through it." },
+      { type: "Warning", text: "Judas sat at the table, heard every sermon, saw every miracle — and still chose thirty coins. Proximity to Jesus is not the same as surrender to him." },
+      { type: "Grace", text: "Jesus washed Judas's feet the same night Judas was about to betray him. He called him 'Friend' at the moment of betrayal. Grace pursues even to the final moment." },
+    ],
+    reflectionQuestions: [
+      "Jesus called Judas 'Friend' at the moment of betrayal. What does this reveal about the character of Christ — and about how God views those who wrong us?",
+      "All the disciples fled. In what area of your life do you most relate to their failure — the moment when the cost of faithfulness became real?",
+      "Judas repented but went to despair rather than to grace. Peter repented and was restored. What is the difference — and what does it mean for you?",
+    ],
+    rewards: { xp: 400, coins: 130, badge: "Gethsemane Witness", rankProgress: 15 },
+    nextCaseTitle: undefined,
+    closingText:
+      "The most important case in all of human history was never really a mystery. The question was never who did it — it was what it would accomplish. And what it accomplished changed everything.",
   },
 ];
