@@ -160,7 +160,7 @@ export default function BibleScreen() {
         <>
           <View style={[styles.header, { paddingTop: topPad + 8 }]}>
             <View>
-              <Text style={styles.headerLabel}>OFFLINE · KJV · WEB · ASV</Text>
+              <Text style={styles.headerLabel}>OFFLINE · KJV · WEB · ASV · OSCB</Text>
               <Text style={styles.headerTitle}>Bible</Text>
             </View>
             <View style={styles.translationRow}>
@@ -226,7 +226,9 @@ export default function BibleScreen() {
               <IconInfo size={16} color={colors.gold} />
               <Text style={styles.infoText}>
                 <Text style={{ color: colors.gold, fontFamily: "Inter_700Bold" }}>KJV, WEB & ASV</Text>
-                {" are fully public domain and bundled offline. Highlighted books (gold border) contain full in-app text. NIV, ESV, NKJV & NLT require a licence and cannot be bundled."}
+                {" are public domain. "}
+                <Text style={{ color: colors.gold, fontFamily: "Inter_700Bold" }}>OSCB</Text>
+                {" (Open Shona Contemporary Bible) is CC BY-SA 4.0 — bundled with attribution. All four are fully offline. NIV, ESV, NKJV & NLT require a licence and cannot be bundled."}
               </Text>
             </LinearGradient>
           </ScrollView>
@@ -323,7 +325,7 @@ export default function BibleScreen() {
                 <Text style={styles.noVerseTitle}>{selectedBook.name} {selectedChapter}</Text>
                 <Text style={styles.noVerseBody}>
                   Full verse text for this chapter is not yet bundled in this translation.
-                  {"\n\n"}Switch to <Text style={{ color: colors.gold }}>KJV</Text> to read the chapters that power Bible Detective game cases (Genesis 1, 3–4, 25–27, 37).
+                  {"\n\n"}Switch to <Text style={{ color: colors.gold }}>KJV</Text> or <Text style={{ color: colors.gold }}>OSCB</Text> to read chapters that power Bible Detective game cases (Genesis 1, 3–4, 25–27, 37).
                 </Text>
                 {verseCount > 0 && (
                   <Text style={styles.noVerseCount}>{verseCount} verses in this chapter</Text>
