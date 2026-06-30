@@ -1,6 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Animated, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import colors from "@/constants/colors";
@@ -8,14 +8,13 @@ import { BADGE_DEFS } from "@/constants/badges";
 import { getRankForLevel } from "@/constants/ranks";
 import { useGame } from "@/context/GameContext";
 import { CASES } from "@/data/cases";
-import { BadgeIcon, RankIcon, IconSettings, IconLock, IconCheck, IconFire, IconTrendingUp, IconFolder, IconCoin, IconAward } from "@/components/ui/SvgIcons";
+import { BadgeIcon, RankIcon, IconSettings, IconLock, IconCheck, IconFire, IconTrendingUp, IconFolder, IconCoin, IconAward, IconCalendar } from "@/components/ui/SvgIcons";
 
 type Rarity = "COMMON" | "RARE" | "EPIC" | "LEGENDARY";
 const RARITY_LABEL: Record<Rarity, string> = { COMMON: "COMMON", RARE: "RARE", EPIC: "EPIC", LEGENDARY: "LEGENDARY" };
 
 function BadgeCard({ badge, owned }: { badge: typeof BADGE_DEFS[0]; owned: boolean }) {
   const glow = useRef(new Animated.Value(0)).current;
-
   useEffect(() => {
     if (!owned) return;
     const loop = Animated.loop(
@@ -30,54 +29,24 @@ function BadgeCard({ badge, owned }: { badge: typeof BADGE_DEFS[0]; owned: boole
 
   return (
     <View style={[badgeStyles.wrap, { opacity: owned ? 1 : 0.32 }]}>
-      <LinearGradient
-        colors={owned ? [badge.gradTop, badge.gradBot] : [colors.surface2, colors.surface1]}
-        style={badgeStyles.card}
-      >
+      <LinearGradient colors={owned ? [badge.gradTop, badge.gradBot] : [colors.surface2, colors.surface1]} style={badgeStyles.card}>
         <View style={[badgeStyles.border, { borderColor: owned ? badge.rimColor : colors.border }]} />
-
-        {owned && (
-          <Animated.View style={[badgeStyles.glowRing, { backgroundColor: badge.rimColor, opacity: glow }]} />
-        )}
-
-        <LinearGradient
-          colors={owned ? [badge.rimColor + "60", badge.rimColor + "18"] : [colors.surface3, colors.surface2]}
-          style={badgeStyles.medallionOuter}
-        >
+        {owned && <Animated.View style={[badgeStyles.glowRing, { backgroundColor: badge.rimColor, opacity: glow }]} />}
+        <LinearGradient colors={owned ? [badge.rimColor + "60", badge.rimColor + "18"] : [colors.surface3, colors.surface2]} style={badgeStyles.medallionOuter}>
           <View style={[badgeStyles.medallionInner, { borderColor: owned ? badge.rimColor : colors.border, backgroundColor: owned ? badge.gradTop : colors.surface3 }]}>
-            {owned
-              ? <BadgeIcon id={badge.svgIcon} size={28} color={badge.rimColor} rimColor={badge.gradTop} />
-              : <IconLock size={22} color={colors.textFaint} />
-            }
+            {owned ? <BadgeIcon id={badge.svgIcon} size={28} color={badge.rimColor} rimColor={badge.gradTop} /> : <IconLock size={22} color={colors.textFaint} />}
           </View>
         </LinearGradient>
-
-        <Text style={[badgeStyles.name, { color: owned ? colors.text : colors.textFaint }]} numberOfLines={2}>
-          {badge.name}
-        </Text>
-        <Text style={[badgeStyles.desc, { color: owned ? colors.textMuted : colors.textFaint }]} numberOfLines={2}>
-          {badge.desc}
-        </Text>
-
-        <View style={[badgeStyles.rarityPill, {
-          backgroundColor: owned ? badge.rarityColor + "22" : "transparent",
-          borderColor: owned ? badge.rarityColor + "55" : colors.border,
-        }]}>
-          <Text style={[badgeStyles.rarityText, { color: owned ? badge.rarityColor : colors.textFaint }]}>
-            {RARITY_LABEL[badge.rarity as Rarity]}
-          </Text>
+        <Text style={[badgeStyles.name, { color: owned ? colors.text : colors.textFaint }]} numberOfLines={2}>{badge.name}</Text>
+        <Text style={[badgeStyles.desc, { color: owned ? colors.textMuted : colors.textFaint }]} numberOfLines={2}>{badge.desc}</Text>
+        <View style={[badgeStyles.rarityPill, { backgroundColor: owned ? badge.rarityColor + "22" : "transparent", borderColor: owned ? badge.rarityColor + "55" : colors.border }]}>
+          <Text style={[badgeStyles.rarityText, { color: owned ? badge.rarityColor : colors.textFaint }]}>{RARITY_LABEL[badge.rarity as Rarity]}</Text>
         </View>
-
-        {owned && (
-          <View style={[badgeStyles.ownedTag, { backgroundColor: badge.rimColor }]}>
-            <Text style={badgeStyles.ownedTagText}>EARNED</Text>
-          </View>
-        )}
+        {owned && <View style={[badgeStyles.ownedTag, { backgroundColor: badge.rimColor }]}><Text style={badgeStyles.ownedTagText}>EARNED</Text></View>}
       </LinearGradient>
     </View>
   );
 }
-
 const badgeStyles = StyleSheet.create({
   wrap: { width: "48%", position: "relative" },
   card: { borderRadius: colors.radius.lg, padding: 14, alignItems: "center", gap: 7, position: "relative", overflow: "hidden", minHeight: 180 },
@@ -125,6 +94,161 @@ const crestStyles = StyleSheet.create({
   levelPipText: { fontFamily: "Inter_700Bold", fontSize: 11, color: "#000" },
 });
 
+const DAYS = ["S", "M", "T", "W", "T", "F", "S"];
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function StreakCalendar({ activityDates, streak }: { activityDates: string[]; streak: number }) {
+  const actSet = useMemo(() => new Set(activityDates), [activityDates]);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const grid = useMemo(() => {
+    const days: { date: Date; dateStr: string; active: boolean; isToday: boolean; isFuture: boolean }[] = [];
+    const startDay = new Date(today);
+    startDay.setDate(today.getDate() - 34);
+    for (let i = 0; i < 35; i++) {
+      const d = new Date(startDay);
+      d.setDate(startDay.getDate() + i);
+      const dateStr = d.toISOString().slice(0, 10);
+      days.push({
+        date: d,
+        dateStr,
+        active: actSet.has(dateStr),
+        isToday: dateStr === today.toISOString().slice(0, 10),
+        isFuture: d > today,
+      });
+    }
+    return days;
+  }, [actSet]);
+
+  const thisMonth = today.getMonth();
+  const thisYear = today.getFullYear();
+  const daysInMonth = new Date(thisYear, thisMonth + 1, 0).getDate();
+  const activeDaysThisMonth = grid.filter(d =>
+    d.date.getMonth() === thisMonth && d.date.getFullYear() === thisYear && d.active
+  ).length;
+  const passedDaysThisMonth = grid.filter(d =>
+    d.date.getMonth() === thisMonth && d.date.getFullYear() === thisYear && !d.isFuture
+  ).length;
+  const consistency = passedDaysThisMonth > 0 ? Math.round((activeDaysThisMonth / passedDaysThisMonth) * 100) : 0;
+
+  const displayMonth = `${MONTHS[thisMonth]} ${thisYear}`;
+
+  return (
+    <LinearGradient colors={["rgba(212,150,42,0.1)", "rgba(212,150,42,0.03)"]} style={calStyles.card}>
+      <View style={[calStyles.border, { borderColor: colors.goldBorder }]} />
+
+      <View style={calStyles.header}>
+        <View style={calStyles.headerLeft}>
+          <IconCalendar size={16} color={colors.gold} />
+          <Text style={calStyles.title}>Activity Calendar</Text>
+        </View>
+        <View style={calStyles.monthBadge}>
+          <Text style={calStyles.monthText}>{displayMonth}</Text>
+        </View>
+      </View>
+
+      <View style={calStyles.dayHeaders}>
+        {DAYS.map((d, i) => (
+          <Text key={i} style={calStyles.dayHeader}>{d}</Text>
+        ))}
+      </View>
+
+      <View style={calStyles.grid}>
+        {grid.map((cell, idx) => (
+          <View
+            key={idx}
+            style={[
+              calStyles.cell,
+              cell.active && calStyles.cellActive,
+              cell.isToday && calStyles.cellToday,
+              cell.isFuture && calStyles.cellFuture,
+            ]}
+          >
+            {cell.active && (
+              <LinearGradient colors={[colors.goldLight, colors.gold]} style={calStyles.cellFill} />
+            )}
+            {cell.isToday && !cell.active && (
+              <View style={calStyles.todayRing} />
+            )}
+          </View>
+        ))}
+      </View>
+
+      <View style={calStyles.footer}>
+        <View style={calStyles.footerStat}>
+          <IconFire size={14} color={colors.red} />
+          <Text style={calStyles.footerLabel}>
+            <Text style={[calStyles.footerVal, { color: colors.red }]}>{streak}</Text>
+            <Text style={calStyles.footerUnit}> day streak</Text>
+          </Text>
+        </View>
+        <View style={calStyles.footerDivider} />
+        <View style={calStyles.footerStat}>
+          <IconCalendar size={14} color={colors.gold} />
+          <Text style={calStyles.footerLabel}>
+            <Text style={[calStyles.footerVal, { color: colors.gold }]}>{activeDaysThisMonth}</Text>
+            <Text style={calStyles.footerUnit}> days this month</Text>
+          </Text>
+        </View>
+        <View style={calStyles.footerDivider} />
+        <View style={calStyles.footerStat}>
+          <View style={[calStyles.consistencyDot, { backgroundColor: consistency >= 70 ? colors.green : consistency >= 40 ? colors.amber : colors.red }]} />
+          <Text style={calStyles.footerLabel}>
+            <Text style={[calStyles.footerVal, { color: consistency >= 70 ? colors.green : consistency >= 40 ? colors.amber : colors.red }]}>{consistency}%</Text>
+            <Text style={calStyles.footerUnit}> consistent</Text>
+          </Text>
+        </View>
+      </View>
+
+      <View style={calStyles.legend}>
+        <View style={calStyles.legendItem}>
+          <View style={[calStyles.legendDot, { backgroundColor: colors.surface3, borderColor: colors.border, borderWidth: 1 }]} />
+          <Text style={calStyles.legendText}>No activity</Text>
+        </View>
+        <View style={calStyles.legendItem}>
+          <LinearGradient colors={[colors.goldLight, colors.gold]} style={[calStyles.legendDot]} />
+          <Text style={calStyles.legendText}>Case solved</Text>
+        </View>
+        <View style={calStyles.legendItem}>
+          <View style={[calStyles.legendDot, { backgroundColor: "transparent", borderColor: colors.gold, borderWidth: 1.5 }]} />
+          <Text style={calStyles.legendText}>Today</Text>
+        </View>
+      </View>
+    </LinearGradient>
+  );
+}
+const calStyles = StyleSheet.create({
+  card: { borderRadius: colors.radius.lg, padding: 16, marginBottom: 18, position: "relative", overflow: "hidden", gap: 10 },
+  border: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, borderWidth: 1, borderRadius: colors.radius.lg },
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  headerLeft: { flexDirection: "row", alignItems: "center", gap: 6 },
+  title: { fontFamily: "Inter_700Bold", fontSize: 14, color: colors.text },
+  monthBadge: { backgroundColor: colors.surface3, borderRadius: colors.radius.full, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: colors.border },
+  monthText: { fontFamily: "Inter_500Medium", fontSize: 10, color: colors.textMuted },
+  dayHeaders: { flexDirection: "row", justifyContent: "space-around", marginBottom: 2 },
+  dayHeader: { fontFamily: "Inter_600SemiBold", fontSize: 9, color: colors.textFaint, textAlign: "center", width: 28 },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: 3 },
+  cell: { width: 28, height: 28, borderRadius: 7, backgroundColor: colors.surface3, position: "relative", overflow: "hidden" },
+  cellActive: { backgroundColor: "transparent" },
+  cellToday: { borderWidth: 1.5, borderColor: colors.gold },
+  cellFuture: { opacity: 0.3 },
+  cellFill: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
+  todayRing: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, borderRadius: 7, borderWidth: 1.5, borderColor: colors.gold },
+  footer: { flexDirection: "row", alignItems: "center", gap: 8, paddingTop: 2 },
+  footerStat: { flexDirection: "row", alignItems: "center", gap: 4, flex: 1 },
+  footerLabel: { fontSize: 11 },
+  footerVal: { fontFamily: "Inter_700Bold", fontSize: 12 },
+  footerUnit: { fontFamily: "Inter_400Regular", color: colors.textMuted },
+  footerDivider: { width: 1, height: 16, backgroundColor: colors.border },
+  consistencyDot: { width: 8, height: 8, borderRadius: 4 },
+  legend: { flexDirection: "row", gap: 12 },
+  legendItem: { flexDirection: "row", alignItems: "center", gap: 5 },
+  legendDot: { width: 10, height: 10, borderRadius: 3 },
+  legendText: { fontFamily: "Inter_400Regular", fontSize: 9, color: colors.textFaint },
+});
+
 const ACHIEVEMENTS = [
   { icon: (c: string) => <IconFolder size={22} color={c} />, label: "Cases Solved", color: colors.green, getValue: (g: any) => `${g.solvedCases.length} / ${CASES.length}`, isDone: (g: any) => g.solvedCases.length === CASES.length },
   { icon: (c: string) => <IconTrendingUp size={22} color={c} />, label: "XP Earned", color: colors.gold, getValue: (g: any) => `${g.totalXPEarned} XP`, isDone: (g: any) => g.totalXPEarned >= 500 },
@@ -156,7 +280,8 @@ export default function ProfileScreen() {
 
   const card = useEntrance(0);
   const statsAnim = useEntrance(80);
-  const tabs = useEntrance(140);
+  const calAnim = useEntrance(140);
+  const tabs = useEntrance(200);
 
   const ownedCount = BADGE_DEFS.filter(b => b.matchFn(game.badges, game.solvedCases, game.level, game.streak)).length;
 
@@ -192,7 +317,6 @@ export default function ProfileScreen() {
                 <Text style={styles.rankDesc} numberOfLines={2}>{rank.description}</Text>
               </View>
             </View>
-
             <View style={styles.perksRow}>
               {rank.perks.slice(0, 2).map((p, i) => (
                 <View key={i} style={[styles.perkChip, { borderColor: rank.rimColor + "40" }]}>
@@ -200,7 +324,6 @@ export default function ProfileScreen() {
                 </View>
               ))}
             </View>
-
             <View style={styles.xpSection}>
               <View style={styles.xpRow}>
                 <Text style={styles.xpLabel}>LEVEL {game.level} TO {game.level + 1}</Text>
@@ -229,6 +352,10 @@ export default function ProfileScreen() {
               </LinearGradient>
             </View>
           ))}
+        </Animated.View>
+
+        <Animated.View style={calAnim}>
+          <StreakCalendar activityDates={game.activityDates ?? []} streak={game.streak} />
         </Animated.View>
 
         <Animated.View style={[styles.tabs, tabs]}>
@@ -275,18 +402,13 @@ export default function ProfileScreen() {
               return (
                 <LinearGradient key={ach.label} colors={done ? [ach.color + "14", ach.color + "05"] : [colors.surface2, colors.surface1]} style={styles.achCard}>
                   <View style={[styles.achBorder, { borderColor: done ? ach.color + "45" : colors.border }]} />
-                  <View style={[styles.achEmojiWrap, { backgroundColor: ach.color + "18" }]}>
-                    {ach.icon(ach.color)}
-                  </View>
+                  <View style={[styles.achEmojiWrap, { backgroundColor: ach.color + "18" }]}>{ach.icon(ach.color)}</View>
                   <View style={styles.achText}>
                     <Text style={[styles.achLabel, { color: done ? colors.text : colors.textMuted }]}>{ach.label}</Text>
                     <Text style={[styles.achVal, { color: done ? ach.color : colors.textFaint }]}>{ach.getValue(game)}</Text>
                   </View>
                   <View style={[styles.achStatus, { backgroundColor: done ? ach.color + "20" : "transparent", borderColor: done ? ach.color + "45" : colors.border }]}>
-                    {done
-                      ? <IconCheck size={18} color={ach.color} />
-                      : <IconLock size={16} color={colors.textFaint} />
-                    }
+                    {done ? <IconCheck size={18} color={ach.color} /> : <IconLock size={16} color={colors.textFaint} />}
                   </View>
                 </LinearGradient>
               );
@@ -307,21 +429,14 @@ export default function ProfileScreen() {
               <LinearGradient key={c.id} colors={solved ? ["rgba(46,204,142,0.1)", "rgba(46,204,142,0.04)"] : [colors.surface2, colors.surface1]} style={styles.caseRow}>
                 <View style={[styles.caseRowBorder, { borderColor: solved ? "rgba(46,204,142,0.3)" : colors.border }]} />
                 <View style={styles.caseStatusIcon}>
-                  {solved
-                    ? <IconCheck size={20} color={colors.green} />
-                    : locked
-                    ? <IconLock size={18} color={colors.textFaint} />
-                    : <RankIcon id="rookie" size={18} color={colors.gold} />
-                  }
+                  {solved ? <IconCheck size={20} color={colors.green} /> : locked ? <IconLock size={18} color={colors.textFaint} /> : <RankIcon id="rookie" size={18} color={colors.gold} />}
                 </View>
                 <View style={styles.caseRowText}>
                   <Text style={[styles.caseRowTitle, { color: locked ? colors.textMuted : colors.text }]}>{c.title}</Text>
                   <Text style={styles.caseRowRef}>{c.bibleReference} · {c.difficulty}</Text>
                 </View>
                 {solved ? (
-                  <View style={styles.caseRewardChip}>
-                    <Text style={styles.caseRewardText}>+{c.rewards.xp} XP</Text>
-                  </View>
+                  <View style={styles.caseRewardChip}><Text style={styles.caseRewardText}>+{c.rewards.xp} XP</Text></View>
                 ) : (
                   <Text style={styles.caseXpPreview}>{c.rewards.xp} XP</Text>
                 )}
@@ -397,8 +512,8 @@ const styles = StyleSheet.create({
   caseStatusIcon: { width: 28, alignItems: "center" },
   caseRowText: { flex: 1 },
   caseRowTitle: { fontFamily: "Inter_600SemiBold", fontSize: 14 },
-  caseRowRef: { fontFamily: "Inter_400Regular", fontSize: 11, color: colors.textMuted, marginTop: 1 },
-  caseRewardChip: { backgroundColor: "rgba(46,204,142,0.12)", borderRadius: colors.radius.full, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: "rgba(46,204,142,0.35)" },
+  caseRowRef: { fontFamily: "Inter_400Regular", fontSize: 11, color: colors.textMuted, marginTop: 2 },
+  caseRewardChip: { backgroundColor: "rgba(46,204,142,0.15)", borderRadius: colors.radius.full, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: "rgba(46,204,142,0.35)" },
   caseRewardText: { fontFamily: "Inter_700Bold", fontSize: 10, color: colors.green },
   caseXpPreview: { fontFamily: "Inter_400Regular", fontSize: 11, color: colors.textFaint },
 });

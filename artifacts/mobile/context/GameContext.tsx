@@ -21,6 +21,7 @@ interface GameState {
   survivalHighScore: number;
   onboardingComplete: boolean;
   pendingLevelUp: number | null;
+  activityDates: string[];
 }
 
 interface GameContextValue extends GameState {
@@ -34,7 +35,7 @@ interface GameContextValue extends GameState {
   clearPendingLevelUp: () => void;
 }
 
-const STORAGE_KEY = "@bible_detective_game_state_v3";
+const STORAGE_KEY = "@bible_detective_game_state_v4";
 
 const defaultState: GameState = {
   playerName: "Detective",
@@ -54,6 +55,7 @@ const defaultState: GameState = {
   survivalHighScore: 0,
   onboardingComplete: false,
   pendingLevelUp: null,
+  activityDates: [],
 };
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -62,16 +64,19 @@ function todayStr() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function updateStreak(prev: GameState): { streak: number; lastPlayedDate: string } {
+function updateStreak(prev: GameState): { streak: number; lastPlayedDate: string; activityDates: string[] } {
   const today = todayStr();
+  const existing = prev.activityDates ?? [];
+  const activityDates = existing.includes(today) ? existing : [...existing, today].slice(-365);
+
   if (prev.lastPlayedDate === today) {
-    return { streak: prev.streak, lastPlayedDate: today };
+    return { streak: prev.streak, lastPlayedDate: today, activityDates };
   }
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   const yStr = yesterday.toISOString().slice(0, 10);
   const streak = prev.lastPlayedDate === yStr ? prev.streak + 1 : 1;
-  return { streak, lastPlayedDate: today };
+  return { streak, lastPlayedDate: today, activityDates };
 }
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
@@ -99,11 +104,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const recordPlay = useCallback(() => {
     setState((prev) => {
       const s = updateStreak(prev);
-      return {
-        ...prev,
-        ...s,
-        gamesPlayed: prev.gamesPlayed + 1,
-      };
+      return { ...prev, ...s, gamesPlayed: prev.gamesPlayed + 1 };
     });
   }, []);
 
@@ -154,26 +155,16 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     setState((prev) => {
       const existing = prev.timeAttackBestTimes[caseId];
       if (existing && existing <= timeMs) return prev;
-      return {
-        ...prev,
-        timeAttackBestTimes: { ...prev.timeAttackBestTimes, [caseId]: timeMs },
-      };
+      return { ...prev, timeAttackBestTimes: { ...prev.timeAttackBestTimes, [caseId]: timeMs } };
     });
   }, []);
 
   const recordSurvivalScore = useCallback((score: number) => {
-    setState((prev) => ({
-      ...prev,
-      survivalHighScore: Math.max(prev.survivalHighScore, score),
-    }));
+    setState((prev) => ({ ...prev, survivalHighScore: Math.max(prev.survivalHighScore, score) }));
   }, []);
 
   const completeOnboarding = useCallback((name: string) => {
-    setState((prev) => ({
-      ...prev,
-      playerName: name,
-      onboardingComplete: true,
-    }));
+    setState((prev) => ({ ...prev, playerName: name, onboardingComplete: true }));
   }, []);
 
   const clearPendingLevelUp = useCallback(() => {
