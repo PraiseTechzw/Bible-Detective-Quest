@@ -5,14 +5,12 @@ import React, { useEffect, useRef } from "react";
 import { Animated, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import colors from "@/constants/colors";
+import { getRankForLevel } from "@/constants/ranks";
+import { BADGE_DEFS } from "@/constants/badges";
 import { CASES } from "@/data/cases";
 import { useGame } from "@/context/GameContext";
 import CaseCard from "@/components/game/CaseCard";
 
-const RANK_TITLES = [
-  "Rookie Detective", "Junior Investigator", "Field Detective",
-  "Senior Detective", "Lead Investigator", "Chief Detective", "Master Sleuth",
-];
 
 function useEntrance(delay = 0) {
   const opacity = useRef(new Animated.Value(0)).current;
@@ -46,9 +44,10 @@ const xpStyles = StyleSheet.create({
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { level, xp, xpToNextLevel, coins, solvedCases, badges, isCaseSolved, isCaseLocked } = useGame();
-  const rankTitle = RANK_TITLES[Math.min(level - 1, RANK_TITLES.length - 1)];
+  const { level, xp, xpToNextLevel, coins, solvedCases, badges, isCaseSolved, isCaseLocked, streak } = useGame();
+  const rank = getRankForLevel(level);
   const xpPct = Math.min((xp / xpToNextLevel) * 100, 100);
+  const ownedBadges = BADGE_DEFS.filter(b => b.matchFn(badges, solvedCases, level, streak));
   const topPad = Platform.OS === "web" ? 60 : insets.top;
 
   const header = useEntrance(0);
