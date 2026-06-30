@@ -1,3 +1,5 @@
+import { KJV_EXTRA, mergeTextStores } from "./bibleContentExtra";
+
 export type TranslationId = "KJV" | "WEB" | "ASV" | "OSCB";
 
 export interface Translation {
@@ -640,7 +642,9 @@ const OSCB: TextStore = {
   },
 };
 
-export const BIBLE_TEXT: Record<TranslationId, TextStore> = { KJV, WEB, ASV, OSCB };
+const KJV_MERGED = mergeTextStores(KJV, KJV_EXTRA);
+
+export const BIBLE_TEXT: Record<TranslationId, TextStore> = { KJV: KJV_MERGED, WEB, ASV, OSCB };
 
 export function getVerse(translation: TranslationId, bookId: string, chapter: number, verse: number): string | null {
   return BIBLE_TEXT[translation]?.[bookId]?.[chapter]?.[verse] ?? null;

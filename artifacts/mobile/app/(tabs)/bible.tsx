@@ -164,15 +164,13 @@ export default function BibleScreen() {
       {view === "home" && (
         <>
           <View style={[styles.header, { paddingTop: topPad + 8 }]}>
-            <View>
-              <Text style={styles.headerLabel}>OFFLINE · KJV · WEB · ASV · OSCB</Text>
-              <Text style={styles.headerTitle}>Bible</Text>
-            </View>
-            <View style={styles.translationRow}>
+            <Text style={styles.headerLabel}>OFFLINE · KJV · WEB · ASV · OSCB</Text>
+            <Text style={styles.headerTitle}>Bible</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 10 }} contentContainerStyle={styles.translationRow}>
               {TRANSLATIONS.map(t => (
                 <TranslationBadge key={t.id} id={t.id as TranslationId} active={translation === t.id} onPress={() => setTranslation(t.id as TranslationId)} />
               ))}
-            </View>
+            </ScrollView>
           </View>
 
           <View style={styles.searchWrap}>
@@ -295,11 +293,11 @@ export default function BibleScreen() {
           </View>
 
           <View style={styles.readerControls}>
-            <View style={styles.translationRow}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.translationRow}>
               {TRANSLATIONS.map(t => (
                 <TranslationBadge key={t.id} id={t.id as TranslationId} active={translation === t.id} onPress={() => setTranslation(t.id as TranslationId)} />
               ))}
-            </View>
+            </ScrollView>
             <View style={styles.fontControls}>
               <Pressable onPress={() => setFontSize(f => Math.max(12, f - 1))} style={styles.fontBtn}>
                 <Text style={styles.fontBtnText}>A−</Text>
@@ -372,7 +370,7 @@ export default function BibleScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
-  header: { flexDirection: "row", alignItems: "flex-start", paddingHorizontal: 16, paddingBottom: 10, gap: 12 },
+  header: { flexDirection: "column", paddingHorizontal: 16, paddingBottom: 10 },
   headerLabel: { fontFamily: "Inter_600SemiBold", fontSize: 9, color: colors.gold, letterSpacing: 1.5 },
   headerTitle: { fontFamily: "Inter_700Bold", fontSize: 26, color: colors.text },
   headerCenter: { flex: 1 },
