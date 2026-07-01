@@ -4,6 +4,7 @@ import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-n
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import colors from "@/constants/colors";
 import { QUIZ_QUESTIONS, QuizQuestion } from "@/data/bibleTools";
+import { getPassageText } from "@/data/bibleText";
 
 type Difficulty = "all" | "easy" | "medium" | "hard";
 type QuizState = "menu" | "question" | "result" | "summary";
@@ -111,6 +112,9 @@ export default function BibleQuiz({ onBack, topPad }: Props) {
               {wrongAnswers.map(({ q, chosen }, i) => (
                 <View key={i} style={styles.reviewCard}>
                   <Text style={styles.reviewQ}>{q.question}</Text>
+                  <Text style={styles.reviewPassage}>
+                    {getPassageText("KJV", q.reference) ?? q.reference}
+                  </Text>
                   <Text style={styles.reviewCorrect}>✓ {q.options[q.answerIndex]}</Text>
                   <Text style={styles.reviewWrong}>✕ Your answer: {q.options[chosen]}</Text>
                   <Text style={styles.reviewRef}>{q.reference}</Text>
@@ -233,6 +237,7 @@ const styles = StyleSheet.create({
   scoreMsg: { fontFamily: "Inter_400Regular", fontSize: 14, color: colors.textMuted, textAlign: "center" },
   reviewCard: { backgroundColor: colors.surface2, borderRadius: colors.radius.md, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: colors.border, gap: 4 },
   reviewQ: { fontFamily: "Inter_600SemiBold", fontSize: 13, color: colors.text },
+  reviewPassage: { fontFamily: "Inter_400Regular", fontSize: 12, color: colors.textMuted, lineHeight: 18 },
   reviewCorrect: { fontFamily: "Inter_400Regular", fontSize: 12, color: colors.green },
   reviewWrong: { fontFamily: "Inter_400Regular", fontSize: 12, color: colors.red },
   reviewRef: { fontFamily: "Inter_400Regular", fontSize: 10, color: colors.textFaint },

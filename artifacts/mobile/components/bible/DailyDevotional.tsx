@@ -4,6 +4,8 @@ import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-n
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import colors from "@/constants/colors";
 import { getDailyVerse, DAILY_VERSES } from "@/data/bibleTools";
+import { getPassageText } from "@/data/bibleText";
+import { getBook } from "@/data/bibleBooks";
 import { useBible } from "@/context/BibleContext";
 
 const DEVOTIONAL_THOUGHTS: Record<string, string> = {
@@ -46,6 +48,8 @@ export default function DailyDevotional({ onBack, topPad, onOpenReader }: Props)
   const insets = useSafeAreaInsets();
   const bible = useBible();
   const verse = getDailyVerse();
+  const liveVerseText = getPassageText("KJV", `${verse.ref}`) ?? verse.text;
+  const verseBookName = getBook(verse.book)?.name ?? verse.ref;
   const isBookmarked = bible.isBookmarked(verse.book, verse.chapter, verse.verse);
   const thought = DEVOTIONAL_THOUGHTS[verse.theme] ?? "Meditate on this verse today. Let it speak to your heart and guide your steps.";
   const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
@@ -75,16 +79,16 @@ export default function DailyDevotional({ onBack, topPad, onOpenReader }: Props)
             <Pressable onPress={() => {
               if (isBookmarked) {
                 const bm = bible.bookmarks.find(b => b.book === verse.book && b.chapter === verse.chapter && b.verse === verse.verse);
-                if (bm) bible.removeBookmark(bm.id);
-              } else {
-                bible.addBookmark({ book: verse.book, bookName: verse.ref.split(" ")[0], chapter: verse.chapter, verse: verse.verse, text: verse.text, translation: "KJV" });
-              }
-            }}>
-              <Text style={{ fontSize: 22, opacity: isBookmarked ? 1 : 0.3 }}>🔖</Text>
-            </Pressable>
-          </View>
-          <Text style={styles.verseText}>"{verse.text}"</Text>
-          <Pressable onPress={() => onOpenReader(verse.book, verse.ref.split(" ")[0], verse.chapter)} style={styles.refBtn}>
+              if (bm) bible.removeBookmark(bm.id);
+            } else {
+              bible.addBookmark({ book: verse.book, bookName: verseBookName, chapter: verse.chapter, verse: verse.verse, text: liveVerseText, translation: "KJV" });
+            }
+          }}>
+            <Text style={{ fontSize: 22, opacity: isBookmarked ? 1 : 0.3 }}>🔖</Text>
+          </Pressable>
+        </View>
+          <Text style={styles.verseText}>"{liveVerseText}"</Text>
+          <Pressable onPress={() => onOpenReader(verse.book, verseBookName, verse.chapter)} style={styles.refBtn}>
             <Text style={styles.refText}>— {verse.ref}</Text>
             <Text style={styles.readLink}>Read chapter →</Text>
           </Pressable>
@@ -112,9 +116,9 @@ export default function DailyDevotional({ onBack, topPad, onOpenReader }: Props)
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📚 More Verses</Text>
           {DAILY_VERSES.slice(0, 6).map((v, i) => (
-            <Pressable key={i} onPress={() => onOpenReader(v.book, v.ref.split(" ")[0], v.chapter)} style={styles.miniVerse}>
+            <Pressable key={i} onPress={() => onOpenReader(v.book, getBook(v.book)?.name ?? v.ref, v.chapter)} style={styles.miniVerse}>
               <Text style={styles.miniRef}>{v.ref}</Text>
-              <Text style={styles.miniText} numberOfLines={2}>{v.text}</Text>
+              <Text style={styles.miniText} numberOfLines={2}>{getPassageText("KJV", v.ref) ?? v.text}</Text>
               <Text style={styles.miniTheme}>{v.theme}</Text>
             </Pressable>
           ))}

@@ -1,6 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useCallback, useMemo, useState } from "react";
 import {
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -16,6 +17,7 @@ import {
   NT_BOOKS,
   OT_CATEGORIES,
   NT_CATEGORIES,
+  BIBLE_BOOKS,
   BibleBook,
   VERSE_COUNTS,
 } from "@/data/bibleBooks";
@@ -24,12 +26,21 @@ import {
   IconBookOpen,
   IconArrowLeft,
   IconArrowRight,
-  IconInfo,
   IconScroll,
+  IconMoreVertical,
+  IconBookmark,
+  IconNote,
+  IconMarker,
 } from "@/components/ui/SvgIcons";
+import BookmarksView from "@/components/bible/BookmarksView";
+import SermonNotes from "@/components/bible/SermonNotes";
+import BibleDictionary from "@/components/bible/BibleDictionary";
+import { useBible } from "@/context/BibleContext";
 import { TranslationId, TRANSLATIONS } from "@/constants/translations";
+import { HIGHLIGHT_COLORS } from "@/data/highlightColors";
 
-type BibleView = "home" | "chapters" | "reader";
+type BibleView = "home" | "chapters" | "reader" | "saved" | "sermons" | "dictionary";
+type SavedTab = "bookmarks" | "highlights" | "notes";
 
 function getBooksForCategory(books: BibleBook[], category: string) {
   return books.filter((b) => b.category === category);
@@ -45,7 +56,13 @@ function TranslationBadge({
   onPress: () => void;
 }) {
   return (
-    <Pressable onPress={onPress}>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${id} translation`}
+      accessibilityState={{ selected: active }}
+      hitSlop={4}
+    >
       {active ? (
         <LinearGradient
           colors={[colors.goldLight, colors.gold]}
@@ -64,14 +81,14 @@ function TranslationBadge({
 const tlStyles = StyleSheet.create({
   active: {
     borderRadius: colors.radius.full,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
   },
   activeText: { fontFamily: "Inter_700Bold", fontSize: 11, color: "#000" },
   inactive: {
     borderRadius: colors.radius.full,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
     backgroundColor: colors.surface3,
     borderWidth: 1,
     borderColor: colors.border,
@@ -96,7 +113,9 @@ function BookCard({
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [bkStyles.wrap, { opacity: pressed ? 0.8 : 1 }]}
+      accessibilityRole="button"
+      accessibilityLabel={`${book.name}, ${book.chapters} chapters${hasContent ? "" : ", text not yet available"}`}
+      style={({ pressed }) => [bkStyles.wrap, { opacity: pressed ? 0.75 : 1 }]}
     >
       <LinearGradient
         colors={
@@ -200,7 +219,9 @@ function ChapterButton({
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [chStyles.wrap, { opacity: pressed ? 0.8 : 1 }]}
+      accessibilityRole="button"
+      accessibilityLabel={`Chapter ${num}${hasText ? "" : ", text not yet available"}`}
+      style={({ pressed }) => [chStyles.wrap, { opacity: pressed ? 0.75 : 1 }]}
     >
       {hasText ? (
         <LinearGradient
@@ -236,33 +257,72 @@ const chStyles = StyleSheet.create({
 function VerseRow({
   num,
   text,
-  translation,
   fontSize,
+  selected,
+  highlightColor,
+  onPress,
 }: {
   num: number;
   text: string;
-  translation: TranslationId;
   fontSize: number;
+  selected: boolean;
+  highlightColor?: string | null;
+  onPress: () => void;
 }) {
+  const verseBg = highlightColor
+    ? highlightColor.replace("0.35", "0.18")
+    : selected
+      ? "rgba(212,150,42,0.14)"
+      : "transparent";
   return (
-    <View style={vrStyles.row}>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`Verse ${num}`}
+      style={({ pressed }) => [
+        vrStyles.row,
+        selected && vrStyles.rowActive,
+        highlightColor && vrStyles.rowHighlighted,
+        highlightColor ? { backgroundColor: verseBg } : null,
+        highlightColor ? { borderLeftColor: highlightColor } : null,
+        { opacity: pressed ? 0.9 : 1 },
+      ]}
+    >
       <Text style={vrStyles.num}>{num}</Text>
       <Text style={[vrStyles.text, { fontSize }]}>{text}</Text>
-    </View>
+    </Pressable>
   );
 }
 const vrStyles = StyleSheet.create({
   row: {
     flexDirection: "row",
     gap: 10,
-    marginBottom: 14,
+    marginBottom: 16,
     paddingHorizontal: 2,
+  },
+  rowActive: {
+    backgroundColor: "rgba(212,150,42,0.14)",
+    borderRadius: colors.radius.sm,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    marginHorizontal: -6,
+  },
+  rowHighlighted: {
+    borderLeftWidth: 3,
+    borderRadius: colors.radius.sm,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    marginHorizontal: -6,
+    shadowColor: "#000",
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
   },
   num: {
     fontFamily: "Inter_700Bold",
-    fontSize: 11,
+    fontSize: 12,
     color: colors.gold,
-    minWidth: 22,
+    minWidth: 24,
     textAlign: "right",
     marginTop: 2,
   },
@@ -270,12 +330,349 @@ const vrStyles = StyleSheet.create({
     flex: 1,
     fontFamily: "Inter_400Regular",
     color: colors.text,
-    lineHeight: 26,
+    lineHeight: 30,
+  },
+});
+
+function VerseActionButton({
+  label,
+  icon,
+  onPress,
+  active = false,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  onPress: () => void;
+  active?: boolean;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      style={({ pressed }) => [
+        actionStyles.btnWrap,
+        { opacity: pressed ? 0.82 : 1 },
+      ]}
+    >
+      <LinearGradient
+        colors={
+          active
+            ? ["rgba(212,150,42,0.22)", "rgba(212,150,42,0.08)"]
+            : ["rgba(255,255,255,0.06)", "rgba(255,255,255,0.02)"]
+        }
+        style={[
+          actionStyles.btn,
+          { borderColor: active ? colors.goldBorder : colors.border },
+        ]}
+      >
+        <View style={actionStyles.btnIcon}>{icon}</View>
+        <Text style={[actionStyles.btnLabel, active && { color: colors.gold }]}>
+          {label}
+        </Text>
+      </LinearGradient>
+    </Pressable>
+  );
+}
+
+const actionStyles = StyleSheet.create({
+  btnWrap: { minWidth: "31%", flexGrow: 1 },
+  btn: {
+    minHeight: 42,
+    borderRadius: colors.radius.sm,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
+  btnIcon: { width: 14, height: 14, alignItems: "center", justifyContent: "center" },
+  btnLabel: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 11,
+    color: colors.text,
+  },
+});
+
+function VerseEditorModal({
+  visible,
+  mode,
+  reference,
+  initialTitle,
+  initialBody,
+  onClose,
+  onSave,
+}: {
+  visible: boolean;
+  mode: "note" | "sermon";
+  reference: string;
+  initialTitle?: string;
+  initialBody?: string;
+  onClose: () => void;
+  onSave: (payload: { title?: string; body: string }) => void;
+}) {
+  const [title, setTitle] = useState(initialTitle ?? "");
+  const [body, setBody] = useState(initialBody ?? "");
+
+  React.useEffect(() => {
+    if (!visible) return;
+    setTitle(initialTitle ?? "");
+    setBody(initialBody ?? "");
+  }, [visible, initialTitle, initialBody]);
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={modalStyles.backdrop} onPress={onClose}>
+        <Pressable style={modalStyles.sheet} onPress={() => {}}>
+          <Text style={modalStyles.kicker}>
+            {mode === "note" ? "Verse Note" : "Sermon Note"}
+          </Text>
+          <Text style={modalStyles.title}>{reference}</Text>
+          {mode === "sermon" && (
+            <TextInput
+              value={title}
+              onChangeText={setTitle}
+              placeholder="Sermon title..."
+              placeholderTextColor={colors.textFaint}
+              style={modalStyles.input}
+            />
+          )}
+          <TextInput
+            value={body}
+            onChangeText={setBody}
+            placeholder={mode === "note" ? "Write your note..." : "Write sermon notes..."}
+            placeholderTextColor={colors.textFaint}
+            style={[modalStyles.input, modalStyles.inputMulti]}
+            multiline
+            numberOfLines={6}
+            textAlignVertical="top"
+          />
+          <View style={modalStyles.actions}>
+            <Pressable onPress={onClose} style={modalStyles.cancelBtn}>
+              <Text style={modalStyles.cancelText}>Cancel</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => onSave({ title: title.trim(), body: body.trim() })}
+              style={modalStyles.saveBtn}
+            >
+              <LinearGradient colors={[colors.goldLight, colors.gold]} style={modalStyles.saveBtnInner}>
+                <Text style={modalStyles.saveText}>Save</Text>
+              </LinearGradient>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
+const modalStyles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    justifyContent: "flex-end",
+  },
+  sheet: {
+    backgroundColor: colors.bg,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    padding: 16,
+    gap: 10,
+    borderTopWidth: 1,
+    borderColor: colors.border,
+  },
+  kicker: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 9,
+    color: colors.gold,
+    letterSpacing: 1.5,
+  },
+  title: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 18,
+    color: colors.text,
+  },
+  input: {
+    backgroundColor: colors.surface2,
+    borderRadius: colors.radius.md,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    color: colors.text,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  inputMulti: {
+    minHeight: 120,
+  },
+  actions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  cancelBtn: {
+    flex: 1,
+    borderRadius: colors.radius.md,
+    paddingVertical: 10,
+    alignItems: "center",
+    backgroundColor: colors.surface2,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  cancelText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 13,
+    color: colors.textMuted,
+  },
+  saveBtn: { flex: 1 },
+  saveBtnInner: {
+    borderRadius: colors.radius.md,
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  saveText: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 13,
+    color: "#000",
+  },
+});
+
+const menuStyles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  sheet: {
+    backgroundColor: colors.bg,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    borderTopWidth: 1,
+    borderColor: colors.border,
+    padding: 16,
+    gap: 12,
+  },
+  sheetHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 10,
+  },
+  closeBtn: {
+    backgroundColor: colors.surface2,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: colors.radius.full,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  closeText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 12,
+    color: colors.textMuted,
+  },
+  sectionLabel: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 11,
+    color: colors.gold,
+    letterSpacing: 1,
+  },
+  chipRow: {
+    flexDirection: "row",
+    gap: 8,
+    paddingRight: 4,
+  },
+  chip: {
+    borderRadius: colors.radius.full,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface2,
+  },
+  chipActive: {
+    backgroundColor: colors.goldGlow,
+    borderColor: colors.gold,
+  },
+  chipText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 12,
+    color: colors.textMuted,
+  },
+  chipTextActive: {
+    color: colors.gold,
+  },
+  sizeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  sizeBtn: {
+    flex: 1,
+    borderRadius: colors.radius.md,
+    paddingVertical: 11,
+    alignItems: "center",
+    backgroundColor: colors.surface2,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  sizeBtnText: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 14,
+    color: colors.textMuted,
+  },
+  sizeValue: {
+    minWidth: 34,
+    textAlign: "center",
+    fontFamily: "Inter_700Bold",
+    fontSize: 16,
+    color: colors.text,
+  },
+  actionGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  actionCard: {
+    width: "48%",
+    minHeight: 72,
+    borderRadius: colors.radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface2,
+    padding: 12,
+    gap: 4,
+  },
+  actionIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 9,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surface1,
+  },
+  actionText: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 12,
+    color: colors.text,
+  },
+  title: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 18,
+    color: colors.text,
+  },
+  kicker: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 9,
+    color: colors.gold,
+    letterSpacing: 1.5,
   },
 });
 
 export default function BibleScreen() {
   const insets = useSafeAreaInsets();
+  const bible = useBible();
   const topPad = Platform.OS === "web" ? 60 : insets.top;
   const [view, setView] = useState<BibleView>("home");
   const [selectedBook, setSelectedBook] = useState<BibleBook | null>(null);
@@ -284,6 +681,12 @@ export default function BibleScreen() {
   const [testament, setTestament] = useState<"OT" | "NT">("OT");
   const [fontSize, setFontSize] = useState(15);
   const [search, setSearch] = useState("");
+  const [selectedVerse, setSelectedVerse] = useState<number | null>(null);
+  const [editorMode, setEditorMode] = useState<"note" | "sermon" | null>(null);
+  const [editorDraft, setEditorDraft] = useState("");
+  const [editorTitle, setEditorTitle] = useState("");
+  const [savedTab, setSavedTab] = useState<SavedTab>("bookmarks");
+  const [readerMenuOpen, setReaderMenuOpen] = useState(false);
 
   const filteredBooks = useMemo(() => {
     const base = testament === "OT" ? OT_BOOKS : NT_BOOKS;
@@ -306,6 +709,33 @@ export default function BibleScreen() {
     setView("reader");
   }, []);
 
+  const openReaderFromSaved = useCallback(
+    (book: string, _bookName: string, chapter: number) => {
+      const resolved =
+        BIBLE_BOOKS.find(
+          (b) =>
+            b.id === book ||
+            b.name.toLowerCase() === book.toLowerCase() ||
+            b.abbr.toLowerCase() === book.toLowerCase(),
+        ) ?? null;
+      if (!resolved) return;
+      setSelectedBook(resolved);
+      setSelectedChapter(chapter);
+      setView("reader");
+    },
+    [],
+  );
+
+  const openSavedScreen = useCallback((tab: SavedTab) => {
+    setSavedTab(tab);
+    setView("saved");
+  }, []);
+
+  const openDictionary = useCallback(() => {
+    setReaderMenuOpen(false);
+    setView("dictionary");
+  }, []);
+
   const chapterVerses = useMemo(() => {
     if (!selectedBook) return null;
     return getChapter(translation, selectedBook.id, selectedChapter);
@@ -324,6 +754,24 @@ export default function BibleScreen() {
       .sort((a, b) => a.verse - b.verse);
   }, [chapterVerses]);
 
+  const selectedVerseEntry = useMemo(
+    () => verseEntries.find((v) => v.verse === selectedVerse) ?? null,
+    [selectedVerse, verseEntries],
+  );
+
+  const selectedReference = selectedVerseEntry
+    ? `${selectedBook?.name ?? ""} ${selectedChapter}:${selectedVerseEntry.verse}`
+    : "";
+
+  const currentNote = selectedVerseEntry
+    ? bible.getNote(selectedBook?.id ?? "", selectedChapter, selectedVerseEntry.verse)
+    : undefined;
+
+  React.useEffect(() => {
+    setSelectedVerse(null);
+    setEditorMode(null);
+  }, [selectedBook?.id, selectedChapter, translation]);
+
   const totalChapters = selectedBook?.chapters ?? 0;
 
   return (
@@ -336,9 +784,7 @@ export default function BibleScreen() {
       {view === "home" && (
         <>
           <View style={[styles.header, { paddingTop: topPad + 8 }]}>
-            <Text style={styles.headerLabel}>
-              OFFLINE · KJV · WEB · ASV · SHONA
-            </Text>
+            <Text style={styles.headerLabel}>4 TRANSLATIONS · OFFLINE</Text>
             <Text style={styles.headerTitle}>Bible</Text>
             <ScrollView
               horizontal
@@ -359,14 +805,27 @@ export default function BibleScreen() {
 
           <View style={styles.searchWrap}>
             <View style={styles.searchBox}>
-              <IconBookOpen size={15} color={colors.textMuted} />
+              <IconBookOpen size={16} color={colors.textMuted} />
               <TextInput
                 style={styles.searchInput}
-                placeholder="Search book name..."
+                placeholder="Search books..."
                 placeholderTextColor={colors.textFaint}
                 value={search}
                 onChangeText={setSearch}
+                accessibilityLabel="Search books"
+                returnKeyType="search"
+                autoCorrect={false}
               />
+              {search.length > 0 && (
+                <Pressable
+                  onPress={() => setSearch("")}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Clear search"
+                >
+                  <Text style={styles.clearBtn}>✕</Text>
+                </Pressable>
+              )}
             </View>
           </View>
 
@@ -375,6 +834,8 @@ export default function BibleScreen() {
               <Pressable
                 key={t}
                 onPress={() => setTestament(t)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: testament === t }}
                 style={styles.testamentTab}
               >
                 {testament === t ? (
@@ -413,9 +874,7 @@ export default function BibleScreen() {
                     <View style={styles.categoryHeader}>
                       <View style={styles.categoryAccent} />
                       <Text style={styles.categoryTitle}>{category}</Text>
-                      <Text style={styles.categoryCount}>
-                        {books.length} books
-                      </Text>
+                      <Text style={styles.categoryCount}>{books.length}</Text>
                     </View>
                     <View style={styles.bookGrid}>
                       {books.map((b) => (
@@ -432,34 +891,14 @@ export default function BibleScreen() {
               },
             )}
 
-            <LinearGradient
-              colors={["rgba(212,150,42,0.08)", "rgba(212,150,42,0.02)"]}
-              style={styles.infoCard}
-            >
-              <View
-                style={[
-                  styles.infoCardBorder,
-                  { borderColor: colors.goldBorder },
-                ]}
-              />
-              <IconInfo size={16} color={colors.gold} />
-              <Text style={styles.infoText}>
-                <Text
-                  style={{ color: colors.gold, fontFamily: "Inter_700Bold" }}
-                >
-                  KJV, WEB & ASV
+            {filteredBooks.length === 0 && (
+              <View style={styles.emptyState}>
+                <IconBookOpen size={32} color={colors.textFaint} />
+                <Text style={styles.emptyStateText}>
+                  No books match "{search}"
                 </Text>
-                {" are public domain. "}
-                <Text
-                  style={{ color: colors.gold, fontFamily: "Inter_700Bold" }}
-                >
-                  SHONA
-                </Text>
-                {
-                  " (Open Shona Contemporary Bible) is CC BY-SA 4.0 — bundled with attribution. All four are fully offline. NIV, ESV, NKJV & NLT require a licence and cannot be bundled."
-                }
-              </Text>
-            </LinearGradient>
+              </View>
+            )}
           </ScrollView>
         </>
       )}
@@ -467,7 +906,12 @@ export default function BibleScreen() {
       {view === "chapters" && selectedBook && (
         <>
           <View style={[styles.header, { paddingTop: topPad + 8 }]}>
-            <Pressable onPress={() => setView("home")} style={styles.backBtn}>
+            <Pressable
+              onPress={() => setView("home")}
+              accessibilityRole="button"
+              accessibilityLabel="Back to books"
+              style={styles.backBtn}
+            >
               <IconArrowLeft size={18} color={colors.textMuted} />
             </Pressable>
             <View style={styles.headerCenter}>
@@ -510,10 +954,9 @@ export default function BibleScreen() {
                 <IconScroll size={28} color={colors.textFaint} />
                 <Text style={styles.noTextTitle}>Full text coming soon</Text>
                 <Text style={styles.noTextBody}>
-                  {selectedBook.name} will be included in a future update. The
-                  game cases reference Genesis, which has full inline text.
-                  Meanwhile, all {selectedBook.chapters} chapter navigation is
-                  available.
+                  {selectedBook.name} isn't bundled in this translation yet. You
+                  can still browse and jump to any of its{" "}
+                  {selectedBook.chapters} chapters.
                 </Text>
               </LinearGradient>
             )}
@@ -523,9 +966,11 @@ export default function BibleScreen() {
 
       {view === "reader" && selectedBook && (
         <>
-          <View style={[styles.header, { paddingTop: topPad + 8 }]}>
+          <View style={[styles.readerHeader, { paddingTop: topPad + 8 }]}>
             <Pressable
               onPress={() => setView("chapters")}
+              accessibilityRole="button"
+              accessibilityLabel="Back to chapters"
               style={styles.backBtn}
             >
               <IconArrowLeft size={18} color={colors.textMuted} />
@@ -538,37 +983,14 @@ export default function BibleScreen() {
                 Chapter {selectedChapter}
               </Text>
             </View>
-          </View>
-
-          <View style={styles.readerControls}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.translationRow}
+            <Pressable
+              onPress={() => setReaderMenuOpen(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Reader menu"
+              style={styles.menuBtn}
             >
-              {TRANSLATIONS.map((t) => (
-                <TranslationBadge
-                  key={t.id}
-                  id={t.id as TranslationId}
-                  active={translation === t.id}
-                  onPress={() => setTranslation(t.id as TranslationId)}
-                />
-              ))}
-            </ScrollView>
-            <View style={styles.fontControls}>
-              <Pressable
-                onPress={() => setFontSize((f) => Math.max(12, f - 1))}
-                style={styles.fontBtn}
-              >
-                <Text style={styles.fontBtnText}>A−</Text>
-              </Pressable>
-              <Pressable
-                onPress={() => setFontSize((f) => Math.min(22, f + 1))}
-                style={styles.fontBtn}
-              >
-                <Text style={styles.fontBtnTextLg}>A+</Text>
-              </Pressable>
-            </View>
+              <IconMoreVertical size={18} color={colors.textMuted} />
+            </Pressable>
           </View>
 
           <ScrollView
@@ -576,11 +998,11 @@ export default function BibleScreen() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{
               paddingHorizontal: 20,
-              paddingBottom: (Platform.OS === "web" ? 24 : insets.bottom) + 90,
+              paddingBottom: (Platform.OS === "web" ? 24 : insets.bottom) + 56,
             }}
           >
             <LinearGradient
-              colors={["rgba(212,150,42,0.06)", "transparent"]}
+              colors={["rgba(212,150,42,0.12)", "rgba(212,150,42,0.03)", "transparent"]}
               style={styles.chapterHeading}
             >
               <Text style={styles.chapterHeadingText}>
@@ -593,15 +1015,121 @@ export default function BibleScreen() {
             </LinearGradient>
 
             {verseEntries.length > 0 ? (
-              verseEntries.map(({ verse, text }) => (
-                <VerseRow
-                  key={verse}
-                  num={verse}
-                  text={text}
-                  translation={translation}
-                  fontSize={fontSize}
-                />
-              ))
+              verseEntries.map(({ verse, text }) => {
+                const isSelected = selectedVerse === verse;
+                const bookmark = bible.bookmarks.find(
+                  (b) =>
+                    b.book === selectedBook.id &&
+                    b.chapter === selectedChapter &&
+                    b.verse === verse,
+                );
+                const highlight = bible.getHighlight(
+                  selectedBook.id,
+                  selectedChapter,
+                  verse,
+                );
+                const highlightColor =
+                  HIGHLIGHT_COLORS.find((c) => c.id === highlight?.color)?.value ??
+                  null;
+                const note = bible.getNote(selectedBook.id, selectedChapter, verse);
+
+                return (
+                  <View key={verse} style={{ marginBottom: 8 }}>
+                    <VerseRow
+                      num={verse}
+                      text={text}
+                      fontSize={fontSize}
+                      selected={isSelected}
+                      highlightColor={highlightColor}
+                      onPress={() =>
+                        setSelectedVerse((current) => (current === verse ? null : verse))
+                      }
+                    />
+                    {isSelected && (
+                      <View style={styles.verseActionsCard}>
+                        <View style={styles.verseActionsRow}>
+                          <VerseActionButton
+                            label={bookmark ? "Saved" : "Bookmark"}
+                            icon={<IconBookmark size={14} color={bookmark ? colors.gold : colors.textMuted} />}
+                            active={!!bookmark}
+                            onPress={() => {
+                              if (bookmark) {
+                                bible.removeBookmark(bookmark.id);
+                                return;
+                              }
+                              bible.addBookmark({
+                                book: selectedBook.id,
+                                bookName: selectedBook.name,
+                                chapter: selectedChapter,
+                                verse,
+                                text,
+                                translation,
+                              });
+                            }}
+                          />
+                          <VerseActionButton
+                            label="Note"
+                            icon={<IconNote size={14} color={note ? colors.gold : colors.textMuted} />}
+                            active={!!note}
+                            onPress={() => {
+                              setEditorMode("note");
+                              setEditorDraft(note?.note ?? "");
+                            }}
+                          />
+                          <VerseActionButton
+                            label="Sermon"
+                            icon={<IconScroll size={14} color={colors.textMuted} />}
+                            onPress={() => {
+                              setEditorMode("sermon");
+                              setEditorTitle(
+                                `Sermon note: ${selectedBook.name} ${selectedChapter}:${verse}`,
+                              );
+                              setEditorDraft("");
+                            }}
+                          />
+                        </View>
+                        <View style={styles.highlightRow}>
+                          {HIGHLIGHT_COLORS.map((color) => (
+                            <Pressable
+                              key={color.id}
+                              onPress={() =>
+                                bible.addHighlight({
+                                  book: selectedBook.id,
+                                  chapter: selectedChapter,
+                                  verse,
+                                  color: color.id,
+                                })
+                              }
+                              style={[
+                                styles.highlightChip,
+                                { backgroundColor: color.value },
+                                highlight?.color === color.id &&
+                                  styles.highlightChipActive,
+                              ]}
+                            >
+                              <Text style={styles.highlightChipText}>
+                                {color.label}
+                              </Text>
+                            </Pressable>
+                          ))}
+                          {highlight && (
+                            <Pressable
+                              onPress={() => bible.removeHighlight(highlight.id)}
+                              style={styles.highlightClear}
+                            >
+                              <Text style={styles.highlightClearText}>Clear</Text>
+                            </Pressable>
+                          )}
+                        </View>
+                        <Text style={styles.verseMeta}>
+                          {highlight ? "Highlighted" : "Tap a color to highlight"}
+                          {note ? " - Note saved" : ""}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                );
+              })
             ) : (
               <View style={styles.noVerseWrap}>
                 <IconScroll size={36} color={colors.textFaint} />
@@ -609,13 +1137,9 @@ export default function BibleScreen() {
                   {selectedBook.name} {selectedChapter}
                 </Text>
                 <Text style={styles.noVerseBody}>
-                  Full verse text for this chapter is not yet bundled in this
-                  translation.
-                  {"\n\n"}Switch to{" "}
+                  Not yet available in {translation}. Try{" "}
                   <Text style={{ color: colors.gold }}>KJV</Text> or{" "}
-                  <Text style={{ color: colors.gold }}>SHONA</Text> to read
-                  chapters that power Bible Detective game cases (Genesis 1,
-                  3–4, 25–27, 37).
+                  <Text style={{ color: colors.gold }}>SHONA</Text> instead.
                 </Text>
                 {verseCount > 0 && (
                   <Text style={styles.noVerseCount}>
@@ -630,7 +1154,7 @@ export default function BibleScreen() {
             style={[
               styles.chapterNav,
               {
-                paddingBottom: Platform.OS === "web" ? 10 : insets.bottom + 70,
+                paddingBottom: Platform.OS === "web" ? 10 : insets.bottom + 14,
               },
             ]}
           >
@@ -638,6 +1162,9 @@ export default function BibleScreen() {
               onPress={() =>
                 selectedChapter > 1 && setSelectedChapter((c) => c - 1)
               }
+              accessibilityRole="button"
+              accessibilityLabel="Previous chapter"
+              disabled={selectedChapter <= 1}
               style={[
                 styles.navBtn,
                 { opacity: selectedChapter <= 1 ? 0.3 : 1 },
@@ -663,6 +1190,9 @@ export default function BibleScreen() {
                 selectedChapter < totalChapters &&
                 setSelectedChapter((c) => c + 1)
               }
+              accessibilityRole="button"
+              accessibilityLabel="Next chapter"
+              disabled={selectedChapter >= totalChapters}
               style={[
                 styles.navBtn,
                 { opacity: selectedChapter >= totalChapters ? 0.3 : 1 },
@@ -677,7 +1207,196 @@ export default function BibleScreen() {
               </LinearGradient>
             </Pressable>
           </View>
+
+          <VerseEditorModal
+            visible={editorMode !== null && !!selectedReference}
+            mode={editorMode ?? "note"}
+            reference={selectedReference}
+            initialTitle={editorTitle}
+            initialBody={editorDraft}
+            onClose={() => setEditorMode(null)}
+            onSave={({ title, body }) => {
+              if (!selectedVerseEntry || !selectedBook) return;
+              if (editorMode === "sermon") {
+                if (!body.trim()) return;
+                bible.addSermonNote({
+                  title: title?.trim() || `Sermon note: ${selectedReference}`,
+                  reference: selectedReference,
+                  body,
+                });
+              } else {
+                if (!body.trim()) return;
+                const existing = currentNote;
+                if (existing) {
+                  bible.updateNote(existing.id, body);
+                } else {
+                  bible.addNote({
+                    book: selectedBook.id,
+                    bookName: selectedBook.name,
+                    chapter: selectedChapter,
+                    verse: selectedVerseEntry.verse,
+                    note: body,
+                  });
+                }
+              }
+              setEditorMode(null);
+              setEditorDraft("");
+            }}
+          />
+
+          <Modal
+            visible={readerMenuOpen}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setReaderMenuOpen(false)}
+          >
+            <Pressable
+              style={menuStyles.backdrop}
+              onPress={() => setReaderMenuOpen(false)}
+            >
+              <Pressable style={menuStyles.sheet} onPress={() => {}}>
+                <View style={menuStyles.sheetHeader}>
+                  <View>
+                    <Text style={menuStyles.kicker}>READER MENU</Text>
+                    <Text style={menuStyles.title}>Bible settings</Text>
+                  </View>
+                  <Pressable
+                    onPress={() => setReaderMenuOpen(false)}
+                    style={menuStyles.closeBtn}
+                  >
+                    <Text style={menuStyles.closeText}>Close</Text>
+                  </Pressable>
+                </View>
+
+                <Text style={menuStyles.sectionLabel}>Translation</Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={menuStyles.chipRow}
+                >
+                  {TRANSLATIONS.map((t) => (
+                    <Pressable
+                      key={t.id}
+                      onPress={() => setTranslation(t.id as TranslationId)}
+                      style={[
+                        menuStyles.chip,
+                        translation === t.id && menuStyles.chipActive,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          menuStyles.chipText,
+                          translation === t.id && menuStyles.chipTextActive,
+                        ]}
+                      >
+                        {t.id}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+
+                <Text style={menuStyles.sectionLabel}>Text Size</Text>
+                <View style={menuStyles.sizeRow}>
+                  <Pressable
+                    onPress={() => setFontSize((f) => Math.max(12, f - 1))}
+                    disabled={fontSize <= 12}
+                    style={[
+                      menuStyles.sizeBtn,
+                      fontSize <= 12 && { opacity: 0.4 },
+                    ]}
+                  >
+                    <Text style={menuStyles.sizeBtnText}>A-</Text>
+                  </Pressable>
+                  <Text style={menuStyles.sizeValue}>{fontSize}</Text>
+                  <Pressable
+                    onPress={() => setFontSize((f) => Math.min(22, f + 1))}
+                    disabled={fontSize >= 22}
+                    style={[
+                      menuStyles.sizeBtn,
+                      fontSize >= 22 && { opacity: 0.4 },
+                    ]}
+                  >
+                    <Text style={[menuStyles.sizeBtnText, { color: colors.gold }]}>A+</Text>
+                  </Pressable>
+                </View>
+
+                <Text style={menuStyles.sectionLabel}>Tools</Text>
+                <View style={menuStyles.actionGrid}>
+                  <Pressable
+                    onPress={() => {
+                      setReaderMenuOpen(false);
+                      openSavedScreen("bookmarks");
+                    }}
+                    style={menuStyles.actionCard}
+                  >
+                    <View style={menuStyles.actionIcon}><IconBookmark size={18} color={colors.gold} /></View>
+                    <Text style={menuStyles.actionText}>Bookmarks</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => {
+                      setReaderMenuOpen(false);
+                      openSavedScreen("highlights");
+                    }}
+                    style={menuStyles.actionCard}
+                  >
+                    <View style={menuStyles.actionIcon}><IconMarker size={18} color={colors.blue} /></View>
+                    <Text style={menuStyles.actionText}>Highlights</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => {
+                      setReaderMenuOpen(false);
+                      openSavedScreen("notes");
+                    }}
+                    style={menuStyles.actionCard}
+                  >
+                    <View style={menuStyles.actionIcon}><IconNote size={18} color={colors.green} /></View>
+                    <Text style={menuStyles.actionText}>Notes</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => {
+                      setReaderMenuOpen(false);
+                      setView("sermons");
+                    }}
+                    style={menuStyles.actionCard}
+                  >
+                    <View style={menuStyles.actionIcon}><IconScroll size={18} color={colors.purple} /></View>
+                    <Text style={menuStyles.actionText}>Sermons</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={openDictionary}
+                    style={menuStyles.actionCard}
+                  >
+                    <View style={menuStyles.actionIcon}><IconBookOpen size={18} color={colors.red} /></View>
+                    <Text style={menuStyles.actionText}>Dictionary</Text>
+                  </Pressable>
+                </View>
+              </Pressable>
+            </Pressable>
+          </Modal>
         </>
+      )}
+
+      {view === "saved" && (
+        <BookmarksView
+          onBack={() => setView(selectedBook ? "reader" : "home")}
+          topPad={topPad}
+          initialTab={savedTab}
+          onOpenReader={openReaderFromSaved}
+        />
+      )}
+
+      {view === "sermons" && (
+        <SermonNotes
+          onBack={() => setView(selectedBook ? "reader" : "home")}
+          topPad={topPad}
+        />
+      )}
+
+      {view === "dictionary" && (
+        <BibleDictionary
+          onBack={() => setView(selectedBook ? "reader" : "home")}
+          topPad={topPad}
+        />
       )}
     </View>
   );
@@ -686,6 +1405,20 @@ export default function BibleScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   header: { flexDirection: "column", paddingHorizontal: 16, paddingBottom: 10 },
+  readerHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+    gap: 10,
+  },
+  readerHeaderLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  readerHeaderSpacer: { width: 80 },
   headerLabel: {
     fontFamily: "Inter_600SemiBold",
     fontSize: 9,
@@ -697,11 +1430,21 @@ const styles = StyleSheet.create({
     fontSize: 26,
     color: colors.text,
   },
-  headerCenter: { flex: 1 },
+  headerCenter: { flex: 1, alignItems: "center" },
   readerChapterTitle: {
     fontFamily: "Inter_700Bold",
     fontSize: 20,
     color: colors.text,
+  },
+  menuBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surface2,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   backBtn: {
     width: 36,
@@ -732,6 +1475,11 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     fontSize: 14,
     color: colors.text,
+  },
+  clearBtn: {
+    fontSize: 13,
+    color: colors.textFaint,
+    paddingHorizontal: 2,
   },
   testamentTabs: {
     flexDirection: "row",
@@ -784,15 +1532,30 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   categoryCount: {
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Inter_500Medium",
     fontSize: 11,
     color: colors.textFaint,
+    backgroundColor: colors.surface2,
+    borderRadius: colors.radius.full,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    overflow: "hidden",
   },
   bookGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: "3.5%" as any,
     rowGap: 6,
+  },
+  emptyState: {
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 32,
+  },
+  emptyStateText: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    color: colors.textMuted,
   },
   infoCard: {
     flexDirection: "row",
@@ -900,6 +1663,59 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     fontSize: 11,
     color: colors.textMuted,
+  },
+  verseActionsCard: {
+    marginTop: 8,
+    borderRadius: colors.radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface2,
+    padding: 10,
+    gap: 8,
+  },
+  verseActionsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  highlightRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+  },
+  highlightChip: {
+    borderRadius: colors.radius.full,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
+  },
+  highlightChipActive: {
+    borderColor: colors.gold,
+    transform: [{ scale: 1.02 }],
+  },
+  highlightChipText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 10,
+    color: "#fff",
+  },
+  highlightClear: {
+    borderRadius: colors.radius.full,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    backgroundColor: colors.surface3,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  highlightClearText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 10,
+    color: colors.textMuted,
+  },
+  verseMeta: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 10,
+    color: colors.textFaint,
   },
   noVerseWrap: {
     alignItems: "center",

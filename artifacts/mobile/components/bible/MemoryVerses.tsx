@@ -4,6 +4,7 @@ import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-n
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import colors from "@/constants/colors";
 import { MEMORY_VERSES } from "@/data/bibleTools";
+import { getPassageText } from "@/data/bibleText";
 import { useBible, MemoryVerseStatus } from "@/context/BibleContext";
 
 type Mode = "library" | "practice";
@@ -74,13 +75,14 @@ export default function MemoryVerses({ onBack, topPad }: Props) {
           <Text style={styles.sectionLabel}>Suggested Verses ({MEMORY_VERSES.length})</Text>
           {MEMORY_VERSES.map(v => {
             const added = myVerses.find(m => m.ref === v.ref);
+            const liveText = getPassageText("KJV", v.ref) ?? v.text;
             return (
               <View key={v.ref} style={styles.verseCard}>
                 <View style={styles.verseHeader}>
                   <Text style={styles.verseRef}>{v.ref}</Text>
                   <Text style={styles.verseCategory}>{v.category}</Text>
                 </View>
-                <Text style={styles.verseText} numberOfLines={3}>{v.text}</Text>
+                <Text style={styles.verseText} numberOfLines={3}>{liveText}</Text>
                 <View style={styles.verseActions}>
                   {added ? (
                     <View style={styles.statusRow}>
@@ -91,7 +93,7 @@ export default function MemoryVerses({ onBack, topPad }: Props) {
                       </Pressable>
                     </View>
                   ) : (
-                    <Pressable onPress={() => bible.addMemoryVerse(v.ref, v.text)} style={styles.addBtn}>
+                    <Pressable onPress={() => bible.addMemoryVerse(v.ref, liveText)} style={styles.addBtn}>
                       <Text style={styles.addBtnText}>+ Add to My List</Text>
                     </Pressable>
                   )}
@@ -125,7 +127,7 @@ export default function MemoryVerses({ onBack, topPad }: Props) {
               <LinearGradient colors={["rgba(212,150,42,0.1)", "rgba(212,150,42,0.03)"]} style={styles.practiceCard}>
                 <Text style={styles.practiceRef}>{practicableVerse.ref}</Text>
                 {revealed ? (
-                  <Text style={styles.practiceVerseText}>{practicableVerse.text}</Text>
+                  <Text style={styles.practiceVerseText}>{getPassageText("KJV", practicableVerse.ref) ?? practicableVerse.text}</Text>
                 ) : (
                   <Pressable onPress={() => setRevealed(true)} style={styles.revealBtn}>
                     <Text style={styles.revealBtnText}>Tap to reveal verse</Text>

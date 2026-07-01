@@ -476,6 +476,38 @@ export function IconInfo(p: P) {
     </>
   } />;
 }
+export function IconMoreVertical(p: P) {
+  return <U {...p} glyph={
+    <>
+      <Circle cx="16" cy="9.5" r="1.5" fill={GLYPH} />
+      <Circle cx="16" cy="16" r="1.5" fill={GLYPH} />
+      <Circle cx="16" cy="22.5" r="1.5" fill={GLYPH} />
+    </>
+  } />;
+}
+export function IconBookmark(p: P) {
+  return <U {...p} glyph={
+    <Path d="M10 8.5 L22 8.5 C22.9 8.5 23.6 9.2 23.6 10.1 L23.6 24 L16 20.2 L8.4 24 L8.4 10.1 C8.4 9.2 9.1 8.5 10 8.5 Z" stroke={GLYPH} strokeWidth="1.7" fill="none" strokeLinejoin="round" />
+  } />;
+}
+export function IconNote(p: P) {
+  return <U {...p} glyph={
+    <>
+      <Rect x="9.2" y="8.8" width="13.6" height="14.4" rx="1.8" stroke={GLYPH} strokeWidth="1.7" fill="none" />
+      <Line x1="12" y1="13" x2="20" y2="13" stroke={GLYPH} strokeWidth="1.4" strokeLinecap="round" />
+      <Line x1="12" y1="16.5" x2="20" y2="16.5" stroke={GLYPH} strokeWidth="1.4" strokeLinecap="round" />
+      <Line x1="12" y1="20" x2="17" y2="20" stroke={GLYPH} strokeWidth="1.4" strokeLinecap="round" />
+    </>
+  } />;
+}
+export function IconMarker(p: P) {
+  return <U {...p} glyph={
+    <>
+      <Path d="M11 8.8 L21 8.8 L18.2 15.3 L19.3 17.7 L16.3 17.7 L15.2 15.3 Z" stroke={GLYPH} strokeWidth="1.6" fill="none" strokeLinejoin="round" />
+      <Path d="M13.2 17.8 L12 23.2 L16 21.2 L20 23.2 L18.8 17.8" stroke={GLYPH} strokeWidth="1.6" fill="none" strokeLinejoin="round" />
+    </>
+  } />;
+}
 export function IconMap(p: P) {
   return <U {...p} glyph={
     <>

@@ -1,5 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { Tabs } from "expo-router";
+import { Tabs, useSegments } from "expo-router";
 import { Platform, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import colors from "@/constants/colors";
@@ -30,19 +30,23 @@ const tabStyles = StyleSheet.create({
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const bottomPad = Platform.OS === "web" ? 0 : insets.bottom;
+  const segments = useSegments();
+  const activeTab = segments[segments.length - 1];
+  const hideTabBar = activeTab === "bible";
+  const baseTabBarStyle = {
+    backgroundColor: colors.surface1,
+    borderTopColor: colors.border,
+    borderTopWidth: 1,
+    height: 54 + bottomPad,
+    paddingBottom: bottomPad,
+    elevation: 0,
+  };
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: {
-          backgroundColor: colors.surface1,
-          borderTopColor: colors.border,
-          borderTopWidth: 1,
-          height: 54 + bottomPad,
-          paddingBottom: bottomPad,
-          elevation: 0,
-        },
+        tabBarStyle: hideTabBar ? { display: "none" } : baseTabBarStyle,
         tabBarActiveTintColor: colors.gold,
         tabBarInactiveTintColor: colors.textMuted,
         tabBarShowLabel: false,

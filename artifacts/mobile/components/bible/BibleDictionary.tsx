@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import colors from "@/constants/colors";
+import { IconArrowLeft, IconArrowRight } from "@/components/ui/SvgIcons";
 import { BIBLE_DICTIONARY } from "@/data/bibleTools";
 
 interface Props { onBack: () => void; topPad: number; }
@@ -23,7 +24,7 @@ export default function BibleDictionary({ onBack, topPad }: Props) {
     return (
       <View style={styles.root}>
         <View style={[styles.header, { paddingTop: topPad + 8 }]}>
-          <Pressable onPress={() => setSelected(null)} style={styles.backBtn}><Text style={styles.backIcon}>←</Text></Pressable>
+          <Pressable onPress={() => setSelected(null)} style={styles.backBtn}><IconArrowLeft size={16} color={colors.textMuted} /></Pressable>
           <View style={{ flex: 1 }}>
             <Text style={styles.headerLabel}>DICTIONARY</Text>
             <Text style={styles.headerTitle}>{selected.word}</Text>
@@ -51,7 +52,7 @@ export default function BibleDictionary({ onBack, topPad }: Props) {
   return (
     <View style={styles.root}>
       <View style={[styles.header, { paddingTop: topPad + 8 }]}>
-        <Pressable onPress={onBack} style={styles.backBtn}><Text style={styles.backIcon}>←</Text></Pressable>
+        <Pressable onPress={onBack} style={styles.backBtn}><IconArrowLeft size={16} color={colors.textMuted} /></Pressable>
         <View style={{ flex: 1 }}>
           <Text style={styles.headerLabel}>TOOLS</Text>
           <Text style={styles.headerTitle}>Bible Dictionary</Text>
@@ -75,7 +76,7 @@ export default function BibleDictionary({ onBack, topPad }: Props) {
           <Pressable key={entry.word} onPress={() => setSelected(entry)} style={styles.entryCard}>
             <View style={styles.entryHeader}>
               <Text style={styles.entryWord}>{entry.word}</Text>
-              <Text style={styles.entryArrow}>→</Text>
+              <IconArrowRight size={14} color={colors.textMuted} />
             </View>
             <Text style={styles.entryDef} numberOfLines={2}>{entry.definition}</Text>
             {entry.related.length > 0 && (
@@ -92,7 +93,6 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingBottom: 10, gap: 10 },
   backBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.surface2, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: colors.border },
-  backIcon: { color: colors.textMuted, fontSize: 16, lineHeight: 20 },
   headerLabel: { fontFamily: "Inter_600SemiBold", fontSize: 9, color: colors.gold, letterSpacing: 1.5 },
   headerTitle: { fontFamily: "Inter_700Bold", fontSize: 22, color: colors.text },
   searchWrap: { paddingHorizontal: 16, marginBottom: 8 },
@@ -102,7 +102,6 @@ const styles = StyleSheet.create({
   entryCard: { backgroundColor: colors.surface2, borderRadius: colors.radius.md, padding: 13, marginBottom: 8, borderWidth: 1, borderColor: colors.border },
   entryHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 4 },
   entryWord: { fontFamily: "Inter_700Bold", fontSize: 15, color: colors.gold },
-  entryArrow: { color: colors.textMuted, fontSize: 14 },
   entryDef: { fontFamily: "Inter_400Regular", fontSize: 13, color: colors.textMuted, lineHeight: 20 },
   relatedHint: { fontFamily: "Inter_400Regular", fontSize: 10, color: colors.textFaint, marginTop: 6 },
   defText: { fontFamily: "Inter_400Regular", fontSize: 15, color: colors.text, lineHeight: 26, marginBottom: 24 },

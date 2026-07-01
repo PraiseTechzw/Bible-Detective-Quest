@@ -3,6 +3,7 @@ import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } fr
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import colors from "@/constants/colors";
 import { CHARACTER_PROFILES, CharacterProfile } from "@/data/bibleTools";
+import { getPassageText } from "@/data/bibleText";
 
 interface Props { onBack: () => void; topPad: number; }
 
@@ -50,8 +51,9 @@ export default function CharacterProfiles({ onBack, topPad }: Props) {
           <View>
             <Text style={styles.sectionTitle}>Key Verses</Text>
             {selected.keyVerses.map(v => (
-              <View key={v} style={styles.verseRef}>
+              <View key={v} style={styles.keyVerseCard}>
                 <Text style={styles.verseRefText}>{v}</Text>
+                <Text style={styles.verseText}>{getPassageText("KJV", v) ?? "Verse text unavailable"}</Text>
               </View>
             ))}
           </View>
@@ -133,6 +135,8 @@ const styles = StyleSheet.create({
   sectionTitle: { fontFamily: "Inter_700Bold", fontSize: 14, color: colors.text, marginBottom: 8 },
   verseRef: { backgroundColor: colors.surface2, borderRadius: colors.radius.sm, paddingHorizontal: 12, paddingVertical: 6, marginBottom: 6, borderWidth: 1, borderColor: colors.border },
   verseRefText: { fontFamily: "Inter_600SemiBold", fontSize: 13, color: colors.gold },
+  keyVerseCard: { backgroundColor: colors.surface2, borderRadius: colors.radius.sm, padding: 12, marginBottom: 6, borderWidth: 1, borderColor: colors.border, gap: 6 },
+  verseText: { fontFamily: "Inter_400Regular", fontSize: 12, color: colors.textMuted, lineHeight: 19 },
   bookChips: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   bookChip: { backgroundColor: colors.surface3, borderRadius: colors.radius.sm, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: colors.border },
   bookChipText: { fontFamily: "Inter_600SemiBold", fontSize: 11, color: colors.textMuted },
