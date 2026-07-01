@@ -13,6 +13,7 @@ import colors from "@/constants/colors";
 import { BIBLE_BOOKS } from "@/data/bibleBooks";
 import { BIBLE_TEXT, getChapter } from "@/data/bibleText";
 import { TranslationId, TRANSLATIONS } from "@/constants/translations";
+import { IconArrowLeft } from "@/components/ui/SvgIcons";
 
 interface Props {
   onBack: () => void;
@@ -22,7 +23,7 @@ interface Props {
 export default function ParallelBible({ onBack, topPad }: Props) {
   const insets = useSafeAreaInsets();
   const [leftTrans, setLeftTrans] = useState<TranslationId>("KJV");
-  const [rightTrans, setRightTrans] = useState<TranslationId>("WEB");
+  const [rightTrans, setRightTrans] = useState<TranslationId>("ASV");
   const [selectedBook, setSelectedBook] = useState(BIBLE_BOOKS[0]);
   const [selectedChapter, setSelectedChapter] = useState(1);
   const [pickerMode, setPickerMode] = useState<"book" | "chapter" | null>(null);
@@ -66,7 +67,7 @@ export default function ParallelBible({ onBack, topPad }: Props) {
     <View style={styles.root}>
       <View style={[styles.header, { paddingTop: topPad + 8 }]}>
         <Pressable onPress={onBack} style={styles.backBtn}>
-          <Text style={styles.backIcon}>←</Text>
+          <IconArrowLeft size={16} color={colors.textMuted} />
         </Pressable>
         <View style={{ flex: 1 }}>
           <Text style={styles.headerLabel}>TOOLS</Text>
@@ -179,7 +180,7 @@ export default function ParallelBible({ onBack, topPad }: Props) {
                 { color: leftTrans === t.id ? colors.gold : colors.textMuted },
               ]}
             >
-              ← {t.id}
+              ← {t.name}
             </Text>
           </Pressable>
         ))}
@@ -203,7 +204,7 @@ export default function ParallelBible({ onBack, topPad }: Props) {
                 { color: rightTrans === t.id ? colors.blue : colors.textMuted },
               ]}
             >
-              {t.id} →
+              {t.name} →
             </Text>
           </Pressable>
         ))}
@@ -212,12 +213,12 @@ export default function ParallelBible({ onBack, topPad }: Props) {
       <View style={styles.colHeaders}>
         <View style={[styles.colHeader, { backgroundColor: colors.goldGlow }]}>
           <Text style={[styles.colHeaderText, { color: colors.gold }]}>
-            {leftTrans}
+            {TRANSLATIONS.find((t) => t.id === leftTrans)?.name ?? leftTrans}
           </Text>
         </View>
         <View style={[styles.colHeader, { backgroundColor: colors.blueGlow }]}>
           <Text style={[styles.colHeaderText, { color: colors.blue }]}>
-            {rightTrans}
+            {TRANSLATIONS.find((t) => t.id === rightTrans)?.name ?? rightTrans}
           </Text>
         </View>
       </View>
@@ -271,7 +272,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  backIcon: { color: colors.textMuted, fontSize: 16, lineHeight: 20 },
   headerLabel: {
     fontFamily: "Inter_600SemiBold",
     fontSize: 9,

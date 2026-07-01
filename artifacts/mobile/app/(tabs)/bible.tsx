@@ -1,4 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
 import {
   Modal,
@@ -31,7 +32,16 @@ import {
   IconBookmark,
   IconNote,
   IconMarker,
+  IconSparkles,
 } from "@/components/ui/SvgIcons";
+import BibleToolsHub, { ToolView } from "@/components/bible/BibleToolsHub";
+import BibleSearch from "@/components/bible/BibleSearch";
+import DailyDevotional from "@/components/bible/DailyDevotional";
+import ParallelBible from "@/components/bible/ParallelBible";
+import ReadingPlans from "@/components/bible/ReadingPlans";
+import BibleQuiz from "@/components/bible/BibleQuiz";
+import MemoryVerses from "@/components/bible/MemoryVerses";
+import CharacterProfiles from "@/components/bible/CharacterProfiles";
 import BookmarksView from "@/components/bible/BookmarksView";
 import SermonNotes from "@/components/bible/SermonNotes";
 import BibleDictionary from "@/components/bible/BibleDictionary";
@@ -39,7 +49,21 @@ import { useBible } from "@/context/BibleContext";
 import { TranslationId, TRANSLATIONS } from "@/constants/translations";
 import { HIGHLIGHT_COLORS } from "@/data/highlightColors";
 
-type BibleView = "home" | "chapters" | "reader" | "saved" | "sermons" | "dictionary";
+type BibleView =
+  | "home"
+  | "tools"
+  | "search"
+  | "daily"
+  | "parallel"
+  | "plans"
+  | "quiz"
+  | "memory"
+  | "characters"
+  | "chapters"
+  | "reader"
+  | "saved"
+  | "sermons"
+  | "dictionary";
 type SavedTab = "bookmarks" | "highlights" | "notes";
 
 function getBooksForCategory(books: BibleBook[], category: string) {
@@ -48,10 +72,12 @@ function getBooksForCategory(books: BibleBook[], category: string) {
 
 function TranslationBadge({
   id,
+  label,
   active,
   onPress,
 }: {
   id: TranslationId;
+  label: string;
   active: boolean;
   onPress: () => void;
 }) {
@@ -68,11 +94,11 @@ function TranslationBadge({
           colors={[colors.goldLight, colors.gold]}
           style={tlStyles.active}
         >
-          <Text style={tlStyles.activeText}>{id}</Text>
+          <Text style={tlStyles.activeText}>{label}</Text>
         </LinearGradient>
       ) : (
         <View style={tlStyles.inactive}>
-          <Text style={tlStyles.inactiveText}>{id}</Text>
+          <Text style={tlStyles.inactiveText}>{label}</Text>
         </View>
       )}
     </Pressable>
@@ -672,6 +698,7 @@ const menuStyles = StyleSheet.create({
 
 export default function BibleScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const bible = useBible();
   const topPad = Platform.OS === "web" ? 60 : insets.top;
   const [view, setView] = useState<BibleView>("home");
@@ -731,6 +758,57 @@ export default function BibleScreen() {
     setView("saved");
   }, []);
 
+  const openTool = useCallback(
+    (tool: ToolView) => {
+      setReaderMenuOpen(false);
+      switch (tool) {
+        case "tools":
+          setView("tools");
+          break;
+        case "search":
+          setView("search");
+          break;
+        case "daily":
+          setView("daily");
+          break;
+        case "parallel":
+          setView("parallel");
+          break;
+        case "plans":
+          setView("plans");
+          break;
+        case "quiz":
+          setView("quiz");
+          break;
+        case "memory":
+          setView("memory");
+          break;
+        case "characters":
+          setView("characters");
+          break;
+        case "dictionary":
+          setView("dictionary");
+          break;
+        case "sermons":
+          setView("sermons");
+          break;
+        case "bookmarks":
+          openSavedScreen("bookmarks");
+          break;
+        case "highlights":
+          openSavedScreen("highlights");
+          break;
+        case "notes":
+          openSavedScreen("notes");
+          break;
+        default:
+          setView("tools");
+          break;
+      }
+    },
+    [openSavedScreen],
+  );
+
   const openDictionary = useCallback(() => {
     setReaderMenuOpen(false);
     setView("dictionary");
@@ -784,18 +862,39 @@ export default function BibleScreen() {
       {view === "home" && (
         <>
           <View style={[styles.header, { paddingTop: topPad + 8 }]}>
-            <Text style={styles.headerLabel}>4 TRANSLATIONS · OFFLINE</Text>
+            <View style={styles.homeHeaderRow}>
+              <Pressable
+                onPress={() => router.back()}
+                accessibilityRole="button"
+                accessibilityLabel="Back"
+                style={styles.backBtn}
+              >
+                <IconArrowLeft size={18} color={colors.textMuted} />
+              </Pressable>
+              <View style={styles.homeHeaderTitleWrap}>
+            <Text style={styles.headerLabel}>BIBLE READER</Text>
             <Text style={styles.headerTitle}>Bible</Text>
+          </View>
+              <Pressable
+                onPress={() => setView("tools")}
+                accessibilityRole="button"
+                accessibilityLabel="Open tools hub"
+                style={styles.menuBtn}
+              >
+                <IconSparkles size={18} color={colors.textMuted} />
+              </Pressable>
+            </View>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              style={{ marginTop: 10 }}
+              style={{ marginTop: 12 }}
               contentContainerStyle={styles.translationRow}
             >
               {TRANSLATIONS.map((t) => (
                 <TranslationBadge
                   key={t.id}
                   id={t.id as TranslationId}
+                  label={t.name}
                   active={translation === t.id}
                   onPress={() => setTranslation(t.id as TranslationId)}
                 />
@@ -804,29 +903,48 @@ export default function BibleScreen() {
           </View>
 
           <View style={styles.searchWrap}>
-            <View style={styles.searchBox}>
-              <IconBookOpen size={16} color={colors.textMuted} />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search books..."
-                placeholderTextColor={colors.textFaint}
-                value={search}
-                onChangeText={setSearch}
-                accessibilityLabel="Search books"
-                returnKeyType="search"
-                autoCorrect={false}
-              />
-              {search.length > 0 && (
-                <Pressable
-                  onPress={() => setSearch("")}
-                  hitSlop={8}
-                  accessibilityRole="button"
-                  accessibilityLabel="Clear search"
-                >
-                  <Text style={styles.clearBtn}>✕</Text>
-                </Pressable>
-              )}
-            </View>
+            <LinearGradient
+              colors={["rgba(255,255,255,0.04)", "rgba(255,255,255,0.015)"]}
+              style={styles.searchPanel}
+            >
+              <View style={styles.searchBox}>
+                <IconBookOpen size={16} color={colors.textMuted} />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Search books or abbreviations"
+                  placeholderTextColor={colors.textFaint}
+                  value={search}
+                  onChangeText={setSearch}
+                  accessibilityLabel="Search books"
+                  returnKeyType="search"
+                  autoCorrect={false}
+                />
+                {search.length > 0 && (
+                  <Pressable
+                    onPress={() => setSearch("")}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel="Clear search"
+                  >
+                    <Text style={styles.clearBtn}>x</Text>
+                  </Pressable>
+                )}
+              </View>
+              <Text style={styles.searchHint}>
+                Find a book by name, abbreviation, or category, then tap to open the chapter grid.
+              </Text>
+            </LinearGradient>
+          </View>
+
+          <View style={styles.quickToolsRow}>
+            <Pressable style={styles.quickToolCard} onPress={() => setView("tools")}>
+              <Text style={styles.quickToolTitle}>Tools Hub</Text>
+              <Text style={styles.quickToolDesc}>Study tools, notes, search, plans, and more.</Text>
+            </Pressable>
+            <Pressable style={styles.quickToolCard} onPress={() => setView("search")}>
+              <Text style={styles.quickToolTitle}>Search</Text>
+              <Text style={styles.quickToolDesc}>Jump straight into verse lookup.</Text>
+            </Pressable>
           </View>
 
           <View style={styles.testamentTabs}>
@@ -901,6 +1019,66 @@ export default function BibleScreen() {
             )}
           </ScrollView>
         </>
+      )}
+
+      {view === "tools" && (
+        <BibleToolsHub
+          onNavigate={openTool}
+          onBack={() => setView("home")}
+          topPad={topPad}
+        />
+      )}
+
+      {view === "search" && (
+        <BibleSearch
+          onBack={() => setView("tools")}
+          topPad={topPad}
+          onOpenReader={openReaderFromSaved}
+        />
+      )}
+
+      {view === "daily" && (
+        <DailyDevotional
+          onBack={() => setView("tools")}
+          topPad={topPad}
+          onOpenReader={openReaderFromSaved}
+        />
+      )}
+
+      {view === "parallel" && (
+        <ParallelBible
+          onBack={() => setView("tools")}
+          topPad={topPad}
+        />
+      )}
+
+      {view === "plans" && (
+        <ReadingPlans
+          onBack={() => setView("tools")}
+          topPad={topPad}
+          onOpenReader={openReaderFromSaved}
+        />
+      )}
+
+      {view === "quiz" && (
+        <BibleQuiz
+          onBack={() => setView("tools")}
+          topPad={topPad}
+        />
+      )}
+
+      {view === "memory" && (
+        <MemoryVerses
+          onBack={() => setView("tools")}
+          topPad={topPad}
+        />
+      )}
+
+      {view === "characters" && (
+        <CharacterProfiles
+          onBack={() => setView("tools")}
+          topPad={topPad}
+        />
       )}
 
       {view === "chapters" && selectedBook && (
@@ -1405,6 +1583,16 @@ export default function BibleScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   header: { flexDirection: "column", paddingHorizontal: 16, paddingBottom: 10 },
+  homeHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+  },
+  homeHeaderTitleWrap: {
+    flex: 1,
+    alignItems: "center",
+  },
   readerHeader: {
     flexDirection: "row",
     alignItems: "center",
@@ -1451,15 +1639,22 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   translationRow: { flexDirection: "row", gap: 6, marginTop: 8 },
-  searchWrap: { paddingHorizontal: 16, marginBottom: 10 },
+  searchWrap: { paddingHorizontal: 16, marginBottom: 12 },
+  searchPanel: {
+    borderRadius: colors.radius.lg,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.06)",
+    gap: 8,
+  },
   searchBox: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
     backgroundColor: colors.surface2,
     borderRadius: colors.radius.md,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
     borderWidth: 1,
     borderColor: colors.border,
   },
@@ -1473,6 +1668,39 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textFaint,
     paddingHorizontal: 2,
+  },
+  searchHint: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 11,
+    color: colors.textFaint,
+    lineHeight: 16,
+  },
+  quickToolsRow: {
+    flexDirection: "row",
+    gap: 10,
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  quickToolCard: {
+    flex: 1,
+    minHeight: 76,
+    borderRadius: colors.radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface2,
+    padding: 12,
+    gap: 4,
+  },
+  quickToolTitle: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 13,
+    color: colors.text,
+  },
+  quickToolDesc: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 10,
+    color: colors.textMuted,
+    lineHeight: 14,
   },
   testamentTabs: {
     flexDirection: "row",

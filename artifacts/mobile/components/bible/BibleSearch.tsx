@@ -16,6 +16,7 @@ import { BIBLE_BOOKS } from "@/data/bibleBooks";
 import { BIBLE_TEXT } from "@/data/bibleText";
 import { TranslationId, TRANSLATIONS } from "@/constants/translations";
 import { useBible } from "@/context/BibleContext";
+import { IconArrowLeft } from "@/components/ui/SvgIcons";
 
 type ResultItem = {
   book: string;
@@ -141,7 +142,7 @@ export default function BibleSearch({ onBack, topPad, onOpenReader }: Props) {
     <View style={styles.root}>
       <View style={[styles.header, { paddingTop: topPad + 8 }]}>
         <Pressable onPress={onBack} style={styles.backBtn}>
-          <Text style={styles.backIcon}>←</Text>
+          <IconArrowLeft size={16} color={colors.textMuted} />
         </Pressable>
         <View style={{ flex: 1 }}>
           <Text style={styles.headerLabel}>TOOLS</Text>
@@ -202,7 +203,7 @@ export default function BibleSearch({ onBack, topPad, onOpenReader }: Props) {
                 },
               ]}
             >
-              {t.id}
+              {t.name}
             </Text>
           </Pressable>
         ))}
@@ -327,7 +328,9 @@ export default function BibleSearch({ onBack, topPad, onOpenReader }: Props) {
               <Text style={styles.resultText} numberOfLines={4}>
                 {r.text}
               </Text>
-              <Text style={styles.resultTrans}>{translation}</Text>
+              <Text style={styles.resultTrans}>
+                {TRANSLATIONS.find((t) => t.id === translation)?.name ?? translation}
+              </Text>
             </Pressable>
           );
         })}
@@ -355,7 +358,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  backIcon: { color: colors.textMuted, fontSize: 16, lineHeight: 20 },
   headerLabel: {
     fontFamily: "Inter_600SemiBold",
     fontSize: 9,
