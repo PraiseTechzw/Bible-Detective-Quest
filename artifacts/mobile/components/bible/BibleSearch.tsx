@@ -1,7 +1,14 @@
 import { LinearGradient } from "expo-linear-gradient";
-import React, { useCallback, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   ActivityIndicator,
+  Animated,
   Platform,
   Pressable,
   ScrollView,
@@ -11,6 +18,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Svg, { Circle, Line, Path } from "react-native-svg";
 import colors from "@/constants/colors";
 import { BIBLE_BOOKS } from "@/data/bibleBooks";
 import { BIBLE_TEXT } from "@/data/bibleText";
@@ -33,6 +41,240 @@ interface Props {
   onOpenReader: (book: string, bookName: string, chapter: number) => void;
 }
 
+/* ----------------------------- Local icons ----------------------------- */
+
+function IconSearch({
+  size = 16,
+  color = colors.textMuted,
+}: {
+  size?: number;
+  color?: string;
+}) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="11" cy="11" r="7" stroke={color} strokeWidth={2} />
+      <Line
+        x1="21"
+        y1="21"
+        x2="16.2"
+        y2="16.2"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
+function IconClose({
+  size = 14,
+  color = colors.textMuted,
+}: {
+  size?: number;
+  color?: string;
+}) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Line
+        x1="5"
+        y1="5"
+        x2="19"
+        y2="19"
+        stroke={color}
+        strokeWidth={2.4}
+        strokeLinecap="round"
+      />
+      <Line
+        x1="19"
+        y1="5"
+        x2="5"
+        y2="19"
+        stroke={color}
+        strokeWidth={2.4}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
+function IconBookOpen({
+  size = 18,
+  color = colors.gold,
+}: {
+  size?: number;
+  color?: string;
+}) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M12 6.5C10.3 5 7.8 4.3 5 4.3c-.6 0-1 .4-1 1v12.4c0 .6.4 1 1 1 2.6 0 5 .7 7 2 2-1.3 4.4-2 7-2 .6 0 1-.4 1-1V5.3c0-.6-.4-1-1-1-2.8 0-5.3.7-7 2.2Z"
+        stroke={color}
+        strokeWidth={1.6}
+        strokeLinejoin="round"
+      />
+      <Line
+        x1="12"
+        y1="6.5"
+        x2="12"
+        y2="20.7"
+        stroke={color}
+        strokeWidth={1.6}
+      />
+    </Svg>
+  );
+}
+
+function IconBookmark({
+  size = 17,
+  color = colors.gold,
+  filled = false,
+}: {
+  size?: number;
+  color?: string;
+  filled?: boolean;
+}) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M6 3.5h12c.55 0 1 .45 1 1V21l-7-3.6L5 21V4.5c0-.55.45-1 1-1Z"
+        stroke={color}
+        strokeWidth={1.7}
+        strokeLinejoin="round"
+        fill={filled ? color : "none"}
+      />
+    </Svg>
+  );
+}
+
+function IconChevronRight({
+  size = 14,
+  color = colors.textFaint,
+}: {
+  size?: number;
+  color?: string;
+}) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M9 6l6 6-6 6"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function IconFeather({
+  size = 40,
+  color = colors.gold,
+}: {
+  size?: number;
+  color?: string;
+}) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M20 4c-6 0-13 3-15 12-.3 1.4 1.1 2.4 2.3 1.7L20 4Z"
+        stroke={color}
+        strokeWidth={1.4}
+        strokeLinejoin="round"
+      />
+      <Line
+        x1="4"
+        y1="20"
+        x2="13"
+        y2="11"
+        stroke={color}
+        strokeWidth={1.4}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
+/* --------------------------- Bookmark button ---------------------------- */
+
+function BookmarkButton({
+  active,
+  onPress,
+}: {
+  active: boolean;
+  onPress: () => void;
+}) {
+  const scale = useRef(new Animated.Value(1)).current;
+  const handlePress = () => {
+    Animated.sequence([
+      Animated.spring(scale, {
+        toValue: 0.75,
+        useNativeDriver: true,
+        speed: 30,
+      }),
+      Animated.spring(scale, {
+        toValue: 1,
+        useNativeDriver: true,
+        friction: 4,
+        tension: 160,
+      }),
+    ]).start();
+    onPress();
+  };
+  return (
+    <Pressable onPress={handlePress} hitSlop={10} style={styles.bookmarkBtn}>
+      <Animated.View style={{ transform: [{ scale }] }}>
+        <IconBookmark
+          filled={active}
+          color={active ? colors.gold : colors.textFaint}
+        />
+      </Animated.View>
+    </Pressable>
+  );
+}
+
+/* -------------------------- Highlighted text ---------------------------- */
+
+function HighlightedText({
+  text,
+  query,
+  style,
+  highlightStyle,
+}: {
+  text: string;
+  query: string;
+  style: any;
+  highlightStyle: any;
+}) {
+  const parts = useMemo(() => {
+    const q = query.trim();
+    if (!q) return [{ t: text, m: false }];
+    const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const re = new RegExp(`(${escaped})`, "ig");
+    return text
+      .split(re)
+      .map((chunk) => ({
+        t: chunk,
+        m: chunk.toLowerCase() === q.toLowerCase(),
+      }));
+  }, [text, query]);
+
+  return (
+    <Text style={style} numberOfLines={4}>
+      {parts.map((p, i) =>
+        p.m ? (
+          <Text key={i} style={highlightStyle}>
+            {p.t}
+          </Text>
+        ) : (
+          <Text key={i}>{p.t}</Text>
+        ),
+      )}
+    </Text>
+  );
+}
+
+/* ------------------------------ Component -------------------------------- */
+
 export default function BibleSearch({ onBack, topPad, onOpenReader }: Props) {
   const insets = useSafeAreaInsets();
   const bible = useBible();
@@ -46,6 +288,30 @@ export default function BibleSearch({ onBack, topPad, onOpenReader }: Props) {
   const [vBook, setVBook] = useState("");
   const [vChapter, setVChapter] = useState("");
   const [vVerse, setVVerse] = useState("");
+
+  const [tabWidth, setTabWidth] = useState(0);
+  const slideAnim = useRef(new Animated.Value(0)).current;
+  const listFade = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.spring(slideAnim, {
+      toValue: mode === "keyword" ? 0 : 1,
+      useNativeDriver: true,
+      friction: 9,
+      tension: 90,
+    }).start();
+  }, [mode, slideAnim]);
+
+  useEffect(() => {
+    if (searched && !searching) {
+      listFade.setValue(0);
+      Animated.timing(listFade, {
+        toValue: 1,
+        duration: 260,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [searched, searching, results, listFade]);
 
   const handleKeywordSearch = useCallback(() => {
     if (!query.trim() || query.trim().length < 3) return;
@@ -130,13 +396,8 @@ export default function BibleSearch({ onBack, topPad, onOpenReader }: Props) {
     setSearched(true);
   }, [vBook, vChapter, vVerse, translation]);
 
-  const highlighted = useCallback(
-    (text: string) => {
-      if (!query.trim()) return text;
-      return text;
-    },
-    [query],
-  );
+  const canSearchKeyword = query.trim().length >= 3;
+  const innerTabWidth = tabWidth > 0 ? (tabWidth - 8) / 2 : 0;
 
   return (
     <View style={styles.root}>
@@ -145,12 +406,44 @@ export default function BibleSearch({ onBack, topPad, onOpenReader }: Props) {
           <IconArrowLeft size={16} color={colors.textMuted} />
         </Pressable>
         <View style={{ flex: 1 }}>
-          <Text style={styles.headerLabel}>TOOLS</Text>
-          <Text style={styles.headerTitle}>Bible Search</Text>
+          <View style={styles.headerLabelRow}>
+            <IconBookOpen size={13} />
+            <Text style={styles.headerLabel}>TOOLS</Text>
+          </View>
+          <Text style={styles.headerTitle}>Search Scripture</Text>
         </View>
       </View>
 
-      <View style={styles.modeTabs}>
+      {/* Segmented control */}
+      <View
+        style={styles.modeTabs}
+        onLayout={(e) => setTabWidth(e.nativeEvent.layout.width)}
+      >
+        {tabWidth > 0 && (
+          <Animated.View
+            style={[
+              styles.modeIndicator,
+              {
+                width: innerTabWidth,
+                transform: [
+                  {
+                    translateX: slideAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, innerTabWidth],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            <LinearGradient
+              colors={[colors.goldLight, colors.gold]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={StyleSheet.absoluteFillObject}
+            />
+          </Animated.View>
+        )}
         {(["keyword", "verse"] as const).map((m) => (
           <Pressable
             key={m}
@@ -161,120 +454,153 @@ export default function BibleSearch({ onBack, topPad, onOpenReader }: Props) {
             }}
             style={styles.modeTab}
           >
-            {mode === m ? (
-              <LinearGradient
-                colors={[colors.goldLight, colors.gold]}
-                style={styles.modeActive}
-              >
-                <Text style={styles.modeActiveText}>
-                  {m === "keyword" ? "Keyword Search" : "Verse Lookup"}
-                </Text>
-              </LinearGradient>
-            ) : (
-              <View style={styles.modeInactive}>
-                <Text style={styles.modeInactiveText}>
-                  {m === "keyword" ? "Keyword Search" : "Verse Lookup"}
-                </Text>
-              </View>
-            )}
-          </Pressable>
-        ))}
-      </View>
-
-      <View style={styles.translationRow}>
-        {TRANSLATIONS.map((t) => (
-          <Pressable
-            key={t.id}
-            onPress={() => setTranslation(t.id as TranslationId)}
-            style={[
-              styles.transBtn,
-              {
-                borderColor: translation === t.id ? colors.gold : colors.border,
-                backgroundColor:
-                  translation === t.id ? colors.goldGlow : colors.surface2,
-              },
-            ]}
-          >
             <Text
-              style={[
-                styles.transBtnText,
-                {
-                  color: translation === t.id ? colors.gold : colors.textMuted,
-                },
-              ]}
+              style={
+                mode === m ? styles.modeActiveText : styles.modeInactiveText
+              }
             >
-              {t.name}
+              {m === "keyword" ? "Keyword" : "Verse Lookup"}
             </Text>
           </Pressable>
         ))}
       </View>
 
+      {/* Translation pills */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.translationScroll}
+        contentContainerStyle={styles.translationRow}
+      >
+        {TRANSLATIONS.map((t) => {
+          const active = translation === t.id;
+          return (
+            <Pressable
+              key={t.id}
+              onPress={() => setTranslation(t.id as TranslationId)}
+              style={[
+                styles.transBtn,
+                {
+                  borderColor: active ? colors.gold : colors.border,
+                  backgroundColor: active ? colors.goldGlow : colors.surface2,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.transBtnText,
+                  { color: active ? colors.gold : colors.textMuted },
+                ]}
+              >
+                {t.name}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+
       {mode === "keyword" ? (
-        <View style={styles.inputRow}>
-          <TextInput
-            style={styles.input}
-            placeholder="Search the Bible (min. 3 chars)..."
-            placeholderTextColor={colors.textFaint}
-            value={query}
-            onChangeText={setQuery}
-            onSubmitEditing={handleKeywordSearch}
-            returnKeyType="search"
-          />
-          <Pressable onPress={handleKeywordSearch} style={styles.searchBtn}>
+        <View style={styles.searchPillRow}>
+          <View style={styles.searchPill}>
+            <IconSearch size={16} />
+            <TextInput
+              style={styles.pillInput}
+              placeholder="Search the Bible (min. 3 characters)"
+              placeholderTextColor={colors.textFaint}
+              value={query}
+              onChangeText={setQuery}
+              onSubmitEditing={handleKeywordSearch}
+              returnKeyType="search"
+            />
+            {query.length > 0 && (
+              <Pressable
+                onPress={() => {
+                  setQuery("");
+                  setResults([]);
+                  setSearched(false);
+                }}
+                hitSlop={8}
+                style={styles.clearBtn}
+              >
+                <IconClose />
+              </Pressable>
+            )}
+          </View>
+          <Pressable
+            onPress={handleKeywordSearch}
+            disabled={!canSearchKeyword}
+            style={{ opacity: canSearchKeyword ? 1 : 0.45 }}
+          >
             <LinearGradient
               colors={[colors.goldLight, colors.gold]}
-              style={styles.searchBtnInner}
+              style={styles.goBtn}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
             >
-              <Text style={styles.searchBtnText}>Go</Text>
+              <IconSearch size={16} color="#000" />
             </LinearGradient>
           </Pressable>
         </View>
       ) : (
         <View style={styles.verseRow}>
-          <TextInput
-            style={[styles.input, { flex: 3 }]}
-            placeholder="Book (e.g. John)"
-            placeholderTextColor={colors.textFaint}
-            value={vBook}
-            onChangeText={setVBook}
-          />
-          <TextInput
-            style={[styles.input, { flex: 1 }]}
-            placeholder="Ch"
-            placeholderTextColor={colors.textFaint}
-            value={vChapter}
-            onChangeText={setVChapter}
-            keyboardType="numeric"
-          />
-          <TextInput
-            style={[styles.input, { flex: 1 }]}
-            placeholder="V"
-            placeholderTextColor={colors.textFaint}
-            value={vVerse}
-            onChangeText={setVVerse}
-            keyboardType="numeric"
-          />
-          <Pressable onPress={handleVerseLookup} style={styles.searchBtn}>
+          <View style={styles.versePill}>
+            <TextInput
+              style={styles.verseBookInput}
+              placeholder="Book · e.g. John"
+              placeholderTextColor={colors.textFaint}
+              value={vBook}
+              onChangeText={setVBook}
+            />
+            <View style={styles.verseDivider} />
+            <TextInput
+              style={styles.verseNumInput}
+              placeholder="Ch"
+              placeholderTextColor={colors.textFaint}
+              value={vChapter}
+              onChangeText={setVChapter}
+              keyboardType="numeric"
+            />
+            <Text style={styles.verseColon}>:</Text>
+            <TextInput
+              style={styles.verseNumInput}
+              placeholder="V"
+              placeholderTextColor={colors.textFaint}
+              value={vVerse}
+              onChangeText={setVVerse}
+              keyboardType="numeric"
+            />
+          </View>
+          <Pressable onPress={handleVerseLookup}>
             <LinearGradient
               colors={[colors.goldLight, colors.gold]}
-              style={styles.searchBtnInner}
+              style={styles.goBtn}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
             >
-              <Text style={styles.searchBtnText}>Go</Text>
+              <IconSearch size={16} color="#000" />
             </LinearGradient>
           </Pressable>
         </View>
       )}
 
       {searching && (
-        <ActivityIndicator color={colors.gold} style={{ marginTop: 20 }} />
+        <View style={styles.loadingWrap}>
+          <ActivityIndicator color={colors.gold} />
+          <Text style={styles.loadingText}>Searching the Scriptures…</Text>
+        </View>
       )}
 
       {searched && !searching && (
-        <Text style={styles.resultCount}>
-          {results.length === 0
-            ? "No results found"
-            : `${results.length} result${results.length !== 1 ? "s" : ""}${results.length >= 200 ? " (limit 200)" : ""}`}
-        </Text>
+        <View style={styles.resultCountRow}>
+          <View style={styles.resultCountDot} />
+          <Text style={styles.resultCount}>
+            {results.length === 0
+              ? "No results found"
+              : `${results.length} result${results.length !== 1 ? "s" : ""}${
+                  results.length >= 200 ? " · showing first 200" : ""
+                }`}
+          </Text>
+        </View>
       )}
 
       <ScrollView
@@ -284,56 +610,110 @@ export default function BibleSearch({ onBack, topPad, onOpenReader }: Props) {
           paddingBottom: (Platform.OS === "web" ? 24 : insets.bottom) + 90,
         }}
       >
-        {results.map((r, i) => {
-          const isBookmarked = bible.isBookmarked(r.book, r.chapter, r.verse);
-          return (
-            <Pressable
-              key={i}
-              onPress={() => onOpenReader(r.book, r.bookName, r.chapter)}
-              style={styles.resultCard}
+        {!searched && !searching && (
+          <View style={styles.emptyState}>
+            <View style={styles.emptyIconCircle}>
+              <IconFeather size={30} />
+            </View>
+            <Text style={styles.emptyTitle}>
+              {mode === "keyword"
+                ? "Find a word, verse, or theme"
+                : "Look up a specific verse"}
+            </Text>
+            <Text style={styles.emptySubtitle}>
+              {mode === "keyword"
+                ? "Type at least 3 characters to search across the entire text."
+                : "Enter a book, chapter, and optionally a verse to jump right to it."}
+            </Text>
+          </View>
+        )}
+
+        {searched && !searching && results.length === 0 && (
+          <View style={styles.emptyState}>
+            <View
+              style={[
+                styles.emptyIconCircle,
+                { backgroundColor: colors.surface2 },
+              ]}
             >
-              <View style={styles.resultHeader}>
-                <Text style={styles.resultRef}>
-                  {r.bookName} {r.chapter}:{r.verse}
-                </Text>
-                <Pressable
-                  onPress={() => {
-                    if (isBookmarked) {
-                      const bm = bible.bookmarks.find(
-                        (b) =>
-                          b.book === r.book &&
-                          b.chapter === r.chapter &&
-                          b.verse === r.verse,
-                      );
-                      if (bm) bible.removeBookmark(bm.id);
-                    } else {
-                      bible.addBookmark({
-                        book: r.book,
-                        bookName: r.bookName,
-                        chapter: r.chapter,
-                        verse: r.verse,
-                        text: r.text,
-                        translation,
-                      });
-                    }
-                  }}
-                >
-                  <Text
-                    style={{ fontSize: 16, opacity: isBookmarked ? 1 : 0.4 }}
-                  >
-                    🔖
-                  </Text>
-                </Pressable>
-              </View>
-              <Text style={styles.resultText} numberOfLines={4}>
-                {r.text}
-              </Text>
-              <Text style={styles.resultTrans}>
-                {TRANSLATIONS.find((t) => t.id === translation)?.name ?? translation}
-              </Text>
-            </Pressable>
-          );
-        })}
+              <IconClose size={22} color={colors.textFaint} />
+            </View>
+            <Text style={styles.emptyTitle}>Nothing matched</Text>
+            <Text style={styles.emptySubtitle}>
+              Try a different word, spelling, or reference.
+            </Text>
+          </View>
+        )}
+
+        <Animated.View style={{ opacity: listFade }}>
+          {results.map((r, i) => {
+            const isBookmarked = bible.isBookmarked(r.book, r.chapter, r.verse);
+            return (
+              <Pressable
+                key={`${r.book}-${r.chapter}-${r.verse}-${i}`}
+                onPress={() => onOpenReader(r.book, r.bookName, r.chapter)}
+                style={({ pressed }) => [
+                  styles.resultCard,
+                  pressed && styles.resultCardPressed,
+                ]}
+              >
+                <View style={styles.resultAccent} />
+                <View style={styles.resultBody}>
+                  <View style={styles.resultHeader}>
+                    <View style={styles.resultRefRow}>
+                      <View style={styles.verseBadge}>
+                        <Text style={styles.verseBadgeText}>{r.verse}</Text>
+                      </View>
+                      <Text style={styles.resultRef}>
+                        {r.bookName} {r.chapter}:{r.verse}
+                      </Text>
+                    </View>
+                    <View style={styles.resultActions}>
+                      <BookmarkButton
+                        active={isBookmarked}
+                        onPress={() => {
+                          if (isBookmarked) {
+                            const bm = bible.bookmarks.find(
+                              (b) =>
+                                b.book === r.book &&
+                                b.chapter === r.chapter &&
+                                b.verse === r.verse,
+                            );
+                            if (bm) bible.removeBookmark(bm.id);
+                          } else {
+                            bible.addBookmark({
+                              book: r.book,
+                              bookName: r.bookName,
+                              chapter: r.chapter,
+                              verse: r.verse,
+                              text: r.text,
+                              translation,
+                            });
+                          }
+                        }}
+                      />
+                    </View>
+                  </View>
+
+                  <HighlightedText
+                    text={r.text}
+                    query={mode === "keyword" ? query : ""}
+                    style={styles.resultText}
+                    highlightStyle={styles.resultTextHighlight}
+                  />
+
+                  <View style={styles.resultFooter}>
+                    <Text style={styles.resultTrans}>
+                      {TRANSLATIONS.find((t) => t.id === translation)?.name ??
+                        translation}
+                    </Text>
+                    <IconChevronRight />
+                  </View>
+                </View>
+              </Pressable>
+            );
+          })}
+        </Animated.View>
       </ScrollView>
     </View>
   );
@@ -345,7 +725,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingBottom: 10,
+    paddingBottom: 14,
     gap: 10,
   },
   backBtn: {
@@ -358,6 +738,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
+  headerLabelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    marginBottom: 2,
+  },
   headerLabel: {
     fontFamily: "Inter_600SemiBold",
     fontSize: 9,
@@ -366,114 +752,271 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontFamily: "Inter_700Bold",
-    fontSize: 22,
+    fontSize: 23,
     color: colors.text,
+    letterSpacing: -0.3,
   },
+
   modeTabs: {
     flexDirection: "row",
-    gap: 8,
-    paddingHorizontal: 16,
-    marginBottom: 10,
-  },
-  modeTab: { flex: 1 },
-  modeActive: {
-    borderRadius: colors.radius.md,
-    paddingVertical: 9,
-    alignItems: "center",
-  },
-  modeActiveText: { fontFamily: "Inter_700Bold", fontSize: 12, color: "#000" },
-  modeInactive: {
-    borderRadius: colors.radius.md,
-    paddingVertical: 9,
-    alignItems: "center",
+    marginHorizontal: 16,
+    marginBottom: 14,
+    padding: 4,
+    borderRadius: colors.radius.full,
     backgroundColor: colors.surface2,
     borderWidth: 1,
     borderColor: colors.border,
+    position: "relative",
+  },
+  modeIndicator: {
+    position: "absolute",
+    top: 4,
+    bottom: 4,
+    left: 4,
+    borderRadius: colors.radius.full,
+    overflow: "hidden",
+  },
+  modeTab: {
+    flex: 1,
+    paddingVertical: 9,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1,
+  },
+  modeActiveText: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 12.5,
+    color: "#000",
   },
   modeInactiveText: {
     fontFamily: "Inter_500Medium",
-    fontSize: 12,
+    fontSize: 12.5,
     color: colors.textMuted,
   },
+
+  translationScroll: { marginBottom: 12, flexGrow: 0 },
   translationRow: {
     flexDirection: "row",
     gap: 6,
     paddingHorizontal: 16,
-    marginBottom: 10,
   },
   transBtn: {
     borderRadius: colors.radius.full,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
     borderWidth: 1,
   },
-  transBtnText: { fontFamily: "Inter_600SemiBold", fontSize: 11 },
-  inputRow: {
+  transBtnText: { fontFamily: "Inter_600SemiBold", fontSize: 11.5 },
+
+  searchPillRow: {
     flexDirection: "row",
     gap: 8,
     paddingHorizontal: 16,
-    marginBottom: 8,
+    marginBottom: 10,
+    alignItems: "center",
   },
-  verseRow: {
-    flexDirection: "row",
-    gap: 6,
-    paddingHorizontal: 16,
-    marginBottom: 8,
-  },
-  input: {
+  searchPill: {
     flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
     backgroundColor: colors.surface2,
-    borderRadius: colors.radius.md,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    borderRadius: colors.radius.full,
+    paddingHorizontal: 14,
+    height: 46,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  pillInput: {
+    flex: 1,
     fontFamily: "Inter_400Regular",
     fontSize: 14,
     color: colors.text,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  searchBtn: { alignSelf: "stretch" },
-  searchBtnInner: {
-    borderRadius: colors.radius.md,
-    paddingHorizontal: 16,
     height: "100%",
+  },
+  clearBtn: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
-  searchBtnText: { fontFamily: "Inter_700Bold", fontSize: 13, color: "#000" },
-  resultCount: {
+  goBtn: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  verseRow: {
+    flexDirection: "row",
+    gap: 8,
+    paddingHorizontal: 16,
+    marginBottom: 10,
+    alignItems: "center",
+  },
+  versePill: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.surface2,
+    borderRadius: colors.radius.full,
+    height: 46,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: 14,
+    gap: 8,
+  },
+  verseBookInput: {
+    flex: 2.4,
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    color: colors.text,
+    height: "100%",
+  },
+  verseDivider: {
+    width: 1,
+    height: 20,
+    backgroundColor: colors.border,
+  },
+  verseNumInput: {
+    flex: 0.8,
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    color: colors.text,
+    height: "100%",
+    textAlign: "center",
+  },
+  verseColon: {
+    fontFamily: "Inter_700Bold",
+    color: colors.textFaint,
+    fontSize: 14,
+  },
+
+  loadingWrap: { alignItems: "center", paddingVertical: 26, gap: 8 },
+  loadingText: {
     fontFamily: "Inter_400Regular",
     fontSize: 12,
     color: colors.textMuted,
-    paddingHorizontal: 16,
-    marginBottom: 8,
   },
+
+  resultCountRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 16,
+    marginBottom: 10,
+  },
+  resultCountDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: colors.gold,
+  },
+  resultCount: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 12,
+    color: colors.textMuted,
+  },
+
   scroll: { flex: 1, paddingHorizontal: 16 },
+
+  emptyState: {
+    alignItems: "center",
+    paddingTop: 48,
+    paddingHorizontal: 24,
+  },
+  emptyIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.goldGlow,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 15,
+    color: colors.text,
+    marginBottom: 6,
+    textAlign: "center",
+  },
+  emptySubtitle: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 12.5,
+    color: colors.textMuted,
+    textAlign: "center",
+    lineHeight: 19,
+  },
+
   resultCard: {
+    flexDirection: "row",
     backgroundColor: colors.surface2,
     borderRadius: colors.radius.md,
-    padding: 12,
-    marginBottom: 8,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: colors.border,
+    overflow: "hidden",
+  },
+  resultCardPressed: {
+    opacity: 0.75,
+  },
+  resultAccent: {
+    width: 3,
+    backgroundColor: colors.gold,
+  },
+  resultBody: {
+    flex: 1,
+    padding: 14,
   },
   resultHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 6,
+    marginBottom: 8,
   },
-  resultRef: { fontFamily: "Inter_700Bold", fontSize: 12, color: colors.gold },
+  resultRefRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  verseBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: colors.goldGlow,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  verseBadgeText: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 10,
+    color: colors.gold,
+  },
+  resultRef: { fontFamily: "Inter_700Bold", fontSize: 13, color: colors.text },
+  resultActions: { flexDirection: "row", alignItems: "center" },
+  bookmarkBtn: { padding: 2 },
   resultText: {
     fontFamily: "Inter_400Regular",
-    fontSize: 13,
-    color: colors.text,
-    lineHeight: 21,
+    fontSize: 13.5,
+    color: colors.textMuted,
+    lineHeight: 22,
+  },
+  resultTextHighlight: {
+    fontFamily: "Inter_700Bold",
+    color: colors.gold,
+    backgroundColor: colors.goldGlow,
+  },
+  resultFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 10,
   },
   resultTrans: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 10,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 9.5,
     color: colors.textFaint,
-    marginTop: 4,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
   },
 });

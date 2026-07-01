@@ -39,6 +39,6 @@ export const TRANSLATIONS: Translation[] = [
     language: "Shona",
     license: "CC BY-SA 4.0",
     description:
-      "Bhaibheri muChiShona — inoshandiswa muZimbabwe nevanhu vanosvika mamiriyoni gumi. Yakaitwa nevanhu vemakereke eZimbabwe. © Open Shona Bible Project (CC BY-SA 4.0).",
+      "Bhaibheri muChiShona. Inoshandiswa muZimbabwe nevanhu vakawanda. Yakaitwa nevanhu vemakereke eZimbabwe. (c) Open Shona Bible Project (CC BY-SA 4.0).",
   },
 ];

@@ -11,7 +11,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import colors from "@/constants/colors";
 import { BIBLE_BOOKS } from "@/data/bibleBooks";
-import { BIBLE_TEXT, getChapter } from "@/data/bibleText";
+import { getChapter } from "@/data/bibleText";
 import { TranslationId, TRANSLATIONS } from "@/constants/translations";
 import { IconArrowLeft } from "@/components/ui/SvgIcons";
 
@@ -81,14 +81,14 @@ export default function ParallelBible({ onBack, topPad }: Props) {
           style={styles.bookPicker}
         >
           <Text style={styles.bookPickerText}>{selectedBook.name}</Text>
-          <Text style={styles.bookPickerIcon}>▾</Text>
+          <Text style={styles.bookPickerIcon}>v</Text>
         </Pressable>
         <Pressable
           onPress={() => setPickerMode("chapter")}
           style={styles.chapterPicker}
         >
           <Text style={styles.chapterPickerText}>Ch {selectedChapter}</Text>
-          <Text style={styles.bookPickerIcon}>▾</Text>
+          <Text style={styles.bookPickerIcon}>v</Text>
         </Pressable>
       </View>
 
@@ -180,7 +180,7 @@ export default function ParallelBible({ onBack, topPad }: Props) {
                 { color: leftTrans === t.id ? colors.gold : colors.textMuted },
               ]}
             >
-              ← {t.name}
+              {"<"} {t.name}
             </Text>
           </Pressable>
         ))}
@@ -204,7 +204,7 @@ export default function ParallelBible({ onBack, topPad }: Props) {
                 { color: rightTrans === t.id ? colors.blue : colors.textMuted },
               ]}
             >
-              {t.name} →
+              {t.name} {">"}
             </Text>
           </Pressable>
         ))}
@@ -242,9 +242,9 @@ export default function ParallelBible({ onBack, topPad }: Props) {
               <View style={styles.verseNumWrap}>
                 <Text style={styles.verseNum}>{vNum}</Text>
               </View>
-              <Text style={styles.leftText}>{leftMap[vNum] ?? "—"}</Text>
+              <Text style={styles.leftText}>{leftMap[vNum] ?? "-"}</Text>
               <View style={styles.divider} />
-              <Text style={styles.rightText}>{rightMap[vNum] ?? "—"}</Text>
+              <Text style={styles.rightText}>{rightMap[vNum] ?? "-"}</Text>
             </View>
           ))
         )}

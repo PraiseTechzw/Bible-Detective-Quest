@@ -841,6 +841,9 @@ export default function BibleScreen() {
     ? `${selectedBook?.name ?? ""} ${selectedChapter}:${selectedVerseEntry.verse}`
     : "";
 
+  const translationLabel =
+    TRANSLATIONS.find((t) => t.id === translation)?.name ?? translation;
+
   const currentNote = selectedVerseEntry
     ? bible.getNote(selectedBook?.id ?? "", selectedChapter, selectedVerseEntry.verse)
     : undefined;
@@ -872,9 +875,9 @@ export default function BibleScreen() {
                 <IconArrowLeft size={18} color={colors.textMuted} />
               </Pressable>
               <View style={styles.homeHeaderTitleWrap}>
-            <Text style={styles.headerLabel}>BIBLE READER</Text>
-            <Text style={styles.headerTitle}>Bible</Text>
-          </View>
+                <Text style={styles.headerLabel}>BIBLE READER</Text>
+                <Text style={styles.headerTitle}>Bible</Text>
+              </View>
               <Pressable
                 onPress={() => setView("tools")}
                 accessibilityRole="button"
@@ -1094,7 +1097,7 @@ export default function BibleScreen() {
             </Pressable>
             <View style={styles.headerCenter}>
               <Text style={styles.headerLabel}>
-                {selectedBook.testament} · {selectedBook.category}
+                {selectedBook.testament} - {selectedBook.category}
               </Text>
               <Text style={styles.headerTitle}>{selectedBook.name}</Text>
             </View>
@@ -1187,7 +1190,7 @@ export default function BibleScreen() {
                 {selectedBook.name} {selectedChapter}
               </Text>
               <Text style={styles.chapterTranslationLabel}>
-                {translation} ·{" "}
+                {translationLabel} -{" "}
                 {TRANSLATIONS.find((t) => t.id === translation)?.year}
               </Text>
             </LinearGradient>
@@ -1315,9 +1318,9 @@ export default function BibleScreen() {
                   {selectedBook.name} {selectedChapter}
                 </Text>
                 <Text style={styles.noVerseBody}>
-                  Not yet available in {translation}. Try{" "}
+                  Not yet available in {translationLabel}. Try{" "}
                   <Text style={{ color: colors.gold }}>KJV</Text> or{" "}
-                  <Text style={{ color: colors.gold }}>SHONA</Text> instead.
+                  <Text style={{ color: colors.gold }}>Shona</Text> instead.
                 </Text>
                 {verseCount > 0 && (
                   <Text style={styles.noVerseCount}>
@@ -1467,7 +1470,7 @@ export default function BibleScreen() {
                           translation === t.id && menuStyles.chipTextActive,
                         ]}
                       >
-                        {t.id}
+                        {t.name}
                       </Text>
                     </Pressable>
                   ))}
