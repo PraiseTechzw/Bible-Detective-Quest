@@ -1,0 +1,75 @@
+import { TextStore } from "@/constants/textstore";
+
+export const WEB: TextStore = {
+  gen: {
+    1: {
+      1: "In the beginning, God created the heavens and the earth.",
+      2: "Now the earth was formless and empty. Darkness was on the surface of the deep and God's Spirit was hovering over the surface of the waters.",
+      3: "God said, \"Let there be light,\" and there was light.",
+      4: "God saw the light, and saw that it was good. God divided the light from the darkness.",
+      5: "God called the light \"day\", and the darkness he called \"night\". There was evening and there was morning, the first day.",
+      6: "God said, \"Let there be an expanse in the middle of the waters, and let it divide the waters from the waters.\"",
+      7: "God made the expanse, and divided the waters which were under the expanse from the waters which were above the expanse; and it was so.",
+      8: "God called the expanse \"sky\". There was evening and there was morning, a second day.",
+      9: "God said, \"Let the waters under the sky be gathered together to one place, and let the dry land appear;\" and it was so.",
+      10: "God called the dry land \"earth\", and the gathering together of the waters he called \"seas\". God saw that it was good.",
+      26: "God said, \"Let's make man in our image, after our likeness. Let them have dominion over the fish of the sea, and over the birds of the sky, and over the livestock, and over all the earth, and over every creeping thing that creeps on the earth.\"",
+      27: "God created man in his own image. In God's image he created him; male and female he created them.",
+      28: "God blessed them. God said to them, \"Be fruitful, multiply, fill the earth, and subdue it. Have dominion over the fish of the sea, over the birds of the sky, and over every living thing that moves on the earth.\"",
+      31: "God saw everything that he had made, and, behold, it was very good. There was evening and there was morning, a sixth day.",
+    },
+    4: {
+      1: "The man knew Eve his wife. She conceived, and gave birth to Cain, and said, \"I have gotten a man with Yahweh's help.\"",
+      2: "Again she gave birth, to Cain's brother Abel. Abel was a keeper of sheep, but Cain was a tiller of the ground.",
+      3: "As time passed, Cain brought an offering to Yahweh from the fruit of the ground.",
+      4: "Abel also brought some of the firstborn of his flock and of its fat. Yahweh respected Abel and his offering,",
+      5: "but he didn't respect Cain and his offering. Cain was very angry, and the expression on his face fell.",
+      6: "Yahweh said to Cain, \"Why are you angry? Why has the expression of your face fallen?\"",
+      7: "\"If you do well, won't it be lifted up? If you don't do well, sin crouches at the door. Its desire is for you, but you are to master it.\"",
+      8: "Cain said to Abel, his brother, \"Let's go into the field.\" While they were in the field, Cain rose up against Abel, his brother, and killed him.",
+      9: "Yahweh said to Cain, \"Where is Abel, your brother?\" He said, \"I don't know. Am I my brother's keeper?\"",
+      10: "Yahweh said, \"What have you done? The voice of your brother's blood cries to me from the ground.\"",
+      15: "Yahweh said to him, \"Therefore whoever slays Cain, vengeance will be taken on him sevenfold.\" Yahweh appointed a sign for Cain, lest any finding him should strike him.",
+      16: "Cain left Yahweh's presence, and lived in the land of Nod, east of Eden.",
+    },
+    37: {
+      3: "Now Israel loved Joseph more than all his children, because he was the son of his old age, and he made him a coat of many colors.",
+      4: "His brothers saw that their father loved him more than all his brothers, and they hated him, and couldn't speak peaceably to him.",
+      18: "They saw him afar off, and before he came near to them, they conspired against him to kill him.",
+      19: "They said to one another, \"Behold, this dreamer comes.\"",
+      20: "Come now therefore, and let's kill him, and cast him into one of the pits, and we will say, 'An evil animal has devoured him.' We will see what will become of his dreams.\"",
+      28: "Midianite merchants passed by, and they drew and lifted up Joseph out of the pit, and sold Joseph to the Ishmaelites for twenty pieces of silver. They brought Joseph into Egypt.",
+    },
+  },
+  psa: {
+    1: {
+      1: "Blessed is the man who doesn't walk in the counsel of the wicked, nor stand on the path of sinners, nor sit in the seat of scoffers;",
+      2: "but his delight is in Yahweh's law. On his law he meditates day and night.",
+      3: "He will be like a tree planted by the streams of water, that produces its fruit in its season, whose leaf also does not wither. Whatever he does shall prosper.",
+      4: "The wicked are not so, but are like the chaff which the wind drives away.",
+      5: "Therefore the wicked shall not stand in the judgment, nor sinners in the congregation of the righteous.",
+      6: "For Yahweh knows the way of the righteous, but the way of the wicked shall perish.",
+    },
+    23: {
+      1: "Yahweh is my shepherd; I shall lack nothing.",
+      2: "He makes me lie down in green pastures. He leads me beside still waters.",
+      3: "He restores my soul. He guides me in the paths of righteousness for his name's sake.",
+      4: "Even though I walk through the valley of the shadow of death, I will fear no evil, for you are with me. Your rod and your staff, they comfort me.",
+      5: "You prepare a table before me in the presence of my enemies. You anoint my head with oil. My cup runs over.",
+      6: "Surely goodness and loving kindness shall follow me all the days of my life, and I will dwell in Yahweh's house forever.",
+    },
+  },
+  joh: {
+    3: {
+      16: "For God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life.",
+      17: "For God didn't send his Son into the world to judge the world, but that the world should be saved through him.",
+    },
+    1: {
+      1: "In the beginning was the Word, and the Word was with God, and the Word was God.",
+      2: "The same was in the beginning with God.",
+      3: "All things were made through him. Without him, nothing was made that has been made.",
+      4: "In him was life, and the life was the light of men.",
+      14: "The Word became flesh, and lived among us. We saw his glory, such glory as of the one and only Son of the Father, full of grace and truth.",
+    },
+  },
+};
