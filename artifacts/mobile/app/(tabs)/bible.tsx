@@ -32,7 +32,6 @@ import {
   IconBookmark,
   IconNote,
   IconMarker,
-  IconSparkles,
 } from "@/components/ui/SvgIcons";
 import BibleToolsHub, { ToolView } from "@/components/bible/BibleToolsHub";
 import BibleSearch from "@/components/bible/BibleSearch";
@@ -69,62 +68,6 @@ type SavedTab = "bookmarks" | "highlights" | "notes";
 function getBooksForCategory(books: BibleBook[], category: string) {
   return books.filter((b) => b.category === category);
 }
-
-function TranslationBadge({
-  id,
-  label,
-  active,
-  onPress,
-}: {
-  id: TranslationId;
-  label: string;
-  active: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={`${id} translation`}
-      accessibilityState={{ selected: active }}
-      hitSlop={4}
-    >
-      {active ? (
-        <LinearGradient
-          colors={[colors.goldLight, colors.gold]}
-          style={tlStyles.active}
-        >
-          <Text style={tlStyles.activeText}>{label}</Text>
-        </LinearGradient>
-      ) : (
-        <View style={tlStyles.inactive}>
-          <Text style={tlStyles.inactiveText}>{label}</Text>
-        </View>
-      )}
-    </Pressable>
-  );
-}
-const tlStyles = StyleSheet.create({
-  active: {
-    borderRadius: colors.radius.full,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-  },
-  activeText: { fontFamily: "Inter_700Bold", fontSize: 11, color: "#000" },
-  inactive: {
-    borderRadius: colors.radius.full,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    backgroundColor: colors.surface3,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  inactiveText: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 11,
-    color: colors.textMuted,
-  },
-});
 
 function BookCard({
   book,
@@ -878,40 +821,26 @@ export default function BibleScreen() {
                 <Text style={styles.headerLabel}>BIBLE READER</Text>
                 <Text style={styles.headerTitle}>Bible</Text>
               </View>
-              <Pressable
-                onPress={() => setView("tools")}
-                accessibilityRole="button"
-                accessibilityLabel="Open tools hub"
-                style={styles.menuBtn}
-              >
-                <IconSparkles size={18} color={colors.textMuted} />
-              </Pressable>
             </View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={{ marginTop: 12 }}
-              contentContainerStyle={styles.translationRow}
-            >
-              {TRANSLATIONS.map((t) => (
-                <TranslationBadge
-                  key={t.id}
-                  id={t.id as TranslationId}
-                  label={t.name}
-                  active={translation === t.id}
-                  onPress={() => setTranslation(t.id as TranslationId)}
-                />
-              ))}
-            </ScrollView>
           </View>
 
           <View style={styles.searchWrap}>
             <LinearGradient
-              colors={["rgba(255,255,255,0.04)", "rgba(255,255,255,0.015)"]}
+              colors={["rgba(212,150,42,0.14)", "rgba(255,255,255,0.02)"]}
               style={styles.searchPanel}
             >
+              <View style={styles.searchPanelHead}>
+                <View>
+                  <Text style={styles.searchPanelLabel}>BOOK FINDER</Text>
+                  <Text style={styles.searchPanelTitle}>Search books or abbreviations</Text>
+                </View>
+                <View style={styles.searchBadge}>
+                  <IconBookOpen size={14} color={colors.gold} />
+                  <Text style={styles.searchBadgeText}>OT / NT</Text>
+                </View>
+              </View>
               <View style={styles.searchBox}>
-                <IconBookOpen size={16} color={colors.textMuted} />
+                <IconBookOpen size={16} color={colors.gold} />
                 <TextInput
                   style={styles.searchInput}
                   placeholder="Search books or abbreviations"
@@ -929,25 +858,21 @@ export default function BibleScreen() {
                     accessibilityRole="button"
                     accessibilityLabel="Clear search"
                   >
-                    <Text style={styles.clearBtn}>x</Text>
+                    <Text style={styles.clearBtn}>Clear</Text>
                   </Pressable>
                 )}
               </View>
               <Text style={styles.searchHint}>
-                Find a book by name, abbreviation, or category, then tap to open the chapter grid.
+                Try names like Genesis, short forms like Gen, or book groups like Gospel and Prophets.
               </Text>
+              <View style={styles.searchExamples}>
+                {["Gen", "Psa", "John", "Rom"].map((item) => (
+                  <View key={item} style={styles.searchExampleChip}>
+                    <Text style={styles.searchExampleText}>{item}</Text>
+                  </View>
+                ))}
+              </View>
             </LinearGradient>
-          </View>
-
-          <View style={styles.quickToolsRow}>
-            <Pressable style={styles.quickToolCard} onPress={() => setView("tools")}>
-              <Text style={styles.quickToolTitle}>Tools Hub</Text>
-              <Text style={styles.quickToolDesc}>Study tools, notes, search, plans, and more.</Text>
-            </Pressable>
-            <Pressable style={styles.quickToolCard} onPress={() => setView("search")}>
-              <Text style={styles.quickToolTitle}>Search</Text>
-              <Text style={styles.quickToolDesc}>Jump straight into verse lookup.</Text>
-            </Pressable>
           </View>
 
           <View style={styles.testamentTabs}>
@@ -1641,23 +1566,57 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  translationRow: { flexDirection: "row", gap: 6, marginTop: 8 },
   searchWrap: { paddingHorizontal: 16, marginBottom: 12 },
   searchPanel: {
     borderRadius: colors.radius.lg,
-    padding: 12,
+    padding: 14,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.06)",
-    gap: 8,
+    borderColor: "rgba(212,150,42,0.18)",
+    gap: 10,
+    overflow: "hidden",
+  },
+  searchPanelHead: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 10,
+  },
+  searchPanelLabel: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 9,
+    color: colors.gold,
+    letterSpacing: 1.5,
+    marginBottom: 3,
+  },
+  searchPanelTitle: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 16,
+    color: colors.text,
+  },
+  searchBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: colors.surface2,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: colors.radius.full,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  searchBadgeText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 10,
+    color: colors.textMuted,
   },
   searchBox: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 10,
     backgroundColor: colors.surface2,
     borderRadius: colors.radius.md,
     paddingHorizontal: 14,
-    paddingVertical: 11,
+    paddingVertical: 12,
     borderWidth: 1,
     borderColor: colors.border,
   },
@@ -1668,42 +1627,34 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   clearBtn: {
-    fontSize: 13,
-    color: colors.textFaint,
-    paddingHorizontal: 2,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 11,
+    color: colors.gold,
   },
   searchHint: {
     fontFamily: "Inter_400Regular",
     fontSize: 11,
-    color: colors.textFaint,
+    color: colors.textMuted,
     lineHeight: 16,
   },
-  quickToolsRow: {
+  searchExamples: {
     flexDirection: "row",
-    gap: 10,
-    paddingHorizontal: 16,
-    marginBottom: 12,
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 2,
   },
-  quickToolCard: {
-    flex: 1,
-    minHeight: 76,
-    borderRadius: colors.radius.md,
+  searchExampleChip: {
+    borderRadius: colors.radius.full,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: "rgba(255,255,255,0.05)",
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.surface2,
-    padding: 12,
-    gap: 4,
   },
-  quickToolTitle: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 13,
-    color: colors.text,
-  },
-  quickToolDesc: {
-    fontFamily: "Inter_400Regular",
+  searchExampleText: {
+    fontFamily: "Inter_600SemiBold",
     fontSize: 10,
     color: colors.textMuted,
-    lineHeight: 14,
   },
   testamentTabs: {
     flexDirection: "row",
