@@ -9,7 +9,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  GENESIS  (additional chapters)
   // ───────────────────────────────────────────
-  gen: {
+  "gen": {
     2: {
       1: "Thus the heavens and the earth were finished, and all the host of them.",
       2: "And on the seventh day God ended his work which he had made; and he rested on the seventh day from all his work which he had made.",
@@ -235,7 +235,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  EXODUS
   // ───────────────────────────────────────────
-  exo: {
+  "exo": {
     1: {
       1: "Now these are the names of the children of Israel, which came into Egypt; every man and his household came with Jacob.",
       7: "And the children of Israel were fruitful, and increased abundantly, and multiplied, and waxed exceeding mighty; and the land was filled with them.",
@@ -287,7 +287,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  LEVITICUS
   // ───────────────────────────────────────────
-  lev: {
+  "lev": {
     1: {
       1: "And the LORD called unto Moses, and spake unto him out of the tabernacle of the congregation, saying,",
       2: "Speak unto the children of Israel, and say unto them, If any man of you bring an offering unto the LORD, ye shall bring your offering of the cattle, even of the herd, and of the flock.",
@@ -301,7 +301,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  NUMBERS
   // ───────────────────────────────────────────
-  num: {
+  "num": {
     1: {
       1: "And the LORD spake unto Moses in the wilderness of Sinai, in the tabernacle of the congregation, on the first day of the second month, in the second year after they were come out of the land of Egypt, saying,",
       2: "Take ye the sum of all the congregation of the children of Israel, after their families, by the house of their fathers, with the number of their names, every male by their polls;",
@@ -316,7 +316,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  DEUTERONOMY
   // ───────────────────────────────────────────
-  deu: {
+  "deu": {
     1: {
       1: "These be the words which Moses spake unto all Israel on this side Jordan in the wilderness, in the plain over against the Red sea, between Paran, and Tophel, and Laban, and Hazeroth, and Dizahab.",
     },
@@ -334,7 +334,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  JOSHUA
   // ───────────────────────────────────────────
-  jos: {
+  "jos": {
     1: {
       1: "Now after the death of Moses the servant of the LORD it came to pass, that the LORD spake unto Joshua the son of Nun, Moses' minister, saying,",
       2: "Moses my servant is dead; now therefore arise, go over this Jordan, thou, and all this people, unto the land which I do give to them, even to the children of Israel.",
@@ -349,7 +349,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  JUDGES
   // ───────────────────────────────────────────
-  jdg: {
+  "jdg": {
     1: {
       1: "Now after the death of Joshua it came to pass, that the children of Israel asked the LORD, saying, Who shall go up for us against the Canaanites first, to fight against them?",
       2: "And the LORD said, Judah shall go up: behold, I have delivered the land into his hand.",
@@ -359,7 +359,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  RUTH
   // ───────────────────────────────────────────
-  rut: {
+  "rut": {
     1: {
       1: "Now it came to pass in the days when the judges ruled, that there was a famine in the land. And a certain man of Bethlehemjudah went to sojourn in the country of Moab, he, and his wife, and his two sons.",
       4: "And they took them wives of the women of Moab; the name of the one was Orpah, and the name of the other Ruth: and they dwelled there about ten years.",
@@ -462,7 +462,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  EZRA
   // ───────────────────────────────────────────
-  ezr: {
+  "ezr": {
     1: {
       1: "Now in the first year of Cyrus king of Persia, that the word of the LORD spoken by the mouth of Jeremiah might be accomplished, the LORD stirred up the spirit of Cyrus king of Persia, that he made a proclamation throughout all his kingdom, and put it also in writing, saying,",
       2: "Thus saith Cyrus king of Persia, The LORD God of heaven hath given me all the kingdoms of the earth; and he hath charged me to build him an house at Jerusalem, which is in Judah.",
@@ -473,7 +473,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  NEHEMIAH
   // ───────────────────────────────────────────
-  neh: {
+  "neh": {
     1: {
       1: "The words of Nehemiah the son of Hachaliah. And it came to pass in the month Chislev, in the twentieth year, as I was in Shushan the palace,",
       4: "And it came to pass, when I heard these words, that I sat down and wept, and mourned certain days, and fasted, and prayed before the God of heaven,",
@@ -486,7 +486,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  ESTHER
   // ───────────────────────────────────────────
-  est: {
+  "est": {
     1: {
       1: "Now it came to pass in the days of Ahasuerus, (this is Ahasuerus which reigned, from India even unto Ethiopia, over an hundred and seven and twenty provinces:)",
     },
@@ -498,7 +498,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  JOB
   // ───────────────────────────────────────────
-  job: {
+  "job": {
     1: {
       1: "There was a man in the land of Uz, whose name was Job; and that man was perfect and upright, and one that feared God, and eschewed evil.",
       3: "His substance also was seven thousand sheep, and three thousand camels, and five hundred yoke of oxen, and five hundred she asses, and a very great household; so that this man was the greatest of all the men of the east.",
@@ -515,7 +515,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  PSALMS  (additional beyond 1, 23, 91)
   // ───────────────────────────────────────────
-  psa: {
+  "psa": {
     8: {
       1: "O LORD our Lord, how excellent is thy name in all the earth! who hast set thy glory above the heavens.",
       2: "Out of the mouth of babes and sucklings hast thou ordained strength because of thine enemies, that thou mightest still the enemy and the avenger.",
@@ -657,7 +657,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  PROVERBS
   // ───────────────────────────────────────────
-  pro: {
+  "pro": {
     1: {
       1: "The proverbs of Solomon the son of David, king of Israel;",
       7: "The fear of the LORD is the beginning of knowledge: but fools despise wisdom and instruction.",
@@ -675,7 +675,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  ECCLESIASTES
   // ───────────────────────────────────────────
-  ecc: {
+  "ecc": {
     1: {
       1: "The words of the Preacher, the son of David, king in Jerusalem.",
       2: "Vanity of vanities, saith the Preacher, vanity of vanities; all is vanity.",
@@ -695,7 +695,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  SONG OF SOLOMON
   // ───────────────────────────────────────────
-  sng: {
+  "sng": {
     1: {
       1: "The song of songs, which is Solomon's.",
       2: "Let him kiss me with the kisses of his mouth: for thy love is better than wine.",
@@ -709,7 +709,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  ISAIAH
   // ───────────────────────────────────────────
-  isa: {
+  "isa": {
     1: {
       1: "The vision of Isaiah the son of Amoz, which he saw concerning Judah and Jerusalem in the days of Uzziah, Jotham, Ahaz, and Hezekiah, kings of Judah.",
       18: "Come now, and let us reason together, saith the LORD: though your sins be as scarlet, they shall be as white as snow; though they be red like crimson, they shall be as wool.",
@@ -743,7 +743,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  JEREMIAH
   // ───────────────────────────────────────────
-  jer: {
+  "jer": {
     1: {
       1: "The words of Jeremiah the son of Hilkiah, of the priests that were in Anathoth in the land of Benjamin:",
       5: "Before I formed thee in the belly I knew thee; and before thou camest forth out of the womb I sanctified thee, and I ordained thee a prophet unto the nations.",
@@ -758,7 +758,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  LAMENTATIONS
   // ───────────────────────────────────────────
-  lam: {
+  "lam": {
     1: {
       1: "How doth the city sit solitary, that was full of people! how is she become as a widow! she that was great among the nations, and princess among the provinces, how is she become tributary!",
     },
@@ -772,7 +772,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  EZEKIEL
   // ───────────────────────────────────────────
-  eze: {
+  "eze": {
     1: {
       1: "Now it came to pass in the thirtieth year, in the fourth month, in the fifth day of the month, as I was among the captives by the river of Chebar, that the heavens were opened, and I saw visions of God.",
     },
@@ -788,7 +788,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  DANIEL
   // ───────────────────────────────────────────
-  dan: {
+  "dan": {
     1: {
       1: "In the third year of the reign of Jehoiakim king of Judah came Nebuchadnezzar king of Babylon unto Jerusalem, and besieged it.",
       8: "But Daniel purposed in his heart that he would not defile himself with the portion of the king's meat, nor with the wine which he drank: therefore he requested of the prince of the eunuchs that he might not defile himself.",
@@ -806,7 +806,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  HOSEA
   // ───────────────────────────────────────────
-  hos: {
+  "hos": {
     1: {
       1: "The word of the LORD that came unto Hosea, the son of Beeri, in the days of Uzziah, Jotham, Ahaz, and Hezekiah, kings of Judah, and in the days of Jeroboam the son of Joash, king of Israel.",
     },
@@ -818,7 +818,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  JOEL
   // ───────────────────────────────────────────
-  joe: {
+  "joe": {
     1: {
       1: "The word of the LORD that came to Joel the son of Pethuel.",
     },
@@ -831,7 +831,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  AMOS
   // ───────────────────────────────────────────
-  amo: {
+  "amo": {
     1: {
       1: "The words of Amos, who was among the herdmen of Tekoa, which he saw concerning Israel in the days of Uzziah king of Judah, and in the days of Jeroboam the son of Joash king of Israel, two years before the earthquake.",
     },
@@ -843,7 +843,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  OBADIAH
   // ───────────────────────────────────────────
-  oba: {
+  "oba": {
     1: {
       1: "The vision of Obadiah. Thus saith the Lord GOD concerning Edom; We have heard a rumour from the LORD, and an ambassador is sent among the heathen, Arise ye, and let us rise up against her in battle.",
       3: "The pride of thine heart hath deceived thee, thou that dwellest in the clefts of the rock, whose habitation is high; that saith in his heart, Who shall bring me down to the ground?",
@@ -855,7 +855,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  JONAH
   // ───────────────────────────────────────────
-  jon: {
+  "jon": {
     1: {
       1: "Now the word of the LORD came unto Jonah the son of Amittai, saying,",
       2: "Arise, go to Nineveh, that great city, and cry against it; for their wickedness is come up before me.",
@@ -886,7 +886,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  MICAH
   // ───────────────────────────────────────────
-  mic: {
+  "mic": {
     1: {
       1: "The word of the LORD that came to Micah the Morasthite in the days of Jotham, Ahaz, and Hezekiah, kings of Judah, which he saw concerning Samaria and Jerusalem.",
     },
@@ -901,7 +901,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  NAHUM
   // ───────────────────────────────────────────
-  nah: {
+  "nah": {
     1: {
       1: "The burden of Nineveh. The book of the vision of Nahum the Elkoshite.",
       7: "The LORD is good, a strong hold in the day of trouble; and he knoweth them that trust in him.",
@@ -911,7 +911,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  HABAKKUK
   // ───────────────────────────────────────────
-  hab: {
+  "hab": {
     1: {
       1: "The burden which Habakkuk the prophet did see.",
     },
@@ -928,7 +928,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  ZEPHANIAH
   // ───────────────────────────────────────────
-  zep: {
+  "zep": {
     1: {
       1: "The word of the LORD which came unto Zephaniah the son of Cushi, the son of Gedaliah, the son of Amariah, the son of Hizkiah, in the days of Josiah the son of Amon, king of Judah.",
     },
@@ -940,7 +940,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  HAGGAI
   // ───────────────────────────────────────────
-  hag: {
+  "hag": {
     1: {
       1: "In the second year of Darius the king, in the sixth month, in the first day of the month, came the word of the LORD by Haggai the prophet unto Zerubbabel the son of Shealtiel, governor of Judah, and to Joshua the son of Josedech, the high priest, saying,",
     },
@@ -952,7 +952,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  ZECHARIAH
   // ───────────────────────────────────────────
-  zec: {
+  "zec": {
     1: {
       1: "In the eighth month, in the second year of Darius, came the word of the LORD unto Zechariah, the son of Berechiah, the son of Iddo the prophet, saying,",
     },
@@ -964,7 +964,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  MALACHI
   // ───────────────────────────────────────────
-  mal: {
+  "mal": {
     1: {
       1: "The burden of the word of the LORD to Israel by Malachi.",
     },
@@ -983,7 +983,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  MATTHEW
   // ───────────────────────────────────────────
-  mat: {
+  "mat": {
     1: {
       1: "The book of the generation of Jesus Christ, the son of David, the son of Abraham.",
       18: "Now the birth of Jesus Christ was on this wise: When as his mother Mary was espoused to Joseph, before they came together, she was found with child of the Holy Ghost.",
@@ -1054,7 +1054,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  MARK
   // ───────────────────────────────────────────
-  mar: {
+  "mar": {
     1: {
       1: "The beginning of the gospel of Jesus Christ, the Son of God;",
       3: "The voice of one crying in the wilderness, Prepare ye the way of the Lord, make his paths straight.",
@@ -1075,7 +1075,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  LUKE
   // ───────────────────────────────────────────
-  luk: {
+  "luk": {
     1: {
       1: "Forasmuch as many have taken in hand to set forth in order a declaration of those things which are most surely believed among us,",
       26: "And in the sixth month the angel Gabriel was sent from God unto a city of Galilee, named Nazareth,",
@@ -1136,7 +1136,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  JOHN  (additional chapters — 1 and 3 already in bibleText.ts)
   // ───────────────────────────────────────────
-  joh: {
+  "joh": {
     11: {
       25: "Jesus said unto her, I am the resurrection, and the life: he that believeth in me, though he were dead, yet shall he live:",
       26: "And whosoever liveth and believeth in me shall never die. Believest thou this?",
@@ -1175,7 +1175,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  ACTS
   // ───────────────────────────────────────────
-  act: {
+  "act": {
     1: {
       1: "The former treatise have I made, O Theophilus, of all that Jesus began both to do and teach,",
       8: "But ye shall receive power, after that the Holy Ghost is come upon you: and ye shall be witnesses unto me both in Jerusalem, and in all Judaea, and in Samaria, and unto the uttermost part of the earth.",
@@ -1202,7 +1202,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  ROMANS  (additional chapters — ch 8 already in bibleText.ts)
   // ───────────────────────────────────────────
-  rom: {
+  "rom": {
     1: {
       16: "For I am not ashamed of the gospel of Christ: for it is the power of God unto salvation to every one that believeth; to the Jew first, and also to the Greek.",
       17: "For therein is the righteousness of God revealed from faith to faith: as it is written, The just shall live by faith.",
@@ -1287,7 +1287,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  GALATIANS
   // ───────────────────────────────────────────
-  gal: {
+  "gal": {
     1: {
       1: "Paul, an apostle, (not of men, neither by man, but by Jesus Christ, and God the Father, who raised him from the dead;)",
     },
@@ -1303,7 +1303,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  EPHESIANS
   // ───────────────────────────────────────────
-  eph: {
+  "eph": {
     1: {
       1: "Paul, an apostle of Jesus Christ by the will of God, to the saints which are at Ephesus, and to the faithful in Christ Jesus:",
     },
@@ -1328,7 +1328,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  PHILIPPIANS
   // ───────────────────────────────────────────
-  phi: {
+  "phi": {
     1: {
       1: "Paul and Timotheus, the servants of Jesus Christ, to all the saints in Christ Jesus which are at Philippi, with the bishops and deacons:",
     },
@@ -1347,7 +1347,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  COLOSSIANS
   // ───────────────────────────────────────────
-  col: {
+  "col": {
     1: {
       1: "Paul, an apostle of Jesus Christ by the will of God, and Timotheus our brother,",
       16: "For by him were all things created, that are in heaven, and that are in earth, visible and invisible, whether they be thrones, or dominions, or principalities, or powers: all things were created by him, and for him:",
@@ -1413,7 +1413,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  TITUS
   // ───────────────────────────────────────────
-  tit: {
+  "tit": {
     1: {
       1: "Paul, a servant of God, and an apostle of Jesus Christ, according to the faith of God's elect, and the acknowledging of the truth which is after godliness;",
     },
@@ -1425,7 +1425,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  PHILEMON
   // ───────────────────────────────────────────
-  phm: {
+  "phm": {
     1: {
       1: "Paul, a prisoner of Jesus Christ, and Timothy our brother, unto Philemon our dearly beloved, and fellowlabourer,",
       15: "For perhaps he therefore departed for a season, that thou shouldest receive him for ever;",
@@ -1436,7 +1436,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  HEBREWS
   // ───────────────────────────────────────────
-  heb: {
+  "heb": {
     1: {
       1: "God, who at sundry times and in divers manners spake in time past unto the fathers by the prophets,",
       2: "Hath in these last days spoken unto us by his Son, whom he hath appointed heir of all things, by whom also he made the worlds;",
@@ -1467,7 +1467,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  JAMES
   // ───────────────────────────────────────────
-  jam: {
+  "jam": {
     1: {
       1: "James, a servant of God and of the Lord Jesus Christ, to the twelve tribes which are scattered abroad, greeting.",
       2: "My brethren, count it all joy when ye fall into divers temptations;",
@@ -1549,7 +1549,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  JUDE
   // ───────────────────────────────────────────
-  jud: {
+  "jud": {
     1: {
       1: "Jude, the servant of Jesus Christ, and brother of James, to them that are sanctified by God the Father, and preserved in Jesus Christ, and called:",
       3: "Beloved, when I gave all diligence to write unto you of the common salvation, it was needful for me to write unto you, and exhort you that ye should earnestly contend for the faith which was once delivered unto the saints.",
@@ -1561,7 +1561,7 @@ export const KJV_EXTRA: Record<string, VerseMap> = {
   // ───────────────────────────────────────────
   //  REVELATION
   // ───────────────────────────────────────────
-  rev: {
+  "rev": {
     1: {
       1: "The Revelation of Jesus Christ, which God gave unto him, to shew unto his servants things which must shortly come to pass; and he sent and signified it by his angel unto his servant John:",
       3: "Blessed is he that readeth, and they that hear the words of this prophecy, and keep those things which are written therein: for the time is at hand.",

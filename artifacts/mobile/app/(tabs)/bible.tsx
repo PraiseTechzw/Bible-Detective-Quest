@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/SvgIcons";
 import { TranslationId, TRANSLATIONS } from "@/constants/translations";
 
-type View = "home" | "chapters" | "reader";
+type BibleView = "home" | "chapters" | "reader";
 
 function getBooksForCategory(books: BibleBook[], category: string) {
   return books.filter((b) => b.category === category);
@@ -83,8 +83,16 @@ const tlStyles = StyleSheet.create({
   },
 });
 
-function BookCard({ book, onPress }: { book: BibleBook; onPress: () => void }) {
-  const hasContent = !!BIBLE_TEXT.KJV[book.id];
+function BookCard({
+  book,
+  onPress,
+  translation,
+}: {
+  book: BibleBook;
+  onPress: () => void;
+  translation: TranslationId;
+}) {
+  const hasContent = !!BIBLE_TEXT[translation]?.[book.id];
   return (
     <Pressable
       onPress={onPress}
@@ -269,7 +277,7 @@ const vrStyles = StyleSheet.create({
 export default function BibleScreen() {
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 60 : insets.top;
-  const [view, setView] = useState<View>("home");
+  const [view, setView] = useState<BibleView>("home");
   const [selectedBook, setSelectedBook] = useState<BibleBook | null>(null);
   const [selectedChapter, setSelectedChapter] = useState<number>(1);
   const [translation, setTranslation] = useState<TranslationId>("KJV");
@@ -415,6 +423,7 @@ export default function BibleScreen() {
                           key={b.id}
                           book={b}
                           onPress={() => openBook(b)}
+                          translation={translation}
                         />
                       ))}
                     </View>
@@ -490,7 +499,7 @@ export default function BibleScreen() {
               ))}
             </View>
 
-            {!BIBLE_TEXT.KJV[selectedBook.id] && (
+            {!BIBLE_TEXT[translation]?.[selectedBook.id] && (
               <LinearGradient
                 colors={[colors.surface2, colors.surface1]}
                 style={styles.noTextCard}
