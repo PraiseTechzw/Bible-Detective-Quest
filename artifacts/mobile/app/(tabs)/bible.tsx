@@ -1413,12 +1413,6 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     gap: 10,
   },
-  readerHeaderLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  readerHeaderSpacer: { width: 80 },
   headerLabel: {
     fontFamily: "Inter_600SemiBold",
     fontSize: 9,
@@ -1455,7 +1449,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 1,
     borderColor: colors.border,
-    marginTop: 10,
   },
   translationRow: { flexDirection: "row", gap: 6, marginTop: 8 },
   searchWrap: { paddingHorizontal: 16, marginBottom: 10 },
@@ -1649,19 +1642,23 @@ const styles = StyleSheet.create({
     color: colors.gold,
   },
   chapterHeading: {
-    borderRadius: colors.radius.md,
-    padding: 14,
+    borderRadius: colors.radius.lg,
+    paddingVertical: 16,
+    paddingHorizontal: 14,
     marginBottom: 18,
     gap: 2,
+    borderWidth: 1,
+    borderColor: "rgba(212,150,42,0.18)",
+    overflow: "hidden",
   },
   chapterHeadingText: {
     fontFamily: "Inter_700Bold",
-    fontSize: 18,
+    fontSize: 20,
     color: colors.text,
   },
   chapterTranslationLabel: {
     fontFamily: "Inter_400Regular",
-    fontSize: 11,
+    fontSize: 12,
     color: colors.textMuted,
   },
   verseActionsCard: {
