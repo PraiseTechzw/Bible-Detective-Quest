@@ -15,6 +15,7 @@ export interface Question {
   options: string[];
   correctIndex: number;
   explanation: string;
+  reference?: string;
 }
 
 export interface Witness {

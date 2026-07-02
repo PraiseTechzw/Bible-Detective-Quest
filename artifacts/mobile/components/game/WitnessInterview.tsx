@@ -6,6 +6,7 @@ import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from "react-n
 import colors from "@/constants/colors";
 import GoldButton from "@/components/ui/GoldButton";
 import type { Witness } from "@/data/cases";
+import { buildSupplementalQuestions, seededShuffle } from "@/data/gameAlgorithms";
 import type { GameMode } from "@/context/GameContext";
 import { IconCheckCircle } from "@/components/ui/SvgIcons";
 
@@ -14,6 +15,7 @@ interface Props {
   onContinue: () => void;
   mode?: GameMode;
   onPenalize?: () => void;
+  scriptureFocus?: string;
 }
 
 function useShakeAnimation() {
@@ -41,7 +43,161 @@ function useFlashAnimation(color: string) {
   return { opacity, color, trigger };
 }
 
-export default function WitnessInterview({ witnesses, onContinue, mode = "story", onPenalize }: Props) {
+function QuestionCard({
+  question,
+  selectedAnswer,
+  submitted,
+  onSelect,
+  onSubmit,
+  scriptureFocus,
+}: {
+  question: Witness["questions"][number];
+  selectedAnswer: number | null;
+  submitted: boolean;
+  onSelect: (idx: number) => void;
+  onSubmit: (correct: boolean) => void;
+  scriptureFocus?: string;
+}) {
+  const shake = useShakeAnimation();
+  const flash = useFlashAnimation(colors.green);
+
+  const handleSubmit = () => {
+    if (selectedAnswer == null || submitted) return;
+    const correct = selectedAnswer === question.correctIndex;
+    if (correct) {
+      flash.trigger();
+    } else {
+      shake.trigger();
+    }
+    onSubmit(correct);
+  };
+
+  return (
+    <Animated.View style={shake.style}>
+      <LinearGradient colors={[colors.surface2, colors.surface1]} style={styles.questionCard}>
+        <View style={[styles.cardBorder, { borderColor: colors.border }]} />
+        <Animated.View
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              backgroundColor: flash.color,
+              opacity: flash.opacity,
+              borderRadius: colors.radius.lg,
+            },
+          ]}
+          pointerEvents="none"
+        />
+        <Text style={styles.questionText}>{question.text}</Text>
+        <View style={styles.referenceChip}>
+          <Text style={styles.referenceText}>{question.reference ?? scriptureFocus ?? "Bible focus"}</Text>
+        </View>
+        {question.options.map((opt, idx) => {
+          const isCorrect = submitted && idx === question.correctIndex;
+          const isWrong = submitted && idx === selectedAnswer && idx !== question.correctIndex;
+          const isSelected = !submitted && selectedAnswer === idx;
+          return (
+            <Pressable
+              key={idx}
+              onPress={() => onSelect(idx)}
+              style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
+            >
+              <LinearGradient
+                colors={
+                  isCorrect
+                    ? ["rgba(46,204,142,0.18)", "rgba(46,204,142,0.06)"]
+                    : isWrong
+                      ? ["rgba(232,64,64,0.18)", "rgba(232,64,64,0.06)"]
+                      : isSelected
+                        ? ["rgba(212,150,42,0.18)", "rgba(212,150,42,0.06)"]
+                        : ["rgba(255,255,255,0.04)", "rgba(255,255,255,0.02)"]
+                }
+                style={[
+                  styles.option,
+                  {
+                    borderColor: isCorrect
+                      ? "rgba(46,204,142,0.5)"
+                      : isWrong
+                        ? "rgba(232,64,64,0.5)"
+                        : isSelected
+                          ? colors.goldBorder
+                          : colors.border,
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.optionBullet,
+                    {
+                      borderColor: isCorrect
+                        ? colors.green
+                        : isWrong
+                          ? colors.red
+                          : isSelected
+                            ? colors.gold
+                            : colors.border,
+                      backgroundColor: isCorrect
+                        ? "rgba(46,204,142,0.2)"
+                        : isWrong
+                          ? "rgba(232,64,64,0.2)"
+                          : isSelected
+                            ? "rgba(212,150,42,0.2)"
+                            : "transparent",
+                    },
+                  ]}
+                >
+                  {isCorrect && <Feather name="check" size={10} color={colors.green} />}
+                  {isWrong && <Feather name="x" size={10} color={colors.red} />}
+                </View>
+                <Text
+                  style={[
+                    styles.optionText,
+                    {
+                      color: isCorrect
+                        ? colors.green
+                        : isWrong
+                          ? colors.red
+                          : isSelected
+                            ? colors.gold
+                            : colors.text,
+                    },
+                  ]}
+                >
+                  {opt}
+                </Text>
+              </LinearGradient>
+            </Pressable>
+          );
+        })}
+        {!submitted ? (
+          <GoldButton
+            label="Confirm Answer"
+            onPress={handleSubmit}
+            disabled={selectedAnswer == null}
+            size="md"
+            style={styles.submitBtn}
+          />
+        ) : (
+          <LinearGradient
+            colors={["rgba(212,150,42,0.12)", "rgba(212,150,42,0.04)"]}
+            style={styles.explanationBox}
+          >
+            <View style={[styles.explanationBorder, { borderColor: colors.goldBorder }]} />
+            <Feather name="book-open" size={13} color={colors.gold} />
+            <Text style={styles.explanationText}>{question.explanation}</Text>
+          </LinearGradient>
+        )}
+      </LinearGradient>
+    </Animated.View>
+  );
+}
+
+export default function WitnessInterview({
+  witnesses,
+  onContinue,
+  mode = "story",
+  onPenalize,
+  scriptureFocus,
+}: Props) {
   const [activeIdx, setActiveIdx] = useState(0);
   const [phase, setPhase] = useState<"statement" | "questions">("statement");
   const [answers, setAnswers] = useState<Record<string, number | null>>({});
@@ -52,7 +208,23 @@ export default function WitnessInterview({ witnesses, onContinue, mode = "story"
   const doneOpacity = useRef(new Animated.Value(0)).current;
 
   const witness = witnesses[activeIdx];
-  const allAnswered = witness.questions.every((q) => submitted[q.id]);
+  const orderedQuestions = React.useMemo(
+    () =>
+      seededShuffle(
+        [
+          ...witness.questions,
+          ...buildSupplementalQuestions(
+            witness.name,
+            witness.role,
+            scriptureFocus ?? "Bible focus",
+            `${witness.id}:${scriptureFocus ?? "bible"}`,
+          ),
+        ],
+        `${witness.id}:${scriptureFocus ?? "bible"}:deck`,
+      ),
+    [witness.id, witness.name, witness.questions, witness.role, scriptureFocus],
+  );
+  const allAnswered = orderedQuestions.every((q) => submitted[q.id]);
 
   const isTimed = mode === "timeAttack";
   const isSurvival = mode === "survival";
@@ -61,21 +233,6 @@ export default function WitnessInterview({ witnesses, onContinue, mode = "story"
     if (submitted[qId]) return;
     setAnswers((p) => ({ ...p, [qId]: idx }));
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  };
-
-  const submit = (qId: string, shakeAnim: () => void, flashAnim: () => void) => {
-    if (answers[qId] == null) return;
-    const q = witness.questions.find((q) => q.id === qId)!;
-    const correct = answers[qId] === q.correctIndex;
-    setSubmitted((p) => ({ ...p, [qId]: true }));
-    if (correct) {
-      flashAnim();
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } else {
-      shakeAnim();
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-      onPenalize?.();
-    }
   };
 
   const nextWitness = () => {
@@ -169,50 +326,25 @@ export default function WitnessInterview({ witnesses, onContinue, mode = "story"
           </View>
         ) : (
           <View style={styles.questions}>
-            {witness.questions.map((q) => {
-              const sel = answers[q.id];
-              const isSubmitted = submitted[q.id];
-              const shake = useShakeAnimation();
-              const flash = useFlashAnimation(colors.green);
-
-              return (
-                <Animated.View key={q.id} style={shake.style}>
-                  <LinearGradient colors={[colors.surface2, colors.surface1]} style={styles.questionCard}>
-                    <View style={[styles.cardBorder, { borderColor: colors.border }]} />
-                    <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: flash.color, opacity: flash.opacity, borderRadius: colors.radius.lg }]} pointerEvents="none" />
-                    <Text style={styles.questionText}>{q.text}</Text>
-                    {q.options.map((opt, idx) => {
-                      const isCorrect = isSubmitted && idx === q.correctIndex;
-                      const isWrong = isSubmitted && idx === sel && idx !== q.correctIndex;
-                      const isSelected = !isSubmitted && sel === idx;
-                      return (
-                        <Pressable key={idx} onPress={() => select(q.id, idx)} style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-                          <LinearGradient
-                            colors={isCorrect ? ["rgba(46,204,142,0.18)", "rgba(46,204,142,0.06)"] : isWrong ? ["rgba(232,64,64,0.18)", "rgba(232,64,64,0.06)"] : isSelected ? ["rgba(212,150,42,0.18)", "rgba(212,150,42,0.06)"] : ["rgba(255,255,255,0.04)", "rgba(255,255,255,0.02)"]}
-                            style={[styles.option, { borderColor: isCorrect ? "rgba(46,204,142,0.5)" : isWrong ? "rgba(232,64,64,0.5)" : isSelected ? colors.goldBorder : colors.border }]}
-                          >
-                            <View style={[styles.optionBullet, { borderColor: isCorrect ? colors.green : isWrong ? colors.red : isSelected ? colors.gold : colors.border, backgroundColor: isCorrect ? "rgba(46,204,142,0.2)" : isWrong ? "rgba(232,64,64,0.2)" : isSelected ? "rgba(212,150,42,0.2)" : "transparent" }]}>
-                              {isCorrect && <Feather name="check" size={10} color={colors.green} />}
-                              {isWrong && <Feather name="x" size={10} color={colors.red} />}
-                            </View>
-                            <Text style={[styles.optionText, { color: isCorrect ? colors.green : isWrong ? colors.red : isSelected ? colors.gold : colors.text }]}>{opt}</Text>
-                          </LinearGradient>
-                        </Pressable>
-                      );
-                    })}
-                    {!isSubmitted ? (
-                      <GoldButton label="Confirm Answer" onPress={() => submit(q.id, shake.trigger, flash.trigger)} disabled={sel == null} size="md" style={styles.submitBtn} />
-                    ) : (
-                      <LinearGradient colors={["rgba(212,150,42,0.12)", "rgba(212,150,42,0.04)"]} style={styles.explanationBox}>
-                        <View style={[styles.explanationBorder, { borderColor: colors.goldBorder }]} />
-                        <Feather name="book-open" size={13} color={colors.gold} />
-                        <Text style={styles.explanationText}>{q.explanation}</Text>
-                      </LinearGradient>
-                    )}
-                  </LinearGradient>
-                </Animated.View>
-              );
-            })}
+            {orderedQuestions.map((q) => (
+              <QuestionCard
+                key={q.id}
+                question={q}
+                selectedAnswer={answers[q.id] ?? null}
+                submitted={!!submitted[q.id]}
+                onSelect={(idx) => select(q.id, idx)}
+                scriptureFocus={scriptureFocus}
+                onSubmit={(correct) => {
+                  setSubmitted((p) => ({ ...p, [q.id]: true }));
+                  if (correct) {
+                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                  } else {
+                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                    onPenalize?.();
+                  }
+                }}
+              />
+            ))}
             {allAnswered && (
               <GoldButton label={activeIdx < witnesses.length - 1 ? "Next Witness" : "All Witnesses Heard"} onPress={nextWitness} icon="arrow-right" size="lg" style={styles.actionBtn} />
             )}
@@ -252,6 +384,23 @@ const styles = StyleSheet.create({
   questions: { gap: 12 },
   questionCard: { borderRadius: colors.radius.lg, padding: 16, position: "relative", overflow: "hidden", gap: 10 },
   questionText: { fontFamily: "Inter_600SemiBold", fontSize: 15, color: colors.text, lineHeight: 22, marginBottom: 2 },
+  referenceChip: {
+    alignSelf: "flex-start",
+    borderRadius: colors.radius.full,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    backgroundColor: "rgba(212,150,42,0.10)",
+    borderWidth: 1,
+    borderColor: "rgba(212,150,42,0.18)",
+    marginBottom: 6,
+  },
+  referenceText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 9,
+    color: colors.gold,
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+  },
   option: { flexDirection: "row", alignItems: "center", gap: 10, padding: 12, borderRadius: colors.radius.md, borderWidth: 1 },
   optionBullet: { width: 22, height: 22, borderRadius: 11, borderWidth: 1.5, alignItems: "center", justifyContent: "center" },
   optionText: { fontFamily: "Inter_400Regular", fontSize: 14, flex: 1, lineHeight: 20 },

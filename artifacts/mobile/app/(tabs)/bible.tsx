@@ -826,19 +826,9 @@ export default function BibleScreen() {
 
           <View style={styles.searchWrap}>
             <LinearGradient
-              colors={["rgba(212,150,42,0.14)", "rgba(255,255,255,0.02)"]}
+              colors={["rgba(212,150,42,0.10)", "rgba(255,255,255,0.02)"]}
               style={styles.searchPanel}
             >
-              <View style={styles.searchPanelHead}>
-                <View>
-                  <Text style={styles.searchPanelLabel}>BOOK FINDER</Text>
-                  <Text style={styles.searchPanelTitle}>Search books or abbreviations</Text>
-                </View>
-                <View style={styles.searchBadge}>
-                  <IconBookOpen size={14} color={colors.gold} />
-                  <Text style={styles.searchBadgeText}>OT / NT</Text>
-                </View>
-              </View>
               <View style={styles.searchBox}>
                 <IconBookOpen size={16} color={colors.gold} />
                 <TextInput
@@ -861,16 +851,6 @@ export default function BibleScreen() {
                     <Text style={styles.clearBtn}>Clear</Text>
                   </Pressable>
                 )}
-              </View>
-              <Text style={styles.searchHint}>
-                Try names like Genesis, short forms like Gen, or book groups like Gospel and Prophets.
-              </Text>
-              <View style={styles.searchExamples}>
-                {["Gen", "Psa", "John", "Rom"].map((item) => (
-                  <View key={item} style={styles.searchExampleChip}>
-                    <Text style={styles.searchExampleText}>{item}</Text>
-                  </View>
-                ))}
               </View>
             </LinearGradient>
           </View>
@@ -1566,48 +1546,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  searchWrap: { paddingHorizontal: 16, marginBottom: 12 },
+  searchWrap: { paddingHorizontal: 16, marginBottom: 10 },
   searchPanel: {
     borderRadius: colors.radius.lg,
-    padding: 14,
+    padding: 10,
     borderWidth: 1,
-    borderColor: "rgba(212,150,42,0.18)",
-    gap: 10,
+    borderColor: "rgba(212,150,42,0.16)",
     overflow: "hidden",
-  },
-  searchPanelHead: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    gap: 10,
-  },
-  searchPanelLabel: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 9,
-    color: colors.gold,
-    letterSpacing: 1.5,
-    marginBottom: 3,
-  },
-  searchPanelTitle: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 16,
-    color: colors.text,
-  },
-  searchBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    backgroundColor: colors.surface2,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: colors.radius.full,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  searchBadgeText: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 10,
-    color: colors.textMuted,
   },
   searchBox: {
     flexDirection: "row",
@@ -1615,8 +1560,8 @@ const styles = StyleSheet.create({
     gap: 10,
     backgroundColor: colors.surface2,
     borderRadius: colors.radius.md,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingHorizontal: 13,
+    paddingVertical: 11,
     borderWidth: 1,
     borderColor: colors.border,
   },
@@ -1630,31 +1575,6 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_600SemiBold",
     fontSize: 11,
     color: colors.gold,
-  },
-  searchHint: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 11,
-    color: colors.textMuted,
-    lineHeight: 16,
-  },
-  searchExamples: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginTop: 2,
-  },
-  searchExampleChip: {
-    borderRadius: colors.radius.full,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    backgroundColor: "rgba(255,255,255,0.05)",
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  searchExampleText: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 10,
-    color: colors.textMuted,
   },
   testamentTabs: {
     flexDirection: "row",

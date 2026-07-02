@@ -227,6 +227,7 @@ export default function CaseScreen() {
             onContinue={() => setStep("timeline")}
             mode={gameMode}
             onPenalize={penalizeTime}
+            scriptureFocus={caseData.bibleReference}
           />
         )}
         {step === "timeline" && (
@@ -235,6 +236,7 @@ export default function CaseScreen() {
             onContinue={() => setStep("suspects")}
             mode={gameMode}
             onPenalize={penalizeTime}
+            seedKey={`${caseData.id}:${caseData.bibleReference}`}
           />
         )}
         {step === "suspects" && (

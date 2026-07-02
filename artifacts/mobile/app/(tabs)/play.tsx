@@ -7,6 +7,7 @@ import colors from "@/constants/colors";
 import { getRankForLevel } from "@/constants/ranks";
 import { useGame } from "@/context/GameContext";
 import { CASES } from "@/data/cases";
+import { BIBLE_BOOKS } from "@/data/bibleBooks";
 import {
   IconBook, IconCalendar, IconClock, IconHeart, IconUsers, IconMap, IconScroll, IconUser,
   IconFire, RankIcon, IconZap, IconLock, IconArrowRight, IconInfo,
@@ -62,8 +63,12 @@ export default function PlayScreen() {
   const daily = getDailyCase();
   const dailyIdx = CASES.findIndex((c) => c.id === daily.id);
   const isDailyLocked = isCaseLocked(daily.id, dailyIdx);
+  const storyUnlocked = solvedCases.length >= CASES.length;
   const rank = getRankForLevel(level);
   const [expandedMode, setExpandedMode] = useState<string | null>(null);
+  const bibleBooksTotal = BIBLE_BOOKS.length;
+  const otBooks = BIBLE_BOOKS.filter((book) => book.testament === "OT").length;
+  const ntBooks = BIBLE_BOOKS.filter((book) => book.testament === "NT").length;
 
   const headerAnim = useEntrance(0);
   const dailyAnim = useEntrance(80);
@@ -75,14 +80,16 @@ export default function PlayScreen() {
     {
       icon: <IconBook size={28} color={colors.gold} />,
       title: "Story Mode",
-      desc: "Journey through Scripture case by case",
+      desc: "Journey through the full 66-book Bible",
       color: colors.gold,
       gradient: ["rgba(212,150,42,0.18)", "rgba(212,150,42,0.05)"] as const,
       border: colors.goldBorder,
-      available: true,
-      badge: null,
-      onPress: () => router.push("/(tabs)" as any),
-      howTo: "Unlock and solve all 6 cases in order. Each case must be completed to unlock the next.",
+      available: storyUnlocked,
+      badge: storyUnlocked ? null : "LOCKED",
+      onPress: storyUnlocked ? () => router.push("/story" as any) : null,
+      howTo: storyUnlocked
+        ? "Play the Bible Chronicle once every case is finished. It becomes a separate full-Bible journey."
+        : `Unlock by solving all ${CASES.length} cases first. Story Mode is a separate Bible Chronicle journey.`,
     },
     {
       icon: <IconCalendar size={28} color={colors.blue} />,
@@ -259,6 +266,35 @@ export default function PlayScreen() {
         )}
 
         <Animated.View style={xpAnim}>
+          <View style={styles.sectionRow}>
+            <View style={[styles.sectionAccent, { backgroundColor: colors.gold }]} />
+            <Text style={styles.sectionTitle}>Bible Journey</Text>
+          </View>
+          <LinearGradient colors={["rgba(212,150,42,0.12)", "rgba(255,255,255,0.03)"]} style={styles.journeyCard}>
+            <View style={[styles.journeyBorder, { borderColor: colors.goldBorder }]} />
+            <View style={styles.journeyTop}>
+              <View style={styles.journeyCount}>
+                <Text style={styles.journeyCountNum}>{bibleBooksTotal}</Text>
+                <Text style={styles.journeyCountLabel}>Books</Text>
+              </View>
+              <View style={styles.journeyStats}>
+                <View style={styles.journeyStatRow}>
+                  <Text style={styles.journeyStatLabel}>Old Testament</Text>
+                  <Text style={styles.journeyStatValue}>{otBooks}</Text>
+                </View>
+                <View style={styles.journeyStatRow}>
+                  <Text style={styles.journeyStatLabel}>New Testament</Text>
+                  <Text style={styles.journeyStatValue}>{ntBooks}</Text>
+                </View>
+              </View>
+            </View>
+            <Text style={styles.journeyText}>
+              Story Mode covers the full Bible story across 66 books, from creation to revelation.
+            </Text>
+          </LinearGradient>
+        </Animated.View>
+
+        <Animated.View style={xpAnim}>
           <LinearGradient colors={[colors.surface2, colors.surface1]} style={styles.xpBanner}>
             <View style={[styles.xpBannerBorder, { borderColor: colors.border }]} />
             <RankIcon id={rank.svgIcon} size={18} color={rank.color} />
@@ -305,11 +341,17 @@ export default function PlayScreen() {
                             <IconInfo size={13} color={mode.color} />
                             <Text style={[styles.modeExpandedText, { color: mode.color }]}>{mode.howTo}</Text>
                           </View>
-                          {mode.available && mode.onPress && (
+                {mode.available && mode.onPress && (
                             <Pressable onPress={mode.onPress} style={[styles.modeLaunchBtn, { backgroundColor: `${mode.color}20`, borderColor: `${mode.color}50` }]}>
                               <Text style={[styles.modeLaunchText, { color: mode.color }]}>Start</Text>
                               <IconArrowRight size={13} color={mode.color} />
                             </Pressable>
+                          )}
+                          {!mode.available && (
+                            <View style={[styles.modeLaunchBtn, { backgroundColor: "rgba(122,133,163,0.12)", borderColor: colors.border }]}>
+                              <IconLock size={13} color={colors.textMuted} />
+                              <Text style={[styles.modeLaunchText, { color: colors.textMuted }]}>Locked</Text>
+                            </View>
                           )}
                         </View>
                       )}
@@ -430,6 +472,17 @@ const styles = StyleSheet.create({
   xpBannerBar: { flex: 1, height: 4, backgroundColor: colors.surface3, borderRadius: 2, overflow: "hidden" },
   xpBannerFill: { height: 4, borderRadius: 2 },
   xpBannerVal: { fontFamily: "Inter_400Regular", fontSize: 11, color: colors.textMuted },
+  journeyCard: { borderRadius: colors.radius.lg, padding: 14, marginBottom: 20, position: "relative", overflow: "hidden", gap: 10 },
+  journeyBorder: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, borderWidth: 1, borderRadius: colors.radius.lg },
+  journeyTop: { flexDirection: "row", alignItems: "center", gap: 12 },
+  journeyCount: { width: 72, height: 72, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(212,150,42,0.12)", borderWidth: 1, borderColor: colors.goldBorder },
+  journeyCountNum: { fontFamily: "Inter_700Bold", fontSize: 24, color: colors.gold, lineHeight: 28 },
+  journeyCountLabel: { fontFamily: "Inter_600SemiBold", fontSize: 10, color: colors.gold, letterSpacing: 1.2 },
+  journeyStats: { flex: 1, gap: 8 },
+  journeyStatRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  journeyStatLabel: { fontFamily: "Inter_500Medium", fontSize: 12, color: colors.textMuted },
+  journeyStatValue: { fontFamily: "Inter_700Bold", fontSize: 16, color: colors.text },
+  journeyText: { fontFamily: "Inter_400Regular", fontSize: 12, color: colors.textMuted, lineHeight: 18 },
   modesGrid: { flexDirection: "row", flexWrap: "wrap", gap: "4%" as any, rowGap: 10, marginBottom: 22 },
   modeCard: { borderRadius: colors.radius.lg, padding: 14, gap: 6, borderWidth: 1 },
   modeCardTop: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" },

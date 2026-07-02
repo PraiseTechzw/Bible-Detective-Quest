@@ -6,6 +6,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import colors from "@/constants/colors";
 import GoldButton from "@/components/ui/GoldButton";
 import type { TimelineEvent } from "@/data/cases";
+import { orderTimelineEvents } from "@/data/gameAlgorithms";
 
 import type { GameMode } from "@/context/GameContext";
 
@@ -14,19 +15,20 @@ interface Props {
   onContinue: () => void;
   mode?: GameMode;
   onPenalize?: () => void;
+  seedKey?: string;
 }
 
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-export default function TimelinePuzzle({ events, onContinue, mode = "story", onPenalize }: Props) {
-  const shuffled = useMemo(() => shuffle(events), [events]);
+export default function TimelinePuzzle({
+  events,
+  onContinue,
+  mode = "story",
+  onPenalize,
+  seedKey,
+}: Props) {
+  const shuffled = useMemo(
+    () => orderTimelineEvents(events, seedKey ?? events.map((e) => e.id).join("|")),
+    [events, seedKey],
+  );
   const [order, setOrder] = useState<(string | null)[]>(Array(events.length).fill(null));
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState(0);
