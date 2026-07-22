@@ -150,6 +150,46 @@ const TOOLS: ToolCard[] = [
     glow: colors.redGlow,
     icon: <IconScroll size={20} color={colors.red} />,
   },
+  {
+    id: "timeline",
+    label: "Bible Timeline",
+    desc: "30 events from Creation to Revelation",
+    color: colors.amber,
+    glow: "rgba(245,166,35,0.2)",
+    icon: <IconTrendingUp size={20} color={colors.amber} />,
+  },
+  {
+    id: "topics",
+    label: "Topical Bible",
+    desc: "Verses grouped by theme",
+    color: colors.green,
+    glow: colors.greenGlow,
+    icon: <IconBookOpen size={20} color={colors.green} />,
+  },
+  {
+    id: "calendar",
+    label: "Jewish Feasts",
+    desc: "7 feasts & Messianic fulfilment",
+    color: colors.gold,
+    glow: colors.goldGlow,
+    icon: <IconCalendar size={20} color={colors.gold} />,
+  },
+  {
+    id: "crossrefs",
+    label: "Cross References",
+    desc: "Scripture chain connections",
+    color: colors.blue,
+    glow: colors.blueGlow,
+    icon: <IconScroll size={20} color={colors.blue} />,
+  },
+  {
+    id: "prayer",
+    label: "Prayer Journal",
+    desc: "Track your prayer requests",
+    color: colors.purple,
+    glow: colors.purpleGlow,
+    icon: <IconStar size={20} color={colors.purple} />,
+  },
 ];
 
 interface Props {

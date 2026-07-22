@@ -44,6 +44,11 @@ import CharacterProfiles from "@/components/bible/CharacterProfiles";
 import BookmarksView from "@/components/bible/BookmarksView";
 import SermonNotes from "@/components/bible/SermonNotes";
 import BibleDictionary from "@/components/bible/BibleDictionary";
+import PrayerJournal from "@/components/bible/PrayerJournal";
+import BibleTimeline from "@/components/bible/BibleTimeline";
+import BibleTopics from "@/components/bible/BibleTopics";
+import BibleCalendar from "@/components/bible/BibleCalendar";
+import CrossReferences from "@/components/bible/CrossReferences";
 import { useBible } from "@/context/BibleContext";
 import { TranslationId, TRANSLATIONS } from "@/constants/translations";
 import { HIGHLIGHT_COLORS } from "@/data/highlightColors";
@@ -62,7 +67,12 @@ type BibleView =
   | "reader"
   | "saved"
   | "sermons"
-  | "dictionary";
+  | "dictionary"
+  | "prayer"
+  | "timeline"
+  | "topics"
+  | "calendar"
+  | "crossrefs";
 type SavedTab = "bookmarks" | "highlights" | "notes";
 
 function getBooksForCategory(books: BibleBook[], category: string) {
@@ -735,6 +745,21 @@ export default function BibleScreen() {
         case "sermons":
           setView("sermons");
           break;
+        case "prayer":
+          setView("prayer");
+          break;
+        case "timeline":
+          setView("timeline");
+          break;
+        case "topics":
+          setView("topics");
+          break;
+        case "calendar":
+          setView("calendar");
+          break;
+        case "crossrefs":
+          setView("crossrefs");
+          break;
         case "bookmarks":
           openSavedScreen("bookmarks");
           break;
@@ -984,6 +1009,41 @@ export default function BibleScreen() {
 
       {view === "characters" && (
         <CharacterProfiles
+          onBack={() => setView("tools")}
+          topPad={topPad}
+        />
+      )}
+
+      {view === "prayer" && (
+        <PrayerJournal
+          onBack={() => setView("tools")}
+          topPad={topPad}
+        />
+      )}
+
+      {view === "timeline" && (
+        <BibleTimeline
+          onBack={() => setView("tools")}
+          topPad={topPad}
+        />
+      )}
+
+      {view === "topics" && (
+        <BibleTopics
+          onBack={() => setView("tools")}
+          topPad={topPad}
+        />
+      )}
+
+      {view === "calendar" && (
+        <BibleCalendar
+          onBack={() => setView("tools")}
+          topPad={topPad}
+        />
+      )}
+
+      {view === "crossrefs" && (
+        <CrossReferences
           onBack={() => setView("tools")}
           topPad={topPad}
         />
