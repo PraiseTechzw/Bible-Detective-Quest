@@ -32,11 +32,11 @@ function BadgeCard({ badge, owned }: { badge: typeof BADGE_DEFS[0]; owned: boole
       <LinearGradient colors={owned ? [badge.gradTop, badge.gradBot] : [colors.surface2, colors.surface1]} style={badgeStyles.card}>
         <View style={[badgeStyles.border, { borderColor: owned ? badge.rimColor : colors.border }]} />
         {owned && <Animated.View style={[badgeStyles.glowRing, { backgroundColor: badge.rimColor, opacity: glow }]} />}
-        <LinearGradient colors={owned ? [badge.rimColor + "60", badge.rimColor + "18"] : [colors.surface3, colors.surface2]} style={badgeStyles.medallionOuter}>
-          <View style={[badgeStyles.medallionInner, { borderColor: owned ? badge.rimColor : colors.border, backgroundColor: owned ? badge.gradTop : colors.surface3 }]}>
-            {owned ? <BadgeIcon id={badge.svgIcon} size={28} color={badge.rimColor} rimColor={badge.gradTop} /> : <IconLock size={22} color={colors.textFaint} />}
-          </View>
-        </LinearGradient>
+        <View style={badgeStyles.badgeIconWrap}>
+          {owned
+            ? <BadgeIcon id={badge.svgIcon} size={64} />
+            : <IconLock size={28} color={colors.textFaint} />}
+        </View>
         <Text style={[badgeStyles.name, { color: owned ? colors.text : colors.textFaint }]} numberOfLines={2}>{badge.name}</Text>
         <Text style={[badgeStyles.desc, { color: owned ? colors.textMuted : colors.textFaint }]} numberOfLines={2}>{badge.desc}</Text>
         <View style={[badgeStyles.rarityPill, { backgroundColor: owned ? badge.rarityColor + "22" : "transparent", borderColor: owned ? badge.rarityColor + "55" : colors.border }]}>
@@ -49,11 +49,10 @@ function BadgeCard({ badge, owned }: { badge: typeof BADGE_DEFS[0]; owned: boole
 }
 const badgeStyles = StyleSheet.create({
   wrap: { width: "48%", position: "relative" },
-  card: { borderRadius: colors.radius.lg, padding: 14, alignItems: "center", gap: 7, position: "relative", overflow: "hidden", minHeight: 180 },
+  card: { borderRadius: colors.radius.lg, padding: 14, alignItems: "center", gap: 7, position: "relative", overflow: "hidden", minHeight: 210 },
   border: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, borderWidth: 1.5, borderRadius: colors.radius.lg },
-  glowRing: { position: "absolute", top: 18, width: 66, height: 66, borderRadius: 33 },
-  medallionOuter: { width: 72, height: 72, borderRadius: 36, alignItems: "center", justifyContent: "center", marginTop: 4 },
-  medallionInner: { width: 58, height: 58, borderRadius: 29, alignItems: "center", justifyContent: "center", borderWidth: 2 },
+  glowRing: { position: "absolute", top: 8, width: 80, height: 80, borderRadius: 40, opacity: 0.35 },
+  badgeIconWrap: { height: 78, alignItems: "center", justifyContent: "center", marginTop: 4 },
   name: { fontFamily: "Inter_700Bold", fontSize: 12, textAlign: "center", lineHeight: 16 },
   desc: { fontFamily: "Inter_400Regular", fontSize: 9, textAlign: "center", lineHeight: 13 },
   rarityPill: { borderWidth: 1, borderRadius: colors.radius.full, paddingHorizontal: 7, paddingVertical: 2 },
