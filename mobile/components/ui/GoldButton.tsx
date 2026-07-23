@@ -1,13 +1,22 @@
-import { Feather } from "@expo/vector-icons";
+import { Feather, Ionicons, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, ViewStyle } from "react-native";
 import colors from "@/constants/colors";
 
+type IconFamily = "feather" | "ionicons" | "material-community" | "font-awesome-5";
+
+type IconName =
+  | keyof typeof Feather.glyphMap
+  | keyof typeof Ionicons.glyphMap
+  | keyof typeof MaterialCommunityIcons.glyphMap
+  | keyof typeof FontAwesome5.glyphMap;
+
 interface Props {
   label: string;
   onPress: () => void;
-  icon?: keyof typeof Feather.glyphMap;
+  icon?: IconName;
+  iconFamily?: IconFamily;
   iconRight?: boolean;
   disabled?: boolean;
   loading?: boolean;
@@ -19,10 +28,36 @@ interface Props {
 const SIZE_PY: Record<string, number> = { sm: 10, md: 14, lg: 18 };
 const SIZE_FS: Record<string, number> = { sm: 13, md: 15, lg: 17 };
 
+function renderIcon(
+  family: IconFamily,
+  name: IconName,
+  size: number,
+  color: string
+) {
+  switch (family) {
+    case "ionicons":
+      return <Ionicons name={name as keyof typeof Ionicons.glyphMap} size={size} color={color} />;
+    case "material-community":
+      return (
+        <MaterialCommunityIcons
+          name={name as keyof typeof MaterialCommunityIcons.glyphMap}
+          size={size}
+          color={color}
+        />
+      );
+    case "font-awesome-5":
+      return <FontAwesome5 name={name as keyof typeof FontAwesome5.glyphMap} size={size} color={color} />;
+    case "feather":
+    default:
+      return <Feather name={name as keyof typeof Feather.glyphMap} size={size} color={color} />;
+  }
+}
+
 export default function GoldButton({
   label,
   onPress,
   icon,
+  iconFamily = "feather",
   iconRight = true,
   disabled = false,
   loading = false,
@@ -35,6 +70,7 @@ export default function GoldButton({
   const isDisabled = disabled || loading;
 
   if (variant === "outline") {
+    const color = isDisabled ? colors.textFaint : colors.gold;
     return (
       <Pressable
         onPress={isDisabled ? undefined : onPress}
@@ -44,9 +80,9 @@ export default function GoldButton({
           style,
         ]}
       >
-        {icon && !iconRight && <Feather name={icon} size={fs} color={isDisabled ? colors.textFaint : colors.gold} />}
-        <Text style={[styles.label, { fontSize: fs, color: isDisabled ? colors.textFaint : colors.gold }]}>{label}</Text>
-        {icon && iconRight && <Feather name={icon} size={fs} color={isDisabled ? colors.textFaint : colors.gold} />}
+        {icon && !iconRight && renderIcon(iconFamily, icon, fs, color)}
+        <Text style={[styles.label, { fontSize: fs, color }]}>{label}</Text>
+        {icon && iconRight && renderIcon(iconFamily, icon, fs, color)}
       </Pressable>
     );
   }
@@ -61,9 +97,9 @@ export default function GoldButton({
           style,
         ]}
       >
-        {icon && !iconRight && <Feather name={icon} size={fs} color={colors.textMuted} />}
+        {icon && !iconRight && renderIcon(iconFamily, icon, fs, colors.textMuted)}
         <Text style={[styles.label, { fontSize: fs, color: colors.textMuted }]}>{label}</Text>
-        {icon && iconRight && <Feather name={icon} size={fs} color={colors.textMuted} />}
+        {icon && iconRight && renderIcon(iconFamily, icon, fs, colors.textMuted)}
       </Pressable>
     );
   }
@@ -73,6 +109,8 @@ export default function GoldButton({
     : isDisabled
     ? (["#2A3050", "#1A2038"] as const)
     : colors.goldGradient;
+
+  const solidColor = isDisabled ? colors.textFaint : "#000";
 
   return (
     <Pressable
@@ -86,12 +124,12 @@ export default function GoldButton({
         end={{ x: 1, y: 0 }}
       >
         {loading ? (
-          <ActivityIndicator size="small" color={isDisabled ? colors.textFaint : "#000"} />
+          <ActivityIndicator size="small" color={solidColor} />
         ) : (
           <>
-            {icon && !iconRight && <Feather name={icon} size={fs} color={isDisabled ? colors.textFaint : "#000"} />}
-            <Text style={[styles.label, { fontSize: fs, color: isDisabled ? colors.textFaint : "#000" }]}>{label}</Text>
-            {icon && iconRight && <Feather name={icon} size={fs} color={isDisabled ? colors.textFaint : "#000"} />}
+            {icon && !iconRight && renderIcon(iconFamily, icon, fs, solidColor)}
+            <Text style={[styles.label, { fontSize: fs, color: solidColor }]}>{label}</Text>
+            {icon && iconRight && renderIcon(iconFamily, icon, fs, solidColor)}
           </>
         )}
       </LinearGradient>

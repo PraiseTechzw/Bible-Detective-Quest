@@ -8,11 +8,12 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { StatusBar } from "expo-status-bar";
+import { StatusBar } from "react-native";
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { View } from "react-native";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { GameProvider, useGame } from "@/context/GameContext";
@@ -63,18 +64,20 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <StatusBar hidden />
+      <StatusBar hidden translucent backgroundColor="transparent" />
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <KeyboardProvider>
-              <GameProvider>
-                <BibleProvider>
-                  <RootLayoutNav />
-                </BibleProvider>
-              </GameProvider>
-            </KeyboardProvider>
-          </GestureHandlerRootView>
+          <View style={{ flex: 1, backgroundColor: "#0D0D12" }}>
+            <GestureHandlerRootView style={{ flex: 1 }}>
+              <KeyboardProvider>
+                <GameProvider>
+                  <BibleProvider>
+                    <RootLayoutNav />
+                  </BibleProvider>
+                </GameProvider>
+              </KeyboardProvider>
+            </GestureHandlerRootView>
+          </View>
         </QueryClientProvider>
       </ErrorBoundary>
     </SafeAreaProvider>

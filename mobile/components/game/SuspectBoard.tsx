@@ -13,13 +13,24 @@ interface Props {
 }
 
 type EvidStr = "High" | "Medium" | "Low";
-const STR: Record<EvidStr, { color: string; icon: keyof typeof Feather.glyphMap; label: string }> = {
+const STR: Record<
+  EvidStr,
+  { color: string; icon: keyof typeof Feather.glyphMap; label: string }
+> = {
   High: { color: colors.red, icon: "alert-triangle", label: "High Evidence" },
-  Medium: { color: colors.amber, icon: "alert-circle", label: "Medium Evidence" },
+  Medium: {
+    color: colors.amber,
+    icon: "alert-circle",
+    label: "Medium Evidence",
+  },
   Low: { color: colors.green, icon: "check-circle", label: "Low Evidence" },
 };
 
-export default function SuspectBoard({ suspects, suspectNames, onContinue }: Props) {
+export default function SuspectBoard({
+  suspects,
+  suspectNames,
+  onContinue,
+}: Props) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [reviewed, setReviewed] = useState<Set<string>>(new Set());
 
@@ -38,10 +49,14 @@ export default function SuspectBoard({ suspects, suspectNames, onContinue }: Pro
           <View style={[styles.accent, { backgroundColor: colors.red }]} />
           <Text style={styles.subHeaderTitle}>Suspect Board</Text>
           <View style={styles.progressChip}>
-            <Text style={styles.progressText}>{reviewed.size}/{suspects.length}</Text>
+            <Text style={styles.progressText}>
+              {reviewed.size}/{suspects.length}
+            </Text>
           </View>
         </View>
-        <Text style={styles.hint}>Review every suspect before delivering your verdict</Text>
+        <Text style={styles.hint}>
+          Review every suspect before delivering your verdict
+        </Text>
       </LinearGradient>
 
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -54,16 +69,33 @@ export default function SuspectBoard({ suspects, suspectNames, onContinue }: Pro
             <Pressable
               key={suspect.name}
               onPress={() => toggle(suspect.name)}
-              style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1, marginBottom: 10 })}
+              style={({ pressed }) => ({
+                opacity: pressed ? 0.85 : 1,
+                marginBottom: 10,
+              })}
             >
               <LinearGradient
-                colors={isOpen ? ["#261414", "#160C0C"] : [colors.surface2, colors.surface1]}
+                colors={
+                  isOpen
+                    ? ["#261414", "#160C0C"]
+                    : [colors.surface2, colors.surface1]
+                }
                 style={styles.card}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <View style={[styles.cardBorder, { borderColor: isOpen ? `${str.color}50` : colors.border }]} />
-                <View style={[styles.leftBar, { backgroundColor: isOpen ? str.color : colors.textFaint }]} />
+                <View
+                  style={[
+                    styles.cardBorder,
+                    { borderColor: isOpen ? `${str.color}50` : colors.border },
+                  ]}
+                />
+                <View
+                  style={[
+                    styles.leftBar,
+                    { backgroundColor: isOpen ? str.color : colors.textFaint },
+                  ]}
+                />
 
                 <View style={styles.cardInner}>
                   <View style={styles.cardTop}>
@@ -77,25 +109,46 @@ export default function SuspectBoard({ suspects, suspectNames, onContinue }: Pro
                       <Text style={styles.suspectName}>{suspect.name}</Text>
                       <View style={styles.strengthRow}>
                         <Feather name={str.icon} size={11} color={str.color} />
-                        <Text style={[styles.strengthText, { color: str.color }]}>{str.label}</Text>
+                        <Text
+                          style={[styles.strengthText, { color: str.color }]}
+                        >
+                          {str.label}
+                        </Text>
                       </View>
                     </View>
                     <View style={styles.cardRight}>
-                      {isReviewed && <Feather name="check-circle" size={13} color={colors.green} />}
-                      <Feather name={isOpen ? "chevron-up" : "chevron-down"} size={16} color={colors.textMuted} />
+                      {isReviewed && (
+                        <Feather
+                          name="check-circle"
+                          size={13}
+                          color={colors.green}
+                        />
+                      )}
+                      <Feather
+                        name={isOpen ? "chevron-up" : "chevron-down"}
+                        size={16}
+                        color={colors.textMuted}
+                      />
                     </View>
                   </View>
 
                   {isOpen && (
                     <View style={styles.expandedContent}>
-                      <View style={[styles.divider, { backgroundColor: colors.border }]} />
+                      <View
+                        style={[
+                          styles.divider,
+                          { backgroundColor: colors.border },
+                        ]}
+                      />
                       <View style={styles.infoRow}>
                         <Text style={styles.infoLabel}>MOTIVE</Text>
                         <Text style={styles.infoText}>{suspect.motive}</Text>
                       </View>
                       <View style={styles.infoRow}>
                         <Text style={styles.infoLabel}>ANALYSIS</Text>
-                        <Text style={styles.infoText}>{suspect.description}</Text>
+                        <Text style={styles.infoText}>
+                          {suspect.description}
+                        </Text>
                       </View>
                     </View>
                   )}
@@ -117,7 +170,8 @@ export default function SuspectBoard({ suspects, suspectNames, onContinue }: Pro
         <GoldButton
           label="Deliver Verdict"
           onPress={allReviewed ? onContinue : () => {}}
-          icon="scale"
+          icon="scale-balance"
+          iconFamily="material-community"
           iconRight={false}
           disabled={!allReviewed}
           size="lg"
@@ -131,9 +185,19 @@ export default function SuspectBoard({ suspects, suspectNames, onContinue }: Pro
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   subHeader: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 12 },
-  subHeaderRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 },
+  subHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 4,
+  },
   accent: { width: 3, height: 18, borderRadius: 2 },
-  subHeaderTitle: { fontFamily: "Inter_700Bold", fontSize: 18, color: colors.text, flex: 1 },
+  subHeaderTitle: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 18,
+    color: colors.text,
+    flex: 1,
+  },
   progressChip: {
     backgroundColor: colors.surface3,
     borderRadius: colors.radius.full,
@@ -142,8 +206,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  progressText: { fontFamily: "Inter_600SemiBold", fontSize: 11, color: colors.textMuted },
-  hint: { fontFamily: "Inter_400Regular", fontSize: 12, color: colors.textMuted },
+  progressText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 11,
+    color: colors.textMuted,
+  },
+  hint: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+    color: colors.textMuted,
+  },
   scroll: { flex: 1, paddingHorizontal: 16 },
   card: {
     borderRadius: colors.radius.lg,
@@ -153,7 +225,10 @@ const styles = StyleSheet.create({
   },
   cardBorder: {
     position: "absolute",
-    top: 0, left: 0, right: 0, bottom: 0,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     borderWidth: 1,
     borderRadius: colors.radius.lg,
   },
@@ -168,22 +243,49 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   suspectInfo: { flex: 1 },
-  suspectName: { fontFamily: "Inter_700Bold", fontSize: 16, color: colors.text },
-  strengthRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 },
+  suspectName: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 16,
+    color: colors.text,
+  },
+  strengthRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 2,
+  },
   strengthText: { fontFamily: "Inter_500Medium", fontSize: 12 },
   cardRight: { flexDirection: "row", alignItems: "center", gap: 6 },
   expandedContent: { marginTop: 12, gap: 10 },
   divider: { height: 1, marginBottom: 4 },
   infoRow: { gap: 3 },
-  infoLabel: { fontFamily: "Inter_600SemiBold", fontSize: 9, color: colors.textMuted, letterSpacing: 1.5 },
-  infoText: { fontFamily: "Inter_400Regular", fontSize: 14, color: colors.text, lineHeight: 22 },
+  infoLabel: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 9,
+    color: colors.textMuted,
+    letterSpacing: 1.5,
+  },
+  infoText: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    color: colors.text,
+    lineHeight: 22,
+  },
   footer: {
     position: "absolute",
-    bottom: 0, left: 0, right: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
     paddingTop: 40,
     paddingHorizontal: 16,
     paddingBottom: 24,
   },
-  footerHint: { fontFamily: "Inter_400Regular", fontSize: 12, color: colors.textMuted, textAlign: "center", marginBottom: 8 },
+  footerHint: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+    color: colors.textMuted,
+    textAlign: "center",
+    marginBottom: 8,
+  },
   btn: { width: "100%" },
 });
