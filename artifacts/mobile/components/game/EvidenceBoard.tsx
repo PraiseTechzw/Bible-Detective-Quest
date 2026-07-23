@@ -17,8 +17,14 @@ import colors from "@/constants/colors";
 import GoldButton from "@/components/ui/GoldButton";
 import type { Evidence } from "@/data/cases";
 
-if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
+if (Platform.OS === "android") {
+  const layoutAnimationEnabled =
+    typeof UIManager?.setLayoutAnimationEnabledExperimental === "function" &&
+    Platform.OS === "android";
+
+  if (layoutAnimationEnabled) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
 }
 
 interface Props {
