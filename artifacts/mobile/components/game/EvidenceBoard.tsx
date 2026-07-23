@@ -18,12 +18,19 @@ import GoldButton from "@/components/ui/GoldButton";
 import type { Evidence } from "@/data/cases";
 
 if (Platform.OS === "android") {
+  const isFabricEnabled = Boolean(
+    (globalThis as typeof globalThis & { nativeFabricUIManager?: unknown })
+      .nativeFabricUIManager,
+  );
+
+  const setLayoutAnimationEnabledExperimental =
+    UIManager?.setLayoutAnimationEnabledExperimental;
   const layoutAnimationEnabled =
-    typeof UIManager?.setLayoutAnimationEnabledExperimental === "function" &&
-    Platform.OS === "android";
+    !isFabricEnabled &&
+    typeof setLayoutAnimationEnabledExperimental === "function";
 
   if (layoutAnimationEnabled) {
-    UIManager.setLayoutAnimationEnabledExperimental(true);
+    setLayoutAnimationEnabledExperimental(true);
   }
 }
 
@@ -43,7 +50,10 @@ type IconRef =
 // Feather itself. We only special-case the handful of concepts Feather has no
 // glyph for at all (there is no "fire" in Feather, for instance), pulling from
 // MaterialCommunityIcons — a much larger set — for those specific overrides.
-const MDI_OVERRIDES: Record<string, keyof typeof MaterialCommunityIcons.glyphMap> = {
+const MDI_OVERRIDES: Record<
+  string,
+  keyof typeof MaterialCommunityIcons.glyphMap
+> = {
   fire: "fire",
   fire2: "fire",
   snake: "snake",
@@ -84,7 +94,15 @@ function resolveIcon(iconKey: string): IconRef {
   return { set: "feather", name: "circle" };
 }
 
-function ItemIcon({ iconKey, size, color }: { iconKey: string; size: number; color: string }) {
+function ItemIcon({
+  iconKey,
+  size,
+  color,
+}: {
+  iconKey: string;
+  size: number;
+  color: string;
+}) {
   const ref = resolveIcon(iconKey);
   if (ref.set === "mdi") {
     return <MaterialCommunityIcons name={ref.name} size={size} color={color} />;
@@ -98,7 +116,13 @@ function exhibitLabel(i: number) {
 
 /* ------------------------------ progress bar ------------------------------ */
 
-function AnimatedProgressBar({ ratio, complete }: { ratio: number; complete: boolean }) {
+function AnimatedProgressBar({
+  ratio,
+  complete,
+}: {
+  ratio: number;
+  complete: boolean;
+}) {
   const widthAnim = useRef(new Animated.Value(ratio)).current;
 
   useEffect(() => {
@@ -114,14 +138,21 @@ function AnimatedProgressBar({ ratio, complete }: { ratio: number; complete: boo
     <View style={styles.progressBar}>
       <Animated.View
         style={{
-          width: widthAnim.interpolate({ inputRange: [0, 1], outputRange: ["0%", "100%"] }),
+          width: widthAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: ["0%", "100%"],
+          }),
           height: "100%",
           borderRadius: 2,
           overflow: "hidden",
         }}
       >
         <LinearGradient
-          colors={complete ? [colors.gold, colors.goldLight ?? colors.gold] : [colors.blue, "#6A9EFF"]}
+          colors={
+            complete
+              ? [colors.gold, colors.goldLight ?? colors.gold]
+              : [colors.blue, "#6A9EFF"]
+          }
           style={{ flex: 1 }}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
@@ -162,30 +193,65 @@ function EvidenceCard({
 
   useEffect(() => {
     if (isViewed) {
-      Animated.spring(checkPop, { toValue: 1, useNativeDriver: true, friction: 5, tension: 160 }).start();
+      Animated.spring(checkPop, {
+        toValue: 1,
+        useNativeDriver: true,
+        friction: 5,
+        tension: 160,
+      }).start();
     }
   }, [isViewed, checkPop]);
 
-  const rotate = chevronAnim.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "180deg"] });
+  const rotate = chevronAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "180deg"],
+  });
 
   return (
     <Animated.View
       style={{
         opacity: entranceAnim,
-        transform: [{ translateY: entranceAnim.interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) }],
+        transform: [
+          {
+            translateY: entranceAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [14, 0],
+            }),
+          },
+        ],
         marginBottom: 10,
       }}
     >
-      <Pressable onPress={onToggle} style={({ pressed }) => ({ opacity: pressed ? 0.88 : 1 })}>
+      <Pressable
+        onPress={onToggle}
+        style={({ pressed }) => ({ opacity: pressed ? 0.88 : 1 })}
+      >
         <LinearGradient
-          colors={isOpen ? ["#182038", "#101828"] : [colors.surface2, colors.surface1]}
+          colors={
+            isOpen ? ["#182038", "#101828"] : [colors.surface2, colors.surface1]
+          }
           style={styles.card}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         >
-          <View style={[styles.cardBorder, { borderColor: isOpen ? colors.goldBorder : colors.border }]} />
-          <View style={[styles.exhibitTag, { borderColor: isOpen ? colors.goldBorder : colors.border }]}>
-            <Text style={[styles.exhibitTagText, { color: isOpen ? colors.gold : colors.textFaint }]}>
+          <View
+            style={[
+              styles.cardBorder,
+              { borderColor: isOpen ? colors.goldBorder : colors.border },
+            ]}
+          />
+          <View
+            style={[
+              styles.exhibitTag,
+              { borderColor: isOpen ? colors.goldBorder : colors.border },
+            ]}
+          >
+            <Text
+              style={[
+                styles.exhibitTagText,
+                { color: isOpen ? colors.gold : colors.textFaint },
+              ]}
+            >
               EX. {exhibitLabel(index)}
             </Text>
           </View>
@@ -199,11 +265,20 @@ function EvidenceCard({
               }
               style={styles.iconBg}
             >
-              <ItemIcon iconKey={item.icon} size={18} color={isOpen ? colors.gold : colors.blue} />
+              <ItemIcon
+                iconKey={item.icon}
+                size={18}
+                color={isOpen ? colors.gold : colors.blue}
+              />
             </LinearGradient>
 
             <View style={styles.cardTitleWrap}>
-              <Text style={[styles.cardTitle, { color: isViewed ? colors.text : colors.parchment }]}>
+              <Text
+                style={[
+                  styles.cardTitle,
+                  { color: isViewed ? colors.text : colors.parchment },
+                ]}
+              >
                 {item.title}
               </Text>
               {!isOpen && <Text style={styles.tapHint}>Tap to examine</Text>}
@@ -216,18 +291,37 @@ function EvidenceCard({
                 </Animated.View>
               )}
               <Animated.View style={{ transform: [{ rotate }] }}>
-                <Feather name="chevron-down" size={16} color={colors.textMuted} />
+                <Feather
+                  name="chevron-down"
+                  size={16}
+                  color={colors.textMuted}
+                />
               </Animated.View>
             </View>
           </View>
 
           {isOpen && (
             <View style={styles.expanded}>
-              <View style={[styles.divider, { backgroundColor: colors.border }]} />
+              <View
+                style={[styles.divider, { backgroundColor: colors.border }]}
+              />
               <Text style={styles.description}>{item.description}</Text>
-              <LinearGradient colors={["rgba(212,150,42,0.12)", "rgba(212,150,42,0.05)"]} style={styles.lessonBox}>
-                <View style={[styles.lessonBoxBorder, { borderColor: colors.goldBorder }]} />
-                <Feather name="book-open" size={13} color={colors.gold} style={{ marginTop: 1 }} />
+              <LinearGradient
+                colors={["rgba(212,150,42,0.12)", "rgba(212,150,42,0.05)"]}
+                style={styles.lessonBox}
+              >
+                <View
+                  style={[
+                    styles.lessonBoxBorder,
+                    { borderColor: colors.goldBorder },
+                  ]}
+                />
+                <Feather
+                  name="book-open"
+                  size={13}
+                  color={colors.gold}
+                  style={{ marginTop: 1 }}
+                />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.lessonLabel}>TAKEAWAY</Text>
                   <Text style={styles.lessonText}>{item.lesson}</Text>
@@ -243,10 +337,16 @@ function EvidenceCard({
 
 /* ------------------------------ main screen -------------------------------- */
 
-export default function EvidenceBoard({ evidence, onContinue, caseTitle }: Props) {
+export default function EvidenceBoard({
+  evidence,
+  onContinue,
+  caseTitle,
+}: Props) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [viewed, setViewed] = useState<Set<string>>(new Set());
-  const entranceAnims = useRef(evidence.map(() => new Animated.Value(0))).current;
+  const entranceAnims = useRef(
+    evidence.map(() => new Animated.Value(0)),
+  ).current;
   const ctaGlow = useRef(new Animated.Value(0.4)).current;
 
   useEffect(() => {
@@ -269,8 +369,16 @@ export default function EvidenceBoard({ evidence, onContinue, caseTitle }: Props
     if (!allViewed) return;
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(ctaGlow, { toValue: 0.9, duration: 1400, useNativeDriver: true }),
-        Animated.timing(ctaGlow, { toValue: 0.4, duration: 1400, useNativeDriver: true }),
+        Animated.timing(ctaGlow, {
+          toValue: 0.9,
+          duration: 1400,
+          useNativeDriver: true,
+        }),
+        Animated.timing(ctaGlow, {
+          toValue: 0.4,
+          duration: 1400,
+          useNativeDriver: true,
+        }),
       ]),
     );
     loop.start();
@@ -278,7 +386,9 @@ export default function EvidenceBoard({ evidence, onContinue, caseTitle }: Props
   }, [allViewed, ctaGlow]);
 
   const toggle = (id: string) => {
-    LayoutAnimation.configureNext(LayoutAnimation.create(220, "easeInEaseOut", "opacity"));
+    LayoutAnimation.configureNext(
+      LayoutAnimation.create(220, "easeInEaseOut", "opacity"),
+    );
     setViewed((p) => new Set([...p, id]));
     setExpanded((p) => (p === id ? null : id));
   };
@@ -290,20 +400,40 @@ export default function EvidenceBoard({ evidence, onContinue, caseTitle }: Props
       {/* Sub header */}
       <LinearGradient colors={["#0F1628", colors.bg]} style={styles.subHeader}>
         <View style={styles.subHeaderRow}>
-          <View style={[styles.subHeaderAccent, { backgroundColor: colors.blue }]} />
+          <View
+            style={[styles.subHeaderAccent, { backgroundColor: colors.blue }]}
+          />
           <View style={{ flex: 1 }}>
             <Text style={styles.subHeaderTitle}>Evidence Board</Text>
-            <Text style={styles.subHeaderCase} numberOfLines={1}>{caseTitle}</Text>
+            <Text style={styles.subHeaderCase} numberOfLines={1}>
+              {caseTitle}
+            </Text>
           </View>
-          <View style={[styles.progressChip, allViewed && styles.progressChipDone]}>
-            {allViewed && <Feather name="check" size={11} color="#000" style={{ marginRight: 3 }} />}
-            <Text style={[styles.progressText, allViewed && styles.progressTextDone]}>
+          <View
+            style={[styles.progressChip, allViewed && styles.progressChipDone]}
+          >
+            {allViewed && (
+              <Feather
+                name="check"
+                size={11}
+                color="#000"
+                style={{ marginRight: 3 }}
+              />
+            )}
+            <Text
+              style={[
+                styles.progressText,
+                allViewed && styles.progressTextDone,
+              ]}
+            >
               {viewed.size}/{evidence.length}
             </Text>
           </View>
         </View>
         <Text style={styles.subHeaderHint}>
-          {allViewed ? "All exhibits examined — case ready to proceed" : "Tap each item to examine it"}
+          {allViewed
+            ? "All exhibits examined — case ready to proceed"
+            : "Tap each item to examine it"}
         </Text>
         <AnimatedProgressBar ratio={ratio} complete={allViewed} />
       </LinearGradient>
@@ -324,7 +454,10 @@ export default function EvidenceBoard({ evidence, onContinue, caseTitle }: Props
       </ScrollView>
 
       {/* Footer */}
-      <LinearGradient colors={["rgba(7,10,19,0)", "rgba(7,10,19,0.97)", colors.bg]} style={styles.footer}>
+      <LinearGradient
+        colors={["rgba(7,10,19,0)", "rgba(7,10,19,0.97)", colors.bg]}
+        style={styles.footer}
+      >
         {!allViewed && (
           <View style={styles.footerHintRow}>
             <Feather name="lock" size={11} color={colors.textMuted} />
@@ -334,7 +467,12 @@ export default function EvidenceBoard({ evidence, onContinue, caseTitle }: Props
           </View>
         )}
         <View style={styles.ctaWrap}>
-          {allViewed && <Animated.View style={[styles.ctaGlow, { opacity: ctaGlow }]} pointerEvents="none" />}
+          {allViewed && (
+            <Animated.View
+              style={[styles.ctaGlow, { opacity: ctaGlow }]}
+              pointerEvents="none"
+            />
+          )}
           <GoldButton
             label="Proceed to Witnesses"
             onPress={allViewed ? onContinue : () => {}}
@@ -363,8 +501,17 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   subHeaderAccent: { width: 3, height: 30, borderRadius: 2 },
-  subHeaderTitle: { fontFamily: "Inter_700Bold", fontSize: 18, color: colors.text },
-  subHeaderCase: { fontFamily: "Inter_400Regular", fontSize: 11, color: colors.textFaint, marginTop: 1 },
+  subHeaderTitle: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 18,
+    color: colors.text,
+  },
+  subHeaderCase: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 11,
+    color: colors.textFaint,
+    marginTop: 1,
+  },
   progressChip: {
     flexDirection: "row",
     alignItems: "center",
@@ -379,9 +526,18 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gold,
     borderColor: colors.gold,
   },
-  progressText: { fontFamily: "Inter_600SemiBold", fontSize: 11, color: colors.textMuted },
+  progressText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 11,
+    color: colors.textMuted,
+  },
   progressTextDone: { color: "#000" },
-  subHeaderHint: { fontFamily: "Inter_400Regular", fontSize: 12, color: colors.textMuted, marginBottom: 8 },
+  subHeaderHint: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+    color: colors.textMuted,
+    marginBottom: 8,
+  },
   progressBar: {
     height: 4,
     backgroundColor: colors.surface3,
@@ -397,7 +553,10 @@ const styles = StyleSheet.create({
   },
   cardBorder: {
     position: "absolute",
-    top: 0, left: 0, right: 0, bottom: 0,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     borderWidth: 1,
     borderRadius: colors.radius.lg,
   },
@@ -415,7 +574,12 @@ const styles = StyleSheet.create({
     fontSize: 8.5,
     letterSpacing: 0.5,
   },
-  cardTop: { flexDirection: "row", alignItems: "center", gap: 12, paddingRight: 46 },
+  cardTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingRight: 46,
+  },
   iconBg: {
     width: 42,
     height: 42,
@@ -425,7 +589,12 @@ const styles = StyleSheet.create({
   },
   cardTitleWrap: { flex: 1 },
   cardTitle: { fontFamily: "Inter_600SemiBold", fontSize: 15 },
-  tapHint: { fontFamily: "Inter_400Regular", fontSize: 11, color: colors.textMuted, marginTop: 2 },
+  tapHint: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 11,
+    color: colors.textMuted,
+    marginTop: 2,
+  },
   cardRight: { flexDirection: "row", alignItems: "center", gap: 6 },
   expanded: { marginTop: 12 },
   divider: { height: 1, marginBottom: 12 },
@@ -447,7 +616,10 @@ const styles = StyleSheet.create({
   },
   lessonBoxBorder: {
     position: "absolute",
-    top: 0, left: 0, right: 0, bottom: 0,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     borderWidth: 1,
     borderRadius: colors.radius.md,
   },
