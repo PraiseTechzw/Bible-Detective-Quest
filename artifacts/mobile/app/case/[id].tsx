@@ -17,8 +17,22 @@ import LevelUpModal from "@/components/game/LevelUpModal";
 import { IconClock, IconHeart, IconWarning } from "@/components/ui/SvgIcons";
 import type { GameMode } from "@/context/GameContext";
 
-const TIME_ATTACK_SECONDS = 180;
-const WRONG_PENALTY_SECONDS = 30;
+const DIFF_CONFIG = {
+  Beginner:     { timeSeconds: 240, penalty: 20, lives: 5 },
+  Intermediate: { timeSeconds: 180, penalty: 30, lives: 4 },
+  Advanced:     { timeSeconds: 120, penalty: 45, lives: 3 },
+} as const;
+type DiffKey = keyof typeof DIFF_CONFIG;
+
+function getDiffSettings(difficulty: string, level: number) {
+  const base = DIFF_CONFIG[(difficulty as DiffKey)] ?? DIFF_CONFIG.Beginner;
+  const tier = level >= 10 ? 2 : level >= 5 ? 1 : 0;
+  return {
+    timeSeconds: base.timeSeconds - tier * 15,
+    penalty: base.penalty + tier * 10,
+    lives: Math.max(1, base.lives - (tier >= 2 ? 1 : 0)),
+  };
+}
 
 function TimeAttackBar({ secondsLeft, total }: { secondsLeft: number; total: number }) {
   const pct = Math.max(0, Math.min(1, secondsLeft / total));
