@@ -8,6 +8,7 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
@@ -25,10 +26,21 @@ function RootLayoutNav() {
   const { onboardingComplete } = useGame();
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      {!onboardingComplete && <Stack.Screen name="onboarding" options={{ headerShown: false, animation: "fade" }} />}
+      {!onboardingComplete && (
+        <Stack.Screen
+          name="onboarding"
+          options={{ headerShown: false, animation: "fade" }}
+        />
+      )}
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="case/[id]" options={{ headerShown: false, animation: "slide_from_right" }} />
-      <Stack.Screen name="settings" options={{ headerShown: false, animation: "slide_from_bottom" }} />
+      <Stack.Screen
+        name="case/[id]"
+        options={{ headerShown: false, animation: "slide_from_right" }}
+      />
+      <Stack.Screen
+        name="settings"
+        options={{ headerShown: false, animation: "slide_from_bottom" }}
+      />
     </Stack>
   );
 }
@@ -51,16 +63,17 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
+      <StatusBar hidden />
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <GestureHandlerRootView style={{ flex: 1 }}>
-              <KeyboardProvider>
+            <KeyboardProvider>
               <GameProvider>
                 <BibleProvider>
                   <RootLayoutNav />
                 </BibleProvider>
               </GameProvider>
-              </KeyboardProvider>
+            </KeyboardProvider>
           </GestureHandlerRootView>
         </QueryClientProvider>
       </ErrorBoundary>
