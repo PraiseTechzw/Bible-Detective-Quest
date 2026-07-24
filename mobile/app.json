@@ -7,11 +7,20 @@
     "icon": "./assets/images/icon.png",
     "scheme": "mobile",
     "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0D0D12"
+    },
     "ios": {
       "supportsTablet": false
     },
     "android": {
-      "package": "com.praisetechzw.mobile"
+      "package": "com.praisetechzw.mobile",
+      "statusBar": {
+        "backgroundColor": "#0C6AF86",
+        "barStyle": "light"
+      }
     },
     "web": {
       "favicon": "./assets/images/icon.png"
