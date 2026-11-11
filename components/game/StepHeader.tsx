@@ -14,7 +14,7 @@ const STEPS: { key: GameStep; icon: keyof typeof Feather.glyphMap; short: string
   { key: "witnesses", icon: "mic", short: "Witnesses" },
   { key: "timeline", icon: "clock", short: "Timeline" },
   { key: "suspects", icon: "users", short: "Suspects" },
-  { key: "verdict", icon: "scale", short: "Verdict" },
+  { key: "verdict", icon: "check-circle", short: "Verdict" },
   { key: "reveal", icon: "book-open", short: "Reveal" },
 ];
 

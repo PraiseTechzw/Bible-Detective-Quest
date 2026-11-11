@@ -9,6 +9,7 @@ import type { Witness } from "@/data/cases";
 import { buildSupplementalQuestions, seededShuffle } from "@/data/gameAlgorithms";
 import type { GameMode } from "@/context/GameContext";
 import { IconCheckCircle } from "@/components/ui/SvgIcons";
+import { useGame } from "@/context/GameContext";
 
 interface Props {
   witnesses: Witness[];
@@ -198,6 +199,7 @@ export default function WitnessInterview({
   onPenalize,
   scriptureFocus,
 }: Props) {
+  const { hapticsEnabled } = useGame();
   const [activeIdx, setActiveIdx] = useState(0);
   const [phase, setPhase] = useState<"statement" | "questions">("statement");
   const [answers, setAnswers] = useState<Record<string, number | null>>({});
@@ -232,14 +234,14 @@ export default function WitnessInterview({
   const select = (qId: string, idx: number) => {
     if (submitted[qId]) return;
     setAnswers((p) => ({ ...p, [qId]: idx }));
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (hapticsEnabled) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
   const nextWitness = () => {
     if (activeIdx < witnesses.length - 1) {
       setActiveIdx((p) => p + 1);
       setPhase("statement");
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      if (hapticsEnabled) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     } else {
       Animated.parallel([
         Animated.timing(doneOpacity, { toValue: 1, duration: 400, useNativeDriver: true }),
@@ -337,9 +339,9 @@ export default function WitnessInterview({
                 onSubmit={(correct) => {
                   setSubmitted((p) => ({ ...p, [q.id]: true }));
                   if (correct) {
-                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                    if (hapticsEnabled) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                   } else {
-                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                    if (hapticsEnabled) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
                     onPenalize?.();
                   }
                 }}

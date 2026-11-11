@@ -15,14 +15,24 @@ function getDailyCase() {
 }
 
 function useEntrance(delay = 0) {
+  const { animationsEnabled } = useGame();
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(18)).current;
   useEffect(() => {
+    if (!animationsEnabled) {
+      opacity.stopAnimation();
+      translateY.stopAnimation();
+      opacity.setValue(1);
+      translateY.setValue(0);
+      return;
+    }
+    opacity.setValue(0);
+    translateY.setValue(18);
     Animated.parallel([
       Animated.timing(opacity, { toValue: 1, duration: 450, delay, useNativeDriver: true }),
       Animated.spring(translateY, { toValue: 0, delay, useNativeDriver: true, tension: 60, friction: 10 }),
     ]).start();
-  }, []);
+  }, [animationsEnabled, delay, opacity, translateY]);
   return { opacity, transform: [{ translateY }] };
 }
 
@@ -154,7 +164,7 @@ export default function PlayScreen() {
       gradient: ["rgba(212,150,42,0.18)", "rgba(212,150,42,0.05)"] as const,
       border: colors.goldBorder, badge: null, available: true,
       howTo: "Unlock all 6 cases in order. Complete each one to move to the next.",
-      onPress: () => router.push("/(tabs)" as any),
+      onPress: () => router.push("/story"),
     },
     {
       emoji: "☀️", title: "Daily Mystery",
@@ -176,11 +186,11 @@ export default function PlayScreen() {
     },
     {
       emoji: "❤️", title: "Survival Mode",
-      desc: "No hints. No mercy. One wrong = game over.",
+      desc: "Three lives. Every mistake costs one.",
       color: colors.purple,
       gradient: ["rgba(124,94,232,0.18)", "rgba(124,94,232,0.05)"] as const,
       border: "rgba(124,94,232,0.35)", badge: "HARD", available: true,
-      howTo: "You get 3 lives. Any wrong answer costs a life. Lose all 3 and the case is closed — by you, against yourself.",
+      howTo: "You get 3 lives. Wrong witness answers, timeline submissions, and verdicts cost one life. Lose all 3 and the case is closed.",
       onPress: () => setPickerMode("survival"),
     },
     {

@@ -13,14 +13,24 @@ import LevelUpModal from "@/components/game/LevelUpModal";
 import { RankIcon, IconCoin, IconFolder, IconAward, IconZap } from "@/components/ui/SvgIcons";
 
 function useEntrance(delay = 0) {
+  const { animationsEnabled } = useGame();
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(18)).current;
   useEffect(() => {
+    if (!animationsEnabled) {
+      opacity.stopAnimation();
+      translateY.stopAnimation();
+      opacity.setValue(1);
+      translateY.setValue(0);
+      return;
+    }
+    opacity.setValue(0);
+    translateY.setValue(18);
     Animated.parallel([
       Animated.timing(opacity, { toValue: 1, duration: 480, delay, useNativeDriver: true }),
       Animated.spring(translateY, { toValue: 0, delay, useNativeDriver: true, tension: 60, friction: 10 }),
     ]).start();
-  }, []);
+  }, [animationsEnabled, delay, opacity, translateY]);
   return { opacity, transform: [{ translateY }] };
 }
 

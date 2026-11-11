@@ -1,5 +1,3 @@
-import { useColorScheme } from "react-native";
-
 import colors from "@/constants/colors";
 
 /**
@@ -15,10 +13,13 @@ import colors from "@/constants/colors";
  * device's appearance setting.
  */
 export function useColors() {
-  const scheme = useColorScheme();
-  const palette =
-    scheme === "dark" && "dark" in colors
-      ? (colors as Record<string, typeof colors.light>).dark
-      : colors.light;
-  return { ...palette, radius: colors.radius };
+  return {
+    background: colors.bg,
+    foreground: colors.text,
+    primary: colors.gold,
+    primaryForeground: "#070A13",
+    mutedForeground: colors.textMuted,
+    card: colors.surface2,
+    border: colors.border,
+  };
 }

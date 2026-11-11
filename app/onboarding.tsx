@@ -2,54 +2,91 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  Animated, KeyboardAvoidingView, Platform, Pressable,
-  ScrollView, StyleSheet, Text, TextInput, View,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
+import Animated, { FadeIn, FadeInDown, useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import colors from "@/constants/colors";
 import { useGame } from "@/context/GameContext";
-import { IconShield, IconBook, IconAward, IconZap, BadgeIcon } from "@/components/ui/SvgIcons";
+import {
+  IconArrowLeft,
+  IconArrowRight,
+  IconAward,
+  IconBookOpen,
+  IconCalendar,
+  IconClock,
+  IconFolder,
+  IconShield,
+  IconUser,
+  IconZap,
+} from "@/components/ui/SvgIcons";
+
+type OnboardingIcon = React.ComponentType<{ size?: number; color?: string }>;
 
 const STEPS = [
   {
-    title: "Welcome, Detective.",
-    sub: "The ancient world's greatest mysteries have gone cold. The evidence has been buried for millennia. But you're here now.",
-    body: "Bible Detective is an investigative game where you solve real biblical mysteries — grounded strictly in Scripture. No creative license. No myths. Just the text, the evidence, and your judgment.",
-    funny: "Think of yourself as a first-century CSI. Except instead of a lab, you have a scroll.",
+    eyebrow: "WELCOME, DETECTIVE",
+    title: "Follow the evidence.",
+    sub: "The truth is in the details. Your investigation starts here.",
+    body: "Solve real biblical mysteries, grounded in Scripture. Read the evidence, weigh the accounts, and reach your own verdict.",
+    note: "The text is the source. Your judgment closes the case.",
+    icon: IconBookOpen,
+    accent: colors.gold,
   },
   {
-    title: "How Cases Work",
-    sub: "Every case is a real biblical event, reimagined as a detective investigation.",
-    body: "You'll examine evidence boards, interview witnesses, reconstruct timelines, analyze suspects, and deliver a final verdict. All answers come directly from the biblical text — so paying attention matters.",
-    funny: "Wrong answers are recorded. The ancient witnesses are judging you.",
+    eyebrow: "THE CASE FILE",
+    title: "Every detail matters.",
+    sub: "Each case turns a biblical event into an investigation.",
+    body: "Review evidence, hear witness accounts, reconstruct the timeline, and examine the people involved before delivering your verdict.",
+    note: "Look closely. Small clues can change the whole case.",
+    icon: IconFolder,
+    accent: colors.blue,
   },
   {
-    title: "Rank Up. Earn Badges.",
-    sub: "As you solve cases, you earn XP, level up through 7 detective ranks, and collect unique badges.",
-    body: "Ranks unlock new game modes. Badges reward specific achievements. Every solved case makes the next one harder — this is not a participation trophy situation.",
-    funny: "Rookie Detective is the bottom rung. Master Sleuth is the top. Where you land is on you.",
+    eyebrow: "YOUR PROGRESS",
+    title: "Build your reputation.",
+    sub: "Every solved case moves you closer to Master Sleuth.",
+    body: "Earn XP, advance through seven detective ranks, and collect badges for the way you investigate.",
+    note: "New ranks unlock more ways to play.",
+    icon: IconAward,
+    accent: colors.purple,
   },
   {
-    title: "The Modes",
-    sub: "Story Mode is just the beginning.",
-    body: "Daily Mystery gives you a new case every day for streak XP. Time Attack puts the clock against you. Survival Mode gives you one chance — one wrong answer and it's over.\n\nFunny how that mirrors real detective work.",
-    funny: "Survival Mode: because consequences are educational.",
+    eyebrow: "CHOOSE YOUR MODE",
+    title: "The investigation is yours.",
+    sub: "Start with Story Mode, then take on a new kind of challenge.",
+    body: "Return for a Daily Mystery, race the clock in Time Attack, or test your instincts in Survival Mode.",
+    note: "In Survival, one wrong answer ends the run.",
+    icon: IconShield,
+    accent: colors.green,
   },
-];
+] as const satisfies readonly {
+  eyebrow: string;
+  title: string;
+  sub: string;
+  body: string;
+  note: string;
+  icon: OnboardingIcon;
+  accent: string;
+}[];
+
+const TOTAL_STEPS = STEPS.length + 1;
 
 function FeatureRow({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
-    <View style={fr.row}>
-      <View style={fr.icon}>{icon}</View>
-      <Text style={fr.label}>{label}</Text>
+    <View style={styles.featureRow}>
+      <View style={styles.featureIcon}>{icon}</View>
+      <Text style={styles.featureLabel}>{label}</Text>
     </View>
   );
 }
-const fr = StyleSheet.create({
-  row: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 6 },
-  icon: { width: 32, height: 32, alignItems: "center", justifyContent: "center" },
-  label: { fontFamily: "Inter_400Regular", fontSize: 14, color: colors.text, flex: 1, lineHeight: 21 },
-});
 
 export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
@@ -57,159 +94,285 @@ export default function OnboardingScreen() {
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
   const [nameError, setNameError] = useState("");
-
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
-  const heroScale = useRef(new Animated.Value(0.8)).current;
-  const progressAnim = useRef(new Animated.Value(0)).current;
+  const scrollRef = useRef<ScrollView>(null);
+  const reducedMotion = useReducedMotion();
 
   const isLastStep = step === STEPS.length;
+  const currentStep = isLastStep ? null : STEPS[step];
+  const StepIcon = currentStep?.icon ?? IconUser;
 
   useEffect(() => {
-    fadeAnim.setValue(0);
-    slideAnim.setValue(30);
-    heroScale.setValue(0.85);
-    Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
-      Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, tension: 60, friction: 10 }),
-      Animated.spring(heroScale, { toValue: 1, useNativeDriver: true, tension: 60, friction: 8 }),
-    ]).start();
-    Animated.timing(progressAnim, {
-      toValue: isLastStep ? 1 : (step + 1) / (STEPS.length + 1),
-      duration: 600,
-      useNativeDriver: false,
-    }).start();
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
   }, [step]);
 
   const handleNext = () => {
     if (isLastStep) {
       const trimmed = name.trim();
-      if (!trimmed) { setNameError("Every detective needs a name."); return; }
-      if (trimmed.length < 2) { setNameError("At least 2 characters. You can do this."); return; }
+      if (!trimmed) {
+        setNameError("Every detective needs a name.");
+        return;
+      }
+      if (trimmed.length < 2) {
+        setNameError("Use at least 2 characters.");
+        return;
+      }
       completeOnboarding(trimmed);
       router.replace("/(tabs)");
-    } else {
-      setStep(s => s + 1);
+      return;
     }
+
+    setStep((current) => current + 1);
   };
 
-  const data = isLastStep ? null : STEPS[step];
+  const handleBack = () => {
+    setNameError("");
+    setStep((current) => Math.max(0, current - 1));
+  };
+
+  const skipIntro = () => {
+    setNameError("");
+    setStep(STEPS.length);
+  };
 
   return (
     <View style={styles.root}>
-      <LinearGradient colors={["#060810", "#0A0D1A", "#0D1020"]} style={StyleSheet.absoluteFill} />
+      <LinearGradient
+        colors={["#060810", "#0A0D1A", "#0D1020"]}
+        style={StyleSheet.absoluteFill}
+      />
 
-      <View style={[styles.topBar, { paddingTop: insets.top + 8 }]}>
-        <View style={styles.progressTrack}>
-          <Animated.View
-            style={[styles.progressFill, {
-              width: progressAnim.interpolate({ inputRange: [0, 1], outputRange: ["0%", "100%"] }),
-            }]}
-          />
+      <View style={[styles.topBar, { paddingTop: insets.top + 12 }]}>
+        <View style={styles.topRow}>
+          <View style={styles.brandLockup}>
+            <View style={styles.brandIcon}>
+              <IconBookOpen size={24} color={colors.gold} />
+            </View>
+            <View>
+              <Text style={styles.brandName}>BIBLE DETECTIVE</Text>
+              <Text style={styles.brandCaption}>YOUR FIELD GUIDE</Text>
+            </View>
+          </View>
+          {!isLastStep && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Skip introduction and enter your name"
+              hitSlop={8}
+              onPress={skipIntro}
+              style={({ pressed }) => [styles.skipButton, pressed && styles.pressed]}
+            >
+              <Text style={styles.skipText}>SKIP INTRO</Text>
+              <IconArrowRight size={17} color={colors.textMuted} />
+            </Pressable>
+          )}
         </View>
-        <Text style={styles.stepCounter}>{step + 1} of {STEPS.length + 1}</Text>
+
+        <View
+          accessibilityRole="progressbar"
+          accessibilityLabel="Onboarding progress"
+          accessibilityValue={{ min: 1, max: TOTAL_STEPS, now: step + 1 }}
+          style={styles.progressGroup}
+        >
+          <View style={styles.progressMeta}>
+            <Text style={styles.progressLabel}>YOUR BRIEFING</Text>
+            <Text style={styles.progressCount}>
+              {String(step + 1).padStart(2, "0")} / {String(TOTAL_STEPS).padStart(2, "0")}
+            </Text>
+          </View>
+          <View style={styles.progressTrack}>
+            {Array.from({ length: TOTAL_STEPS }, (_, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.progressSegment,
+                  index <= step && styles.progressSegmentActive,
+                  index === step && styles.progressSegmentCurrent,
+                ]}
+              />
+            ))}
+          </View>
+        </View>
       </View>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <KeyboardAvoidingView
+        style={styles.contentArea}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
         <ScrollView
+          ref={scrollRef}
           style={styles.scroll}
-          contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 40 }]}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: 24 },
+          ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
-            <Animated.View style={[styles.heroWrap, { transform: [{ scale: heroScale }] }]}>
-              <LinearGradient colors={["rgba(212,150,42,0.22)", "rgba(196,125,26,0.06)"]} style={styles.heroBg}>
-                <BadgeIcon id="truth_seeker" size={52} color={colors.gold} rimColor={colors.goldBorder} />
+          <Animated.View
+            key={step}
+            entering={
+              reducedMotion
+                ? FadeIn.duration(140)
+                : FadeInDown.duration(240)
+            }
+            style={styles.step}
+          >
+            <View style={styles.hero}>
+              <LinearGradient
+                colors={
+                  currentStep
+                    ? [`${currentStep.accent}30`, `${currentStep.accent}08`]
+                    : colors.goldGradientSubtle
+                }
+                style={[
+                  styles.heroIconWrap,
+                  {
+                    borderColor: currentStep
+                      ? `${currentStep.accent}70`
+                      : colors.goldBorder,
+                  },
+                ]}
+              >
+                <StepIcon
+                  size={68}
+                  color={currentStep?.accent ?? colors.gold}
+                />
               </LinearGradient>
-            </Animated.View>
-
-            <View style={styles.wordmarkRow}>
-              <Text style={styles.word1}>BIBLE</Text>
-              <Text style={styles.word2}>DETECTIVE</Text>
-              <View style={styles.wordUnderline} />
+              <Text style={styles.heroCaption}>
+                {currentStep?.eyebrow ?? "MAKE IT OFFICIAL"}
+              </Text>
             </View>
 
-            {!isLastStep && data && (
-              <View style={styles.stepContent}>
-                <Text style={styles.stepTitle}>{data.title}</Text>
-                <Text style={styles.stepSub}>{data.sub}</Text>
-                <LinearGradient colors={[colors.surface2, colors.surface1]} style={styles.bodyCard}>
-                  <View style={[styles.bodyCardBorder, { borderColor: colors.border }]} />
-                  <Text style={styles.bodyText}>{data.body}</Text>
-                </LinearGradient>
-                <LinearGradient colors={["rgba(212,150,42,0.1)", "rgba(212,150,42,0.04)"]} style={styles.funnyBox}>
-                  <View style={[styles.funnyBorder, { borderColor: colors.goldBorder }]} />
-                  <View style={[styles.funnyAccent, { backgroundColor: colors.gold }]} />
-                  <Text style={styles.funnyText}>{data.funny}</Text>
+            {!isLastStep && currentStep ? (
+              <View style={styles.copy}>
+                <Text style={styles.stepTitle}>{currentStep.title}</Text>
+                <Text style={styles.stepSub}>{currentStep.sub}</Text>
+
+                <LinearGradient
+                  colors={[colors.surface2, colors.surface1]}
+                  style={styles.caseNote}
+                >
+                  <View style={styles.caseNoteHeader}>
+                    <IconBookOpen size={21} color={currentStep.accent} />
+                    <Text style={styles.caseNoteLabel}>IN YOUR FILE</Text>
+                  </View>
+                  <Text style={styles.caseNoteBody}>{currentStep.body}</Text>
+                  <View style={styles.noteDivider} />
+                  <Text style={styles.caseNoteTip}>{currentStep.note}</Text>
                 </LinearGradient>
               </View>
-            )}
-
-            {isLastStep && (
+            ) : (
               <View style={styles.nameStep}>
-                <Text style={styles.stepTitle}>What's Your Name, Detective?</Text>
-                <Text style={styles.stepSub}>Choose wisely. It appears on your badge. Witnesses remember names.</Text>
+                <View style={styles.copy}>
+                  <Text style={styles.stepTitle}>What should we call you?</Text>
+                  <Text style={styles.stepSub}>
+                    Choose a detective name for your badge. You can change it later.
+                  </Text>
+                </View>
 
-                <LinearGradient colors={[colors.surface2, colors.surface1]} style={styles.nameCard}>
-                  <View style={[styles.nameCardBorder, { borderColor: colors.goldBorder }]} />
+                <View style={styles.nameCard}>
                   <Text style={styles.nameLabel}>DETECTIVE NAME</Text>
                   <TextInput
+                    accessibilityLabel="Detective name"
+                    accessibilityHint="Enter at least two characters"
+                    autoCapitalize="words"
+                    autoCorrect={false}
+                    autoComplete="name"
+                    maxLength={20}
+                    onChangeText={(value) => {
+                      setName(value);
+                      setNameError("");
+                    }}
+                    onSubmitEditing={handleNext}
+                    placeholder="Enter your name"
+                    placeholderTextColor={colors.textFaint}
+                    returnKeyType="done"
+                    selectionColor={colors.gold}
                     style={styles.nameInput}
                     value={name}
-                    onChangeText={(t) => { setName(t); setNameError(""); }}
-                    placeholder="Enter your name..."
-                    placeholderTextColor={colors.textFaint}
-                    maxLength={20}
-                    autoFocus
-                    selectionColor={colors.gold}
-                    returnKeyType="done"
-                    onSubmitEditing={handleNext}
                   />
-                  {nameError ? <Text style={styles.nameError}>{nameError}</Text> : null}
-                </LinearGradient>
+                  {nameError ? (
+                    <Text
+                      accessibilityLiveRegion="polite"
+                      style={styles.nameError}
+                    >
+                      {nameError}
+                    </Text>
+                  ) : null}
+                </View>
 
-                <View style={styles.perksWrap}>
-                  <Text style={styles.perksTitle}>You're about to get access to:</Text>
+                <View style={styles.perks}>
+                  <Text style={styles.perksTitle}>YOUR FIRST CASE FILE INCLUDES</Text>
                   <FeatureRow
-                    icon={<IconBook size={22} color={colors.gold} />}
-                    label="6 fully written biblical investigation cases"
+                    icon={<IconBookOpen size={23} color={colors.gold} />}
+                    label="6 Scripture-based cases"
                   />
                   <FeatureRow
-                    icon={<IconAward size={22} color={colors.purple} />}
-                    label="12 unique achievement badges to earn"
+                    icon={<IconAward size={23} color={colors.purple} />}
+                    label="12 achievement badges"
                   />
                   <FeatureRow
-                    icon={<IconZap size={22} color={colors.blue} />}
-                    label="7 detective ranks, from Rookie to Master Sleuth"
+                    icon={<IconZap size={23} color={colors.blue} />}
+                    label="7 detective ranks"
                   />
                   <FeatureRow
-                    icon={<IconShield size={22} color={colors.green} />}
-                    label="4 game modes including Time Attack and Survival"
+                    icon={<IconClock size={23} color={colors.green} />}
+                    label="4 ways to investigate"
                   />
+                  <View style={styles.modeHint}>
+                    <IconCalendar size={18} color={colors.gold} />
+                    <Text style={styles.modeHintText}>
+                      Includes a new Daily Mystery every day.
+                    </Text>
+                  </View>
                 </View>
               </View>
             )}
-
-            <Pressable onPress={handleNext} style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1, marginTop: 24 })}>
-              <LinearGradient colors={[colors.goldLight, colors.gold]} style={styles.nextBtn}>
-                <Text style={styles.nextBtnText}>{isLastStep ? "Begin Investigation" : "Continue"}</Text>
-              </LinearGradient>
-            </Pressable>
-
-            {step > 0 && (
-              <Pressable onPress={() => setStep(s => s - 1)} style={styles.backBtn}>
-                <Text style={styles.backBtnText}>Back</Text>
-              </Pressable>
-            )}
-
-            <View style={styles.dotsRow}>
-              {Array.from({ length: STEPS.length + 1 }).map((_, i) => (
-                <View key={i} style={[styles.dot, { backgroundColor: i <= step ? colors.gold : colors.surface3, width: i === step ? 20 : 6 }]} />
-              ))}
-            </View>
           </Animated.View>
         </ScrollView>
+
+        <View
+          style={[
+            styles.footer,
+            { paddingBottom: Math.max(insets.bottom, 16) },
+          ]}
+        >
+          <View style={styles.footerActions}>
+            {step > 0 && (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Go to previous step"
+                onPress={handleBack}
+                style={({ pressed }) => [
+                  styles.backButton,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <IconArrowLeft size={18} color={colors.textMuted} />
+                <Text style={styles.backText}>Back</Text>
+              </Pressable>
+            )}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={isLastStep ? "Begin investigation" : "Continue"}
+              onPress={handleNext}
+              style={({ pressed }) => [
+                styles.nextButton,
+                step === 0 && styles.nextButtonFull,
+                pressed && styles.nextButtonPressed,
+              ]}
+            >
+              <LinearGradient
+                colors={colors.goldGradient}
+                style={styles.nextButtonGradient}
+              >
+                <Text style={styles.nextButtonText}>
+                  {isLastStep ? "Begin Investigation" : "Continue"}
+                </Text>
+                <IconArrowRight size={20} color="#101018" />
+              </LinearGradient>
+            </Pressable>
+          </View>
+        </View>
       </KeyboardAvoidingView>
     </View>
   );
@@ -217,40 +380,249 @@ export default function OnboardingScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
-  topBar: { paddingHorizontal: 20, paddingBottom: 12, gap: 8 },
-  progressTrack: { height: 3, backgroundColor: colors.surface3, borderRadius: 2, overflow: "hidden" },
-  progressFill: { height: 3, backgroundColor: colors.gold, borderRadius: 2 },
-  stepCounter: { fontFamily: "Inter_400Regular", fontSize: 11, color: colors.textFaint, textAlign: "right" },
+  topBar: { paddingHorizontal: 22, paddingBottom: 16, gap: 20 },
+  topRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  brandLockup: { flexDirection: "row", alignItems: "center", gap: 10 },
+  brandIcon: {
+    width: 42,
+    height: 42,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: colors.radius.md,
+    backgroundColor: colors.goldGlow,
+    borderWidth: 1,
+    borderColor: colors.goldBorder,
+  },
+  brandName: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 12,
+    color: colors.text,
+    letterSpacing: 1.4,
+  },
+  brandCaption: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 9,
+    color: colors.textMuted,
+    letterSpacing: 1.8,
+    marginTop: 3,
+  },
+  skipButton: {
+    minHeight: 44,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 4,
+  },
+  skipText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 10,
+    color: colors.textMuted,
+    letterSpacing: 0.8,
+  },
+  progressGroup: { gap: 9 },
+  progressMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  progressLabel: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 9,
+    color: colors.textFaint,
+    letterSpacing: 1.5,
+  },
+  progressCount: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 10,
+    color: colors.gold,
+    fontVariant: ["tabular-nums"],
+    letterSpacing: 1,
+  },
+  progressTrack: { flexDirection: "row", gap: 5 },
+  progressSegment: {
+    flex: 1,
+    height: 3,
+    borderRadius: colors.radius.full,
+    backgroundColor: colors.surface3,
+  },
+  progressSegmentActive: { backgroundColor: colors.goldDim },
+  progressSegmentCurrent: { backgroundColor: colors.goldLight },
+  contentArea: { flex: 1 },
   scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: 24, paddingTop: 8 },
-  heroWrap: { alignItems: "center", marginBottom: 24 },
-  heroBg: { width: 100, height: 100, borderRadius: 50, alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: colors.goldBorder },
-  wordmarkRow: { alignItems: "center", marginBottom: 28 },
-  word1: { fontFamily: "Inter_700Bold", fontSize: 13, color: colors.gold, letterSpacing: 6 },
-  word2: { fontFamily: "Inter_700Bold", fontSize: 30, color: colors.text, letterSpacing: 5, marginTop: -2 },
-  wordUnderline: { width: 80, height: 2, backgroundColor: colors.gold, borderRadius: 1, marginTop: 6 },
-  stepContent: { gap: 14 },
-  stepTitle: { fontFamily: "Inter_700Bold", fontSize: 24, color: colors.text, lineHeight: 32 },
-  stepSub: { fontFamily: "Inter_400Regular", fontSize: 15, color: colors.textMuted, lineHeight: 24 },
-  bodyCard: { borderRadius: colors.radius.lg, padding: 18, position: "relative", overflow: "hidden" },
-  bodyCardBorder: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, borderWidth: 1, borderRadius: colors.radius.lg },
-  bodyText: { fontFamily: "Inter_400Regular", fontSize: 14, color: colors.text, lineHeight: 23 },
-  funnyBox: { flexDirection: "row", borderRadius: colors.radius.md, overflow: "hidden", position: "relative" },
-  funnyBorder: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, borderWidth: 1, borderRadius: colors.radius.md },
-  funnyAccent: { width: 3 },
-  funnyText: { flex: 1, padding: 14, fontFamily: "Inter_400Regular", fontSize: 13, color: colors.parchment, lineHeight: 21, fontStyle: "italic" },
-  nameStep: { gap: 16 },
-  nameCard: { borderRadius: colors.radius.lg, padding: 20, gap: 10, position: "relative", overflow: "hidden" },
-  nameCardBorder: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, borderWidth: 1.5, borderRadius: colors.radius.lg },
-  nameLabel: { fontFamily: "Inter_600SemiBold", fontSize: 9, color: colors.gold, letterSpacing: 2 },
-  nameInput: { fontFamily: "Inter_700Bold", fontSize: 22, color: colors.text, borderBottomWidth: 1.5, borderBottomColor: colors.goldBorder, paddingVertical: 8, minHeight: 40 },
-  nameError: { fontFamily: "Inter_400Regular", fontSize: 12, color: colors.red },
-  perksWrap: { gap: 4 },
-  perksTitle: { fontFamily: "Inter_600SemiBold", fontSize: 12, color: colors.textMuted, letterSpacing: 0.5, marginBottom: 8 },
-  nextBtn: { borderRadius: colors.radius.full, paddingVertical: 16, alignItems: "center" },
-  nextBtnText: { fontFamily: "Inter_700Bold", fontSize: 16, color: "#000", letterSpacing: 0.5 },
-  backBtn: { alignItems: "center", paddingVertical: 12, marginTop: 4 },
-  backBtnText: { fontFamily: "Inter_400Regular", fontSize: 14, color: colors.textMuted },
-  dotsRow: { flexDirection: "row", justifyContent: "center", gap: 6, marginTop: 24 },
-  dot: { height: 6, borderRadius: 3, backgroundColor: colors.surface3 },
+  scrollContent: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 12 },
+  step: { flexGrow: 1, gap: 24 },
+  hero: { alignItems: "center", gap: 12 },
+  heroIconWrap: {
+    width: 100,
+    height: 100,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: colors.radius.xl,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  heroCaption: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 9,
+    color: colors.gold,
+    letterSpacing: 2,
+    textAlign: "center",
+  },
+  copy: { gap: 9 },
+  stepTitle: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 29,
+    lineHeight: 36,
+    color: colors.text,
+    letterSpacing: -0.5,
+  },
+  stepSub: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 15,
+    color: colors.textMuted,
+    lineHeight: 23,
+  },
+  caseNote: {
+    borderRadius: colors.radius.lg,
+    borderCurve: "continuous",
+    padding: 18,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  caseNoteHeader: { flexDirection: "row", alignItems: "center", gap: 9 },
+  caseNoteLabel: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 10,
+    color: colors.textMuted,
+    letterSpacing: 1.5,
+  },
+  caseNoteBody: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    lineHeight: 22,
+    color: colors.text,
+  },
+  noteDivider: { height: 1, backgroundColor: colors.border },
+  caseNoteTip: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 12,
+    lineHeight: 18,
+    color: colors.parchment,
+  },
+  nameStep: { gap: 20 },
+  nameCard: {
+    backgroundColor: colors.surface1,
+    borderRadius: colors.radius.lg,
+    borderCurve: "continuous",
+    padding: 18,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: colors.goldBorder,
+  },
+  nameLabel: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 10,
+    color: colors.gold,
+    letterSpacing: 1.6,
+  },
+  nameInput: {
+    minHeight: 48,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 19,
+    color: colors.text,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderBright,
+    paddingVertical: 8,
+  },
+  nameError: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 12,
+    lineHeight: 18,
+    color: colors.red,
+  },
+  perks: { gap: 8 },
+  perksTitle: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 9,
+    color: colors.textMuted,
+    letterSpacing: 1.2,
+    marginBottom: 2,
+  },
+  featureRow: { minHeight: 36, flexDirection: "row", alignItems: "center", gap: 10 },
+  featureIcon: {
+    width: 32,
+    height: 32,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  featureLabel: {
+    flex: 1,
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    lineHeight: 19,
+    color: colors.text,
+  },
+  modeHint: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  modeHintText: {
+    flex: 1,
+    fontFamily: "Inter_400Regular",
+    fontSize: 11,
+    lineHeight: 16,
+    color: colors.textMuted,
+  },
+  footer: {
+    paddingTop: 12,
+    paddingHorizontal: 22,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    backgroundColor: colors.bg,
+  },
+  footerActions: { flexDirection: "row", alignItems: "center", gap: 10 },
+  backButton: {
+    minWidth: 88,
+    minHeight: 52,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    borderRadius: colors.radius.full,
+    borderWidth: 1,
+    borderColor: colors.borderBright,
+  },
+  backText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 13,
+    color: colors.textMuted,
+  },
+  nextButton: { flex: 1, overflow: "hidden", borderRadius: colors.radius.full },
+  nextButtonFull: { flex: 1 },
+  nextButtonPressed: { opacity: 0.88 },
+  nextButtonGradient: {
+    minHeight: 54,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    paddingHorizontal: 18,
+  },
+  nextButtonText: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 14,
+    color: "#101018",
+    letterSpacing: 0.2,
+  },
+  pressed: { opacity: 0.72 },
 });

@@ -18,9 +18,9 @@ import { IconClock, IconHeart, IconWarning } from "@/components/ui/SvgIcons";
 import type { GameMode } from "@/context/GameContext";
 
 const DIFF_CONFIG = {
-  Beginner: { timeSeconds: 240, penalty: 20, lives: 5 },
-  Intermediate: { timeSeconds: 180, penalty: 30, lives: 4 },
-  Advanced: { timeSeconds: 120, penalty: 45, lives: 3 },
+  Beginner: { timeSeconds: 240, penalty: 20 },
+  Intermediate: { timeSeconds: 180, penalty: 30 },
+  Advanced: { timeSeconds: 120, penalty: 45 },
 } as const;
 type DiffKey = keyof typeof DIFF_CONFIG;
 
@@ -30,7 +30,6 @@ function getDiffSettings(difficulty: string, level: number) {
   return {
     timeSeconds: base.timeSeconds - tier * 15,
     penalty: base.penalty + tier * 10,
-    lives: Math.max(1, base.lives - (tier >= 2 ? 1 : 0)),
   };
 }
 
@@ -166,7 +165,7 @@ function GameOverScreen({
         <Text style={goStyles.sub}>
           {isTimeout
             ? "The clock ran out. Even Solomon needed more than three minutes. Try again."
-            : "One wrong answer in Survival Mode. The ancient tribunal is disappointed. So are we. A little."}
+              : "All three lives are gone. Review the evidence and try the case again."}
         </Text>
         <View style={goStyles.btnRow}>
           <Animated.View style={{ flex: 1 }}>
@@ -250,6 +249,9 @@ export default function CaseScreen() {
     clearPendingLevelUp,
     level,
     recordTimeAttackBest,
+    recordPlay,
+    recordSurvivalScore,
+    survivalHighScore,
   } = useGame();
 
   const gameMode: GameMode = (modeParam as GameMode) ?? "story";
@@ -259,12 +261,20 @@ export default function CaseScreen() {
 
   const [step, setStep] = useState<GameStep>("intro");
   const [timeLeft, setTimeLeft] = useState(difficultySettings.timeSeconds);
-  const [survivalLives, setSurvivalLives] = useState(difficultySettings.lives);
+  const [survivalLives, setSurvivalLives] = useState(3);
   const [isGameOver, setIsGameOver] = useState(false);
   const [caseStartTime] = useState(Date.now());
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastRecordedPlay = useRef<string | null>(null);
   const [showLevelUp, setShowLevelUp] = useState(false);
+
+  useEffect(() => {
+    const playKey = `${id}:${modeParam ?? "story"}`;
+    if (lastRecordedPlay.current === playKey) return;
+    lastRecordedPlay.current = playKey;
+    recordPlay();
+  }, [recordPlay, id, modeParam]);
 
   useEffect(() => {
     if (pendingLevelUp && pendingLevelUp !== level) {
@@ -300,7 +310,9 @@ export default function CaseScreen() {
 
   const penalizeTime = () => {
     if (gameMode === "timeAttack") {
-      setTimeLeft((t) => Math.max(0, t - difficultySettings.penalty));
+      const nextTime = Math.max(0, timeLeft - difficultySettings.penalty);
+      setTimeLeft(nextTime);
+      if (nextTime === 0) setIsGameOver(true);
     }
     if (gameMode === "survival") {
       setSurvivalLives((l) => {
@@ -317,9 +329,13 @@ export default function CaseScreen() {
       const elapsed =
         Math.max(0, difficultySettings.timeSeconds - timeLeft) * 1000;
       completeCase(caseData.id, caseData.rewards);
-      if (gameMode === "timeAttack") {
-        recordTimeAttackBest(caseData.id, elapsed);
-      }
+    }
+    if (gameMode === "timeAttack") {
+      const elapsed = Math.max(0, difficultySettings.timeSeconds - timeLeft) * 1000;
+      recordTimeAttackBest(caseData.id, elapsed);
+    }
+    if (gameMode === "survival") {
+      recordSurvivalScore(survivalHighScore + 1);
     }
     setStep("reveal");
   };
@@ -329,9 +345,10 @@ export default function CaseScreen() {
   };
 
   const handleRetry = () => {
+    recordPlay();
     setStep("intro");
     setTimeLeft(difficultySettings.timeSeconds);
-    setSurvivalLives(difficultySettings.lives);
+    setSurvivalLives(3);
     setIsGameOver(false);
   };
 
@@ -411,7 +428,7 @@ export default function CaseScreen() {
             onCorrect={handleReveal}
             onWrong={() => {
               penalizeTime();
-              if (gameMode !== "survival" || survivalLives > 1) handleReveal();
+              if (gameMode === "story" || gameMode === "daily") handleReveal();
             }}
             mode={gameMode}
           />

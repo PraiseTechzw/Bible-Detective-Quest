@@ -14,6 +14,7 @@ import colors from "@/constants/colors";
 import GoldButton from "@/components/ui/GoldButton";
 import type { GameMode } from "@/context/GameContext";
 import { IconGavel } from "@/components/ui/SvgIcons";
+import { useGame } from "@/context/GameContext";
 
 interface Props {
   suspects: string[];
@@ -83,6 +84,7 @@ export default function VerdictScreen({
   onWrong,
   mode = "story",
 }: Props) {
+  const { hapticsEnabled } = useGame();
   const [selected, setSelected] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
@@ -138,7 +140,7 @@ export default function VerdictScreen({
   const select = (name: string) => {
     if (submitted) return;
     setSelected(name);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (hapticsEnabled) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
   const doSubmit = () => {
@@ -157,11 +159,13 @@ export default function VerdictScreen({
         friction: 10,
       }),
     ]).start();
-    Haptics.notificationAsync(
-      selected === correctSuspect
-        ? Haptics.NotificationFeedbackType.Success
-        : Haptics.NotificationFeedbackType.Error,
-    );
+    if (hapticsEnabled) {
+      Haptics.notificationAsync(
+        selected === correctSuspect
+          ? Haptics.NotificationFeedbackType.Success
+          : Haptics.NotificationFeedbackType.Error,
+      );
+    }
   };
 
   return (
@@ -197,7 +201,7 @@ export default function VerdictScreen({
           You have examined the evidence, heard the witnesses, studied the
           timeline, and analysed every suspect.{"\n\n"}
           {isSurvival
-            ? "Survival Mode: This is your one chance. Choose wrong and the case ends."
+            ? "Survival Mode: You have three lives. A wrong verdict costs one life."
             : "The truth now rests in your judgment."}
         </Text>
         {isSurvival && (
@@ -206,7 +210,7 @@ export default function VerdictScreen({
               style={[styles.swBorder, { borderColor: "rgba(155,89,182,0.4)" }]}
             />
             <Text style={styles.swText}>
-              One shot. One verdict. No second chances.
+              A wrong verdict costs one life. Keep investigating while you have lives left.
             </Text>
           </View>
         )}
@@ -337,7 +341,7 @@ export default function VerdictScreen({
                   {isCorrectAnswer
                     ? "Your detective instincts are sharp. Now hear the full biblical account."
                     : isSurvival
-                      ? "Wrong answer in Survival Mode. The ancient tribunal is not amused."
+                      ? "Wrong verdict. One life has been lost; review the evidence and try again."
                       : "The evidence points elsewhere. Read the full case reveal to discover the truth."}
                 </Text>
               </View>
@@ -358,9 +362,21 @@ export default function VerdictScreen({
           />
         ) : (
           <GoldButton
-            label="Reveal the Truth"
-            onPress={isCorrectAnswer ? onCorrect : onWrong}
-            icon="book-open"
+            label={isCorrectAnswer ? "Reveal the Truth" : isSurvival || mode === "timeAttack" ? "Try Another Verdict" : "Reveal the Truth"}
+            onPress={() => {
+              if (isCorrectAnswer) {
+                onCorrect();
+                return;
+              }
+              onWrong();
+              if (isSurvival || mode === "timeAttack") {
+                setSelected(null);
+                setSubmitted(false);
+                resultOpacity.setValue(0);
+                resultSlide.setValue(20);
+              }
+            }}
+            icon={isCorrectAnswer || (!isSurvival && mode !== "timeAttack") ? "book-open" : "repeat"}
             iconRight
             size="lg"
             style={styles.cta}

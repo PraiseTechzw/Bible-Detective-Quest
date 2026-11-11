@@ -9,6 +9,7 @@ import type { TimelineEvent } from "@/data/cases";
 import { orderTimelineEvents } from "@/data/gameAlgorithms";
 
 import type { GameMode } from "@/context/GameContext";
+import { useGame } from "@/context/GameContext";
 
 interface Props {
   events: TimelineEvent[];
@@ -25,6 +26,7 @@ export default function TimelinePuzzle({
   onPenalize,
   seedKey,
 }: Props) {
+  const { hapticsEnabled } = useGame();
   const shuffled = useMemo(
     () => orderTimelineEvents(events, seedKey ?? events.map((e) => e.id).join("|")),
     [events, seedKey],
@@ -44,7 +46,7 @@ export default function TimelinePuzzle({
     const next = [...order];
     next[first] = id;
     setOrder(next);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (hapticsEnabled) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
   const remove = (idx: number) => {
@@ -52,14 +54,14 @@ export default function TimelinePuzzle({
     const next = [...order];
     next[idx] = null;
     setOrder(next);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (hapticsEnabled) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
   const reset = () => {
     setOrder(Array(events.length).fill(null));
     setSubmitted(false);
     setScore(0);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (hapticsEnabled) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   };
 
   const submit = () => {
@@ -71,11 +73,14 @@ export default function TimelinePuzzle({
     });
     setScore(correct);
     setSubmitted(true);
-    Haptics.notificationAsync(
-      correct === events.length
-        ? Haptics.NotificationFeedbackType.Success
-        : Haptics.NotificationFeedbackType.Warning
-    );
+    if (correct < events.length) onPenalize?.();
+    if (hapticsEnabled) {
+      Haptics.notificationAsync(
+        correct === events.length
+          ? Haptics.NotificationFeedbackType.Success
+          : Haptics.NotificationFeedbackType.Warning
+      );
+    }
   };
 
   const isCorrect = (idx: number) => {

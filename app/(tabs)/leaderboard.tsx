@@ -13,14 +13,24 @@ import {
 } from "@/components/ui/SvgIcons";
 
 function useEntrance(delay = 0) {
+  const { animationsEnabled } = useGame();
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(20)).current;
   useEffect(() => {
+    if (!animationsEnabled) {
+      opacity.stopAnimation();
+      translateY.stopAnimation();
+      opacity.setValue(1);
+      translateY.setValue(0);
+      return;
+    }
+    opacity.setValue(0);
+    translateY.setValue(20);
     Animated.parallel([
       Animated.timing(opacity, { toValue: 1, duration: 450, delay, useNativeDriver: true }),
       Animated.spring(translateY, { toValue: 0, delay, useNativeDriver: true, tension: 60, friction: 10 }),
     ]).start();
-  }, []);
+  }, [animationsEnabled, delay, opacity, translateY]);
   return { opacity, transform: [{ translateY }] };
 }
 
@@ -146,12 +156,12 @@ export default function LeaderboardScreen() {
               <IconHeart size={20} color={colors.purple} />
             </View>
             <View style={styles.summaryBody}>
-              <Text style={styles.summaryLabel}>Survival High Score</Text>
+              <Text style={styles.summaryLabel}>Survival Wins</Text>
               <Text style={[styles.summaryVal, { color: colors.purple }]}>
                 {survivalHighScore > 0 ? survivalHighScore : "—"}
               </Text>
               <Text style={styles.summarySub}>
-                {currentGrade ? `${currentGrade.label} rank` : "No runs yet"}
+                {currentGrade ? `${currentGrade.label} rank` : "No wins yet"}
               </Text>
             </View>
           </LinearGradient>
@@ -323,7 +333,7 @@ export default function LeaderboardScreen() {
                     {currentGrade?.label ?? "Unranked"}
                   </Text>
                   <Text style={styles.gradeScore}>
-                    High score: <Text style={{ color: colors.purple, fontFamily: "Inter_700Bold" }}>{survivalHighScore}</Text>
+                    Survival wins: <Text style={{ color: colors.purple, fontFamily: "Inter_700Bold" }}>{survivalHighScore}</Text>
                   </Text>
                 </View>
               </View>

@@ -3,7 +3,6 @@ import { router } from "expo-router";
 import React, { useState } from "react";
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import colors from "@/constants/colors";
 import { getRankForLevel } from "@/constants/ranks";
 import { useGame } from "@/context/GameContext";
@@ -11,8 +10,6 @@ import {
   RankIcon, IconArrowLeft, IconSettings, IconVibration, IconSparkles, IconSun, IconBook,
   IconWarning, IconFolder, IconTrendingUp, IconCoin, IconFire, IconTrash,
 } from "@/components/ui/SvgIcons";
-
-const STORAGE_KEY = "@bible_detective_game_state_v3";
 
 function SectionHead({ icon, title }: { icon: React.ReactNode; title: string }) {
   return (
@@ -60,11 +57,20 @@ export default function SettingsScreen() {
   const game = useGame();
   const rank = getRankForLevel(game.level);
 
-  const [haptics, setHaptics] = useState(true);
-  const [animations, setAnimations] = useState(true);
   const [darkMode] = useState(true);
   const [nameEdit, setNameEdit] = useState(false);
   const [name, setName] = useState(game.playerName);
+
+  const saveName = () => {
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      Alert.alert("Name required", "Enter a detective name before saving.");
+      return;
+    }
+    game.updatePlayerName(trimmedName);
+    setName(trimmedName.slice(0, 20));
+    setNameEdit(false);
+  };
 
   const handleReset = () => {
     Alert.alert(
@@ -75,9 +81,9 @@ export default function SettingsScreen() {
         {
           text: "Reset Everything",
           style: "destructive",
-          onPress: async () => {
-            await AsyncStorage.removeItem(STORAGE_KEY);
-            Alert.alert("Progress Reset", "All data cleared. The investigation starts fresh.", [
+          onPress: () => {
+            game.resetProgress();
+            Alert.alert("Progress Reset", "Game progress cleared. Your name, settings, and saved Bible study data were kept.", [
               { text: "OK", onPress: () => router.replace("/(tabs)") },
             ]);
           },
@@ -132,14 +138,18 @@ export default function SettingsScreen() {
                     maxLength={20}
                     placeholderTextColor={colors.textFaint}
                     selectionColor={colors.gold}
-                    onBlur={() => setNameEdit(false)}
+                    onSubmitEditing={saveName}
+                    returnKeyType="done"
                   />
                 ) : (
                   <Text style={styles.rowValue}>{game.playerName}</Text>
                 )}
               </View>
             </View>
-            <Pressable onPress={() => setNameEdit(!nameEdit)} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
+            <Pressable onPress={nameEdit ? saveName : () => {
+              setName(game.playerName);
+              setNameEdit(true);
+            }} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
               <LinearGradient colors={["rgba(212,150,42,0.2)", "rgba(212,150,42,0.08)"]} style={styles.editBtn}>
                 <Text style={styles.editBtnText}>{nameEdit ? "Save" : "Edit"}</Text>
               </LinearGradient>
@@ -150,9 +160,9 @@ export default function SettingsScreen() {
         <SectionHead icon={<IconSettings size={16} color={colors.textMuted} />} title="Gameplay" />
         <LinearGradient colors={[colors.surface2, colors.surface1]} style={styles.section}>
           <View style={[styles.sectionBorder, { borderColor: colors.border }]} />
-          <ToggleRow icon={<IconVibration size={22} color={colors.textMuted} />} label="Haptic Feedback" sub="Vibrations on correct/wrong answers" value={haptics} onChange={setHaptics} />
+          <ToggleRow icon={<IconVibration size={22} color={colors.textMuted} />} label="Haptic Feedback" sub="Vibrations on correct/wrong answers" value={game.hapticsEnabled} onChange={(hapticsEnabled) => game.updateSettings({ hapticsEnabled })} />
           <View style={styles.divider} />
-          <ToggleRow icon={<IconSparkles size={22} color={colors.textMuted} />} label="Animations" sub="Entrance effects and transitions" value={animations} onChange={setAnimations} />
+          <ToggleRow icon={<IconSparkles size={22} color={colors.textMuted} />} label="Screen Animations" sub="Page entrances and case reveal effects" value={game.animationsEnabled} onChange={(animationsEnabled) => game.updateSettings({ animationsEnabled })} />
           <View style={styles.divider} />
           <ToggleRow icon={<IconSun size={22} color={colors.textMuted} />} label="Dark Mode" sub="Always on — it's a detective game" value={darkMode} onChange={() => {}} disabled />
         </LinearGradient>

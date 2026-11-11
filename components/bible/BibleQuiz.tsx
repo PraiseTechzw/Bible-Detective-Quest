@@ -153,9 +153,9 @@ export default function BibleQuiz({ onBack, topPad }: Props) {
         <Text style={styles.questionText}>{q?.question}</Text>
 
         {q?.options.map((opt, i) => {
-          let bg = colors.surface2;
-          let border = colors.border;
-          let textColor = colors.text;
+          let bg: string = colors.surface2;
+          let border: string = colors.border;
+          let textColor: string = colors.text;
           if (selected !== null) {
             if (i === q.answerIndex) { bg = "rgba(46,204,142,0.2)"; border = colors.green; textColor = colors.green; }
             else if (i === selected && selected !== q.answerIndex) { bg = "rgba(232,64,64,0.15)"; border = colors.red; textColor = colors.red; }

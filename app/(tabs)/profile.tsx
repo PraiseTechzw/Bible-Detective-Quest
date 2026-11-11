@@ -208,7 +208,7 @@ function StreakCalendar({ activityDates, streak }: { activityDates: string[]; st
         </View>
         <View style={calStyles.legendItem}>
           <LinearGradient colors={[colors.goldLight, colors.gold]} style={[calStyles.legendDot]} />
-          <Text style={calStyles.legendText}>Case solved</Text>
+          <Text style={calStyles.legendText}>Played a case</Text>
         </View>
         <View style={calStyles.legendItem}>
           <View style={[calStyles.legendDot, { backgroundColor: "transparent", borderColor: colors.gold, borderWidth: 1.5 }]} />
@@ -258,14 +258,24 @@ const ACHIEVEMENTS = [
 ];
 
 function useEntrance(delay = 0) {
+  const { animationsEnabled } = useGame();
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(16)).current;
   useEffect(() => {
+    if (!animationsEnabled) {
+      opacity.stopAnimation();
+      translateY.stopAnimation();
+      opacity.setValue(1);
+      translateY.setValue(0);
+      return;
+    }
+    opacity.setValue(0);
+    translateY.setValue(16);
     Animated.parallel([
       Animated.timing(opacity, { toValue: 1, duration: 450, delay, useNativeDriver: true }),
       Animated.spring(translateY, { toValue: 0, delay, useNativeDriver: true, tension: 60, friction: 10 }),
     ]).start();
-  }, []);
+  }, [animationsEnabled, delay, opacity, translateY]);
   return { opacity, transform: [{ translateY }] };
 }
 

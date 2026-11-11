@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import colors from "@/constants/colors";
 import GoldButton from "@/components/ui/GoldButton";
 import type { Case } from "@/data/cases";
+import { useGame } from "@/context/GameContext";
 
 interface Props {
   caseData: Case;
@@ -29,6 +30,7 @@ function AnimatedCounter({ target, color, suffix = "" }: { target: number | stri
 }
 
 export default function RevealScreen({ caseData, onFinish }: Props) {
+  const { hapticsEnabled, animationsEnabled } = useGame();
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 60 : insets.top;
 
@@ -40,7 +42,15 @@ export default function RevealScreen({ caseData, onFinish }: Props) {
   const sectionSlides = useRef([0, 1, 2, 3, 4].map(() => new Animated.Value(24))).current;
 
   useEffect(() => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    if (hapticsEnabled) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+    if (!animationsEnabled) {
+      heroOpacity.setValue(1);
+      heroScale.setValue(1);
+      sectionOpacities.forEach((value) => value.setValue(1));
+      sectionSlides.forEach((value) => value.setValue(0));
+      return;
+    }
 
     Animated.parallel([
       Animated.timing(heroOpacity, { toValue: 1, duration: 500, useNativeDriver: true }),
@@ -53,7 +63,7 @@ export default function RevealScreen({ caseData, onFinish }: Props) {
         Animated.spring(sectionSlides[i], { toValue: 0, delay: 300 + i * 120, useNativeDriver: true, tension: 60, friction: 12 }),
       ]).start();
     });
-  }, []);
+  }, [animationsEnabled, hapticsEnabled, heroOpacity, heroScale, sectionOpacities, sectionSlides]);
 
   const bottomPad = Platform.OS === "web" ? 24 : insets.bottom;
 

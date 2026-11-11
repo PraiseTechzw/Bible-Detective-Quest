@@ -22,6 +22,8 @@ interface GameState {
   onboardingComplete: boolean;
   pendingLevelUp: number | null;
   activityDates: string[];
+  hapticsEnabled: boolean;
+  animationsEnabled: boolean;
 }
 
 interface GameContextValue extends GameState {
@@ -32,6 +34,9 @@ interface GameContextValue extends GameState {
   recordTimeAttackBest: (caseId: string, timeMs: number) => void;
   recordSurvivalScore: (score: number) => void;
   completeOnboarding: (name: string) => void;
+  updatePlayerName: (name: string) => void;
+  updateSettings: (settings: Partial<Pick<GameState, "hapticsEnabled" | "animationsEnabled">>) => void;
+  resetProgress: () => void;
   clearPendingLevelUp: () => void;
 }
 
@@ -56,6 +61,8 @@ const defaultState: GameState = {
   onboardingComplete: false,
   pendingLevelUp: null,
   activityDates: [],
+  hapticsEnabled: true,
+  animationsEnabled: true,
 };
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -84,20 +91,35 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY).then((raw) => {
-      if (raw) {
-        try {
-          const saved = JSON.parse(raw) as GameState;
-          setState({ ...defaultState, ...saved });
-        } catch {}
+    let active = true;
+    const loadState = async () => {
+      try {
+        const raw = await AsyncStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          try {
+            const saved = JSON.parse(raw) as Partial<GameState>;
+            if (active) setState({ ...defaultState, ...saved });
+          } catch (error) {
+            console.error("Failed to parse saved game progress:", error);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load saved game progress:", error);
+      } finally {
+        if (active) setLoaded(true);
       }
-      setLoaded(true);
-    });
+    };
+    void loadState();
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
     if (loaded) {
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state)).catch((error) => {
+        console.error("Failed to save game progress:", error);
+      });
     }
   }, [state, loaded]);
 
@@ -167,6 +189,26 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     setState((prev) => ({ ...prev, playerName: name, onboardingComplete: true }));
   }, []);
 
+  const updatePlayerName = useCallback((name: string) => {
+    const trimmed = name.trim().slice(0, 20);
+    if (!trimmed) return;
+    setState((prev) => ({ ...prev, playerName: trimmed }));
+  }, []);
+
+  const updateSettings = useCallback((settings: Partial<Pick<GameState, "hapticsEnabled" | "animationsEnabled">>) => {
+    setState((prev) => ({ ...prev, ...settings }));
+  }, []);
+
+  const resetProgress = useCallback(() => {
+    setState((prev) => ({
+      ...defaultState,
+      playerName: prev.playerName,
+      onboardingComplete: prev.onboardingComplete,
+      hapticsEnabled: prev.hapticsEnabled,
+      animationsEnabled: prev.animationsEnabled,
+    }));
+  }, []);
+
   const clearPendingLevelUp = useCallback(() => {
     setState((prev) => ({ ...prev, pendingLevelUp: null }));
   }, []);
@@ -197,6 +239,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       recordTimeAttackBest,
       recordSurvivalScore,
       completeOnboarding,
+      updatePlayerName,
+      updateSettings,
+      resetProgress,
       clearPendingLevelUp,
     }}>
       {children}

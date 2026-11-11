@@ -21,45 +21,87 @@ type StoryQuestion = {
 const QUESTIONS: StoryQuestion[] = [
   {
     id: "q1",
-    prompt: "How many books are in the Bible?",
-    options: ["60", "66", "72", "39"],
+    prompt: "What did God do on the seventh day of creation?",
+    options: ["Created humanity", "Rested and blessed the day", "Made the seas", "Named the animals"],
     answer: 1,
-    ref: "Bible structure",
+    ref: "Genesis 2:2–3",
   },
   {
     id: "q2",
-    prompt: "How many books are in the Old Testament?",
-    options: ["27", "33", "39", "40"],
-    answer: 2,
-    ref: "Bible structure",
+    prompt: "What did God ask Abram to leave when he called him?",
+    options: ["His homeland and family", "His flocks", "The city of Jerusalem", "The land of Egypt"],
+    answer: 0,
+    ref: "Genesis 12:1",
   },
   {
     id: "q3",
-    prompt: "How many books are in the New Testament?",
-    options: ["12", "24", "27", "29"],
-    answer: 2,
-    ref: "Bible structure",
+    prompt: "What sign protected the Israelite homes during the final plague in Egypt?",
+    options: ["A bronze serpent", "Blood on the doorposts", "A cloud over the roof", "A lamp in the window"],
+    answer: 1,
+    ref: "Exodus 12:7, 12–13",
   },
   {
     id: "q4",
-    prompt: "Which book opens the Bible?",
-    options: ["Genesis", "Exodus", "Psalms", "Matthew"],
+    prompt: "What did the Israelites cross to enter the promised land under Joshua?",
+    options: ["The Jordan River", "The Red Sea", "The Sea of Galilee", "The Nile River"],
     answer: 0,
-    ref: "Genesis 1:1",
+    ref: "Joshua 3:14–17",
   },
   {
     id: "q5",
-    prompt: "Which book closes the Bible?",
-    options: ["Jude", "Revelation", "Malachi", "John"],
-    answer: 1,
-    ref: "Revelation 22",
+    prompt: "Which son of Jesse was anointed king after Samuel visited Bethlehem?",
+    options: ["Eliab", "Abinadab", "David", "Jesse"],
+    answer: 2,
+    ref: "1 Samuel 16:11–13",
   },
   {
     id: "q6",
-    prompt: "Which section contains the Gospels?",
-    options: ["Law", "History", "Poetry", "New Testament"],
-    answer: 3,
-    ref: "The Gospels",
+    prompt: "Which king built the temple in Jerusalem?",
+    options: ["Saul", "David", "Solomon", "Hezekiah"],
+    answer: 2,
+    ref: "1 Kings 6:1",
+  },
+  {
+    id: "q7",
+    prompt: "Which empire carried many people of Judah into exile?",
+    options: ["Persia", "Babylon", "Greece", "Rome"],
+    answer: 1,
+    ref: "2 Kings 25:8–11",
+  },
+  {
+    id: "q8",
+    prompt: "What did Nehemiah lead the people to rebuild?",
+    options: ["The temple furnishings", "Jerusalem's wall", "The Jordan crossing", "The palace in Babylon"],
+    answer: 1,
+    ref: "Nehemiah 6:15",
+  },
+  {
+    id: "q9",
+    prompt: "In which town was Jesus born?",
+    options: ["Nazareth", "Capernaum", "Bethlehem", "Jerusalem"],
+    answer: 2,
+    ref: "Luke 2:4–7",
+  },
+  {
+    id: "q10",
+    prompt: "What did the women find when they came to Jesus' tomb?",
+    options: ["The stone rolled away and the tomb empty", "The soldiers asleep inside", "The tomb sealed", "The disciples waiting"],
+    answer: 0,
+    ref: "Matthew 28:1–6",
+  },
+  {
+    id: "q11",
+    prompt: "What happened to the disciples at Pentecost?",
+    options: ["They crossed the Jordan", "They received the Holy Spirit", "They rebuilt the temple", "They sailed to Rome"],
+    answer: 1,
+    ref: "Acts 2:1–4",
+  },
+  {
+    id: "q12",
+    prompt: "What vision closes the Bible's story?",
+    options: ["A rebuilt tower of Babel", "A new heaven and a new earth", "A return to Egypt", "A new temple in Babylon"],
+    answer: 1,
+    ref: "Revelation 21:1–4",
   },
 ];
 
@@ -174,9 +216,9 @@ export default function StoryScreen() {
         <LinearGradient colors={["rgba(212,150,42,0.12)", "rgba(255,255,255,0.03)"]} style={styles.hero}>
           <View style={[styles.heroBorder, { borderColor: colors.goldBorder }]} />
           <IconSparkles size={24} color={colors.gold} />
-          <Text style={styles.heroTitle}>The full 66-book journey</Text>
+          <Text style={styles.heroTitle}>From Genesis to Revelation</Text>
           <Text style={styles.heroText}>
-            Story Mode is a separate Bible chronicle challenge. It tracks the whole Bible story from Genesis to Revelation.
+          Follow twelve key moments across the biblical story, from creation and the kingdom of Israel to the early church and the closing vision of Revelation.
           </Text>
         </LinearGradient>
 

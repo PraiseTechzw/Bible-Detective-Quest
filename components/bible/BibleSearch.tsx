@@ -440,7 +440,7 @@ export default function BibleSearch({ onBack, topPad, onOpenReader }: Props) {
               colors={[colors.goldLight, colors.gold]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={StyleSheet.absoluteFillObject}
+              style={StyleSheet.absoluteFill}
             />
           </Animated.View>
         )}
