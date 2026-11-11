@@ -2,6 +2,7 @@
   "name": "Bible-Detective-Quest",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "bun@1.4.3",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
@@ -55,5 +56,8 @@
     "typescript": "~6.0.3",
     "zod": "^3.25.76",
     "zod-validation-error": "^3.4.0"
+  },
+  "dependencies": {
+    "expo-dev-client": "~57.0.21"
   }
 }
